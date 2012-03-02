@@ -1,0 +1,63 @@
+.NoWrap {
+    white-space : nowrap;
+}
+.Pointer {
+    cursor : pointer;
+}
+.textRight {
+    text-align : right;
+}
+.textLeft {
+    text-align : left;
+}
+.textCenter {
+    text-align : center;
+}
+.textTiny {
+    font-size:7.5px;
+}
+.textSmall {
+    font-size:10px;
+}
+.textMedium {
+    font-size:12px;
+}
+.textLarge {
+    font-size:14px;
+}
+
+.topBorder {
+    border-top-width: 1px;
+}
+.bottomBorder {
+    border-bottom-width: 1px;
+}
+.leftBorder {
+    border-left-width: 1px;
+}
+.rightBorder {
+    border-right-width: 1px;
+}
+
+.noTopBorder {
+    border-top-width: 0px;
+}
+.noBottomBorder {
+    border-bottom-width: 0px;
+}
+.noLeftBorder {
+    border-left-width: 0px;
+}
+.noRightBorder {
+    border-right-width: 0px;
+}
+
+.vTop  {
+    vertical-align: top;
+}
+.vBottom  {
+    vertical-align: bottom;
+}
+.vMiddle  {
+    vertical-align: middle;
+}
