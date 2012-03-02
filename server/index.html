@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+	<title>RPG Application</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="Cache-Control" content="no-cache">
+	<meta http-equiv="Pragma" content="no-cache">
+	<link rel="shortcut icon" href="/favicon.ico">
+	<link rel="shortcut icon" type="image/png" href="/favicon.png">
+
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Content.css" />
+	<!--<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Core.css" />-->
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Layout.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Dock.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Window.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Tabs.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Table.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Icons.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Common.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Buttons.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Tips.css" />
+	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Extensions.css" />
+
+
+	<script type="text/javascript" src="/client/mootools/mootools-core-1.4.2-full-compat.js"></script>
+	<script type="text/javascript" src="/client/mootools/mootools-more-1.4.0.1-yc.js"></script>
+	<script type="text/javascript" src="/client/mootools/MooHashChange.js"></script>
+	<script type="text/javascript" src="/client/mochaui/mochaui_mod.js"></script>
+	<script type="text/javascript" src="/common/string.utf8.js"></script>
+	<script type="text/javascript" src="/common/string.md5.js"></script>
+
+	<script type="text/javascript" src="/client/rpgInit.js"></script>
+	<script type="text/javascript" src="/common/appInfo.js"></script>
+	<script type="text/javascript" src="/common/pages.js"></script>
+	<script type="text/javascript" src="/client/Error.js"></script>
+	<script type="text/javascript" src="/client/Success.js"></script>
+	<script type="text/javascript" src="/client/User/User.js"></script>
+	<script type="text/javascript" src="/client/elementFactory.js"></script>
+	<script type="text/javascript" src="/client/rpgApplication.js"></script>
+    </head>
+    <body>
+	<script type="text/javascript">
+	    window.addEvent('domready',
+	    function() {
+		new RPG.rpgApplication(CLIENT_APP_OPTIONS);
+	    });
+	</script>
+    </body>
+</html>

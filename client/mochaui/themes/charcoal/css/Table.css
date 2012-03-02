@@ -1,0 +1,14 @@
+.table-tr-odd {
+    background-color : #3e3e3e;
+}
+
+.table-tr-hovered {
+    background-color : darkblue;
+    cursor : pointer;
+}
+
+.table-tr-selected {
+    background-color : lightblue;
+    color:black;
+    cursor : pointer;
+}
