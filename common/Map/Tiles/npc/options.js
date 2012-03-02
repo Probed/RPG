@@ -13,7 +13,7 @@ var options = {
 	hitpoints : [1,1000000,1],
 	disposition : ['Friendly','Wary','Neutral','Angry','Hostile'],
 	roaming : {
-	    canRoam : true,
+	    canRoam : [true],
 	    radius :[0,250,0]
 	}
     },

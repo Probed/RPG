@@ -2032,9 +2032,9 @@ RPG.MapEditor = new Class({
 		    col : mC
 		});
 		if (styles['background-image'] != 'none') {
-		    //		    if (!holder.className != 'M_tileHolder-empty') {
-		    //			holder.removeClass('M_tileHolder-empty');
-		    //		    }
+		    if (!holder.className != 'M_tileHolder-empty') {
+			holder.removeClass('M_tileHolder-empty');
+		    }
 		    holder.style.backgroundImage = styles['background-image'];
 		    holder.style.backgroundPosition = styles['background-position'];
 		    holder.style.backgroundSize = styles['background-size'];
@@ -2042,12 +2042,11 @@ RPG.MapEditor = new Class({
 
 		} else {
 		    holder.style.backgroundImage = 'none';
+		    if (!holder.className != 'M_tileHolder-empty') {
+			holder.addClass('M_tileHolder-empty');
+		    }
 		}
-		//		else if (!holder.className != 'M_tileHolder-empty') {
-		//		    holder.addClass('M_tileHolder-empty');
-		//		    holder.style.backgroundImage = 'none';
-		//		}
-		//holder.swapClass('mR'+rowcol.row,'mR'+mR).swapClass('mC'+rowcol.col,'mC'+mC);//@todo find way around using classes for row/col painting.. this is slow when dragging
+		holder.swapClass('mR'+rowcol.row,'mR'+mR).swapClass('mC'+rowcol.col,'mC'+mC);//@todo find way around using classes for row/col painting.. this is slow when dragging
 
 		rowcol = mR = mC = styles = null;
 	    }
@@ -2337,7 +2336,7 @@ RPG.MapEditor = new Class({
 	var cell = {
 	    properties : {
 		id : (options.tileset?'tileset_':'')+'mR'+(options.row)+'mC'+(options.col),
-		'class' : 'M_tileHolder ',//+(styles['background-image']=='none'?'M_tileHolder-empty ':'') +'mR'+(options.row)+' mC'+(options.col),
+		'class' : 'M_tileHolder '+(styles['background-image']=='none'?'M_tileHolder-empty ':'') +'mR'+(options.row)+' mC'+(options.col),
 		styles : styles
 	    },
 	    content : '&nbsp;'
@@ -2377,7 +2376,7 @@ RPG.MapEditor = new Class({
 	    }
 	}
 	var selectedTilePath = (options.selectedTile && options.selectedTile.retrieve('tilePath').join('.')) || options.selectedTilePath;
-	var remove = RPG.removeTile(this.currentTiles,selectedTilePath,options.row,options.col);
+	var remove = RPG.removeTile(this.currentTiles,selectedTilePath,[options.row,options.col]);
 	if (remove) {
 	    var addClass = '';
 	    if (this.currentTiles[options.row][options.col].length == 0) {
