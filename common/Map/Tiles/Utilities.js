@@ -4,6 +4,10 @@ if (typeof exports != 'undefined') {
     Object.merge(
 	RPG,require('../../optionConfig.js'),
 	RPG,require('./Tiles.js'),
+	RPG,require('./TileTypes.js'),
+	RPG,require('./property.js'),
+	RPG,require('./traverse.js'),
+	RPG,require('./teleportTo.js'),
 	RPG,require('../Generators/Utilities.js'));
     module.exports = RPG;
 }
@@ -63,28 +67,132 @@ RPG.getMapTileStyles = function(options) {
 }
 
 /**
- * Required Options:
- * universe
- * character
- * point
+ * For all the tiles at a given point merge the tile options together then call each resulting tiletype, tiletypes may be overwritten by higher tiles.
+ * Required Options: {
+ *	universe,
+ *	character,
+ *	point
+ *	},
+ *	tiles = array of tile paths: [['terrain','dirt'],['world','hut'],...] (hut may override dir)
+ *
  *
  */
-RPG.canMoveToTile = function(options) {
-    var map = options.universe.maps[options.character.location.mapName];
-    var tiles = map.tiles[options.point[0]] && map.tiles[options.point[0]][options.point[1]];
-
-
-    if (!tiles) return false;
-    var traversable = false
-    tiles.each(function(tile){
-	var c = Object.getFromPath(map.cache,tile);
-	if (c && c.options && c.options.property && c.options.traverse) {
-	    traversable = true;
+RPG.triggerTileTypes = function(game, tiles, event, callback) {
+    if (!game || !tiles || !event || !callback) return;
+    var map = game.universe.maps[game.character.location.mapName];
+    var len = tiles.length;
+    var tile = null;
+    var mergedTileOptions = {};
+    for (var x=0; x<len;x++) {
+	if (!tiles[x]) continue;
+	tile = Object.getFromPath(map.cache,tiles[x]);
+	Object.merge(mergedTileOptions,tile);
+    }
+    var triggers = [];
+    var triggerChain = new Chain();
+    var results = {};
+    //loop through each tile type. eg travers, teleportTo, property etc
+    Object.each(mergedTileOptions.options,function(content,key,source){
+	//if there exists a function to handle this trigger; create a function wrapper, push it onto the stack then execute each one after the other.
+	if (RPG.Tile[key]) {
+	    triggers.push(function(){
+		RPG.Tile[key]({
+		    game : game,
+		    tiles : tiles,
+		    merged : source,
+		    contents : content,
+		    event : event
+		},function(result){
+		    Object.merge(results,result);
+		    triggerChain.callChain();
+		});
+	    });
 	} else {
-	    traversable = false;
-	}
+    //no suitable handler
+    }
     });
-    return traversable;
+    triggers.push(function(){
+	callback(results);
+    });
+    triggerChain.chain(triggers);
+    triggerChain.callChain();//begin triggering
+    map = len = tile = null;
+}
+
+/* Attempts to move a character to the given point
+ *
+ * Required Options: {
+ *	universe,
+ *	character
+ *	},
+ *	point,
+ *	callback
+ */
+RPG.moveCharacterToTile = function(game,point,callback) {
+    var map = game.universe.maps[game.character.location.mapName];
+    var newLocTiles = map.tiles[point[0]] && map.tiles[point[0]][point[1]];
+    var curLocTiles = map.tiles[game.character.location.point[0]][game.character.location.point[1]];
+
+    if (!newLocTiles) callback({
+	error : 'Cannot move to that location. No Tiles Found.'
+    });
+
+    var move = {};
+    //check to see if we can leave the current tile:
+    RPG.triggerTileTypes(game,curLocTiles,'onBeforeLeave',function(beforeLeaveResults){
+	if (beforeLeaveResults && beforeLeaveResults.error) {
+	    callback(beforeEnterResults);
+	    return;
+	}
+	if (beforeLeaveResults) {
+	    Object.merge(move,{
+		onBeforeLeave : beforeLeaveResults
+	    });
+	}
+	//check to see if we can enter the new tile
+	RPG.triggerTileTypes(game,newLocTiles,'onBeforeEnter',function(beforeEnterResults){
+	    if (beforeEnterResults && beforeEnterResults.error) {
+		callback(beforeEnterResults);
+		return;
+	    }
+	    if (beforeEnterResults) {
+		Object.merge(move,{
+		    onBeforeEnter : beforeEnterResults
+		});
+	    }
+	    if (!beforeEnterResults.traverse) {
+		callback({
+		    error : 'Cannot move to that tile.'
+		});
+		return;
+	    }
+	    //actually leave the current tile
+	    RPG.triggerTileTypes(game,curLocTiles,'onLeave',function(leaveResults){
+		if (leaveResults && leaveResults.error) {
+		    callback(leaveResults);
+		    return;
+		}
+		if (leaveResults) {
+		    Object.merge(move,{
+			onLeave : leaveResults
+		    });
+		}
+		//now enter the new tile
+		RPG.triggerTileTypes(game,newLocTiles,'onEnter',function(enterResults){
+		    if (enterResults && enterResults.error) {
+			callback(enterResults);
+			return;
+		    }
+		    if (enterResults) {
+			Object.merge(move,{
+			    onEnter : enterResults
+			});
+		    }
+		    callback(move);
+		});
+	    });
+	});
+    });
 }
 
 /*

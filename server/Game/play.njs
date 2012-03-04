@@ -28,6 +28,11 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		'/client/Game/play.js',
 		'/common/optionConfig.js',
 		'/common/Character/Character.js',
+
+		'/common/Map/Tiles/property.js',//@todo dynamicize this
+		'/common/Map/Tiles/traverse.js',//@todo dynamicize this
+		'/common/Map/Tiles/teleportTo.js',//@todo dynamicize this
+
 		'/common/Random.js',
 		'/common/Map/Generators/Words.js',
 		'/client/Character/CreateCharacter.js',

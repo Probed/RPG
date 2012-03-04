@@ -32,6 +32,8 @@
  *
  *	All Newly created tiles (using RPG.createTile) will be populated with default values then merged with their final values overwriting any defaults
  *
+ *	A corrpsponding file needs to be created in /common/Map/Tiles where the fileName = options_constraint name ie: teleportTo.js or  traverse.js  (not the TileType name
+ *	this file will be used to perform the actions associated with the tiletype
  */
 if (!RPG) var RPG = {};
 if (!RPG.TileType) RPG.TileType = {};

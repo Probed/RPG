@@ -33,6 +33,8 @@ RPG.Error = new (new Class({
 	    error.each(function(err){
 		message += err +'<br>';
 	    });
+	}else if (typeOf(error) == 'object') {
+	    message = JSON.stringify(error);
 	}
 	MUI.notification(message);
     },
@@ -57,6 +59,8 @@ RPG.Error = new (new Class({
 	    });
 	} else if (typeOf(error) == 'string') {
 	    message = error;
+	} else if (typeOf(error) == 'object') {
+	    message = JSON.stringify(error);
 	} else {
 	    message += 'No Message :(<br>';
 	}

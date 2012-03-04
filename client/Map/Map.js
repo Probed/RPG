@@ -219,15 +219,18 @@ RPG.Map = new Class({
 	for(i=0;i<amount;i++) {
 
 	    var newLoc = RPG[dir](this.options.character.location.point,1);
-	    var move = {
+	    var game = {
 		universe : this.options.universe,
-		character : this.options.character,
-		point : newLoc
+		character : this.options.character
 	    };
 
-	    if (RPG.canMoveToTile(move)) {
-		this.characterMoving = true;
-
+	    this.characterMoving = true;
+	    RPG.moveCharacterToTile(game,newLoc, function(move){
+		if (move.error) {
+		    RPG.Error.notify(move);
+		    this.characterMoving = false;
+		    return;
+		}
 		new Request.JSON({
 		    url : '/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+this.options.character.database.characterID+'&dir='+dir,
 		    onFailure : function(error) {
@@ -246,9 +249,7 @@ RPG.Map = new Class({
 		this.options.Character.changeDirection(dir.charAt(0));
 		this.refreshMap();
 
-	    } else {
-		RPG.Error.notify('Cannot move to that tile.');
-	    }
+	    }.bind(this));
 	}
     }
 

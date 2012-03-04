@@ -65,7 +65,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 
 	var rt = RPG.Generator.Terrain.random(mapName,rand);
 	Object.merge(universe,rt.universe);
-	var randRow = Object.getSRandom(rt.generated.sand,rand);
+	var randRow = Object.getSRandom(rt.generated.solid,rand);
 	var randCol = Object.getSRandom(randRow.rand,rand);
 	var charStartPoint = [Number.from(randRow.key),Number.from(randCol.key)];
 //

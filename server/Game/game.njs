@@ -118,8 +118,8 @@ RPG.Game = new (RPG.GameClass = new Class({
     /**
      * required options
      * user,
-     * characterID,
-     * point,
+     * game
+     * dir, = direction (n,e,s,w)
      */
     moveCharacter : function(options,callback) {
 	if (!RPG.dirs.contains(options.dir)) {
@@ -131,11 +131,12 @@ RPG.Game = new (RPG.GameClass = new Class({
 	options.userID = options.user.options.userID;
 	var newLoc = RPG[options.dir](options.game.character.location.point,1);
 
-	if (RPG.canMoveToTile({
-	    universe : options.game.universe,
-	    character : options.game.character,
-	    point : newLoc
-	})) {
+
+	RPG.moveCharacterToTile(options.game,newLoc, function(move) {
+	    if (move.error) {
+		callback(move);
+		return;
+	    }
 	    options.game.character.location.point = newLoc;
 	    options.game.character.location.dir = options.dir.charAt(0);
 
@@ -162,12 +163,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    },callback);
 		}.bind(this)
 	    });
-	} else {
-	    callback({
-		error : 'Cannot move to that tile.'
-	    })
-	}
-
+	});
     }
 
 }))();
