@@ -17,7 +17,7 @@ This file contains a free form object which should, in later development, be use
 
 ## [optionsConfig.js](https://github.com/Probed/RPG/tree/master/common/optionsConfig.js)
 
-**This understanding of this file is critical to any understanding form input in the application.**
+**This understanding of this file is critical to any understanding `options` in the application.**
 
 See [optionConfig.md](https://github.com/Probed/RPG/tree/master/common/optionsConfig.md) for more details.
 

@@ -15,6 +15,8 @@ The resulting object is one that is identical in structure to the directory stru
 
 At the same time each folder is checked for an `options.js` file. If this file is found, it is imported into the current level of tiles.
 
+Any Images `png`/`bmp`/`jpg`/`gif` found inside the folder will be pushed onto the `[tile.]options.property.image.name` option
+
 Example:
 
     var tiles = {
