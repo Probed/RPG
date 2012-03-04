@@ -3,31 +3,29 @@ Javascript Tile Based RPG
 
 The goal of this project is to create an Infinite Randomish Universe within which the player explores, quests, fights, loots, equips, levels and more.
 
-Server Javascript
------------------
+### Server Side Javascript
+
 
 The server uses [Node.js](http://www.nodejs.org) to process requests.
 Currently the application is setup for Windows using [IISNode](https://github.com/tjanczuk/iisnode).
 It has not been tested in any other environment.
 
-All Client/Server interactions are processed through [index.njs](https://github.com/Probed/RPG/blob/master/index.njs)
+All Client/Server interactions are processed through [index.njs](https://github.com/Probed/RPG/blob/master/index.njs) which is just a stub file that redirects flow into [/server/rpgApp.njs](https://github.com/Probed/RPG/blob/master/server/rpgApp.njs)
 
 All Server-side-only javascript files use the extension '.njs'
 
 
-Client/Common Javascript
-------------------------
+### Client Side / Common Javascript
 
 All Client/Common javascript files use normal .js extension.
 
 
-Netbeans
---------
+### Netbeans
+
 
 Current development is being done using [Netbeans](http://www.netbeans.org/)
 
-3rd Party Javascript
---------------------
+### 3rd Party Javascript
 
 [Mootools](http://www.mootools.com) - [Client](https://github.com/Probed/RPG/tree/master/client/mootools) & [Server](https://github.com/Probed/RPG/blob/master/server/mootools-core-1.4.2-server.njs)
 
