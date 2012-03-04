@@ -1,5 +1,11 @@
 if (!RPG) var RPG = {};
+if (typeof exports != 'undefined') {
+    module.exports = RPG;
+}
 
+/**
+ * Game Difficulty
+ */
 RPG.Difficulty = {
     Easy : {
 	description : '',
@@ -38,6 +44,9 @@ RPG.difficultyVal = function(diff,path) {
     return Object.getFromPath(RPG.Difficulty[diff],path);
 }
 
+/**
+ * Character Stats
+ */
 RPG.Stats = {
     Agility : {
 	value : 1
@@ -56,7 +65,9 @@ RPG.Stats = {
     }
 };
 
-
+/**
+ * Character Classes
+ */
 RPG.Class = {
     Warrior : {
 	Stats : {
@@ -96,17 +107,27 @@ RPG.getClassStat = function(clas, stat, key) {
     return (RPG.Class[clas] && RPG.Class[clas].Stats[key][stat]) || RPG.Stats[stat].value;
 }
 
-
+/**
+ * Genders
+ */
 RPG.Gender = {
     Male : {},
     Female : {}
 };
 
+/**
+ * Races
+ */
 RPG.Race = {
     Human : {},
     NotHuman : {}
 };
 
+
+/**
+ * Character option constraints
+ *
+ */
 RPG.character_options = {
     Difficulty : Object.keys(RPG.Difficulty),
     portrait : ["/^[a-zA-Z0-9_.]+$/",3,50],
@@ -117,14 +138,13 @@ RPG.character_options = {
     Stats : Object.clone(RPG.Stats)
 }
 
+/**
+ * takes a character options object and returns a styles object for a DOM Element to display the characters portrait
+ */
 RPG.getCharacterStyles = function(character) {
     var styles = {};
     styles['background-image'] = 'url("/client/images/Character/portrait/'+escape(character.Gender)+'/'+escape(character.portrait)+'/'+escape((character.location && character.location.dir) || 'e')+'.png")';
     styles['background-size'] = '100% 100%';
     styles['background-repeat'] = 'no-repeat';
     return styles;
-}
-
-if (typeof exports != 'undefined') {
-    module.exports = RPG;
 }

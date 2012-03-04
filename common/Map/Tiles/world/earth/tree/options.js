@@ -1,18 +1,11 @@
-var options = {
-    property : {
-	traversableBy : {
-	    foot : {
-		cost : [-100,100,1.25]
-	    },
-	    steed : {
-		cost : [-100,100,1]
-	    },
-	    vehicle : {
-		cost : [-100,100,0.75]
-	    }
-	}
+/**
+ * Tree Tiles
+ */
+var options = require('../../../TileTypes.js').TileType.Traversable({
+    foot : {
+	cost : [-100,100,1]
     }
-};
+});
 
 if (typeof exports != 'undefined') {
     exports.options = options;

@@ -1,3 +1,8 @@
+if (!RPG) var RPG = {};
+if (typeof exports != 'undefined') {
+    module.exports = RPG;
+}
+
 RPG.Generators = {
     Terrain : {
 	require :{
@@ -17,16 +22,6 @@ RPG.Generators = {
     Maze : {
 	require :{
 	    js : ['/common/map/Generators/Maze.js','/common/map/Generators/Words.js']
-	}
-    },
-    Name : {
-	require :{
-	    js : ['/common/map/Generators/Words.js']
-	}
-    },
-    Words : {
-	require :{
-	    js : ['/common/map/Generators/Words.js']
 	}
     }
 }

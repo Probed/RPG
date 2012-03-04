@@ -10,8 +10,10 @@ if (typeof exports != 'undefined') {
 RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
     Implements : [Options],
     constraints : {
-	seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
-	length : [4,8,6]//min/max/def
+	name : {
+	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    length : [2,12,6]//min/max/def
+	}
     },
     options : {},
     initialize : function(options) {
@@ -26,7 +28,7 @@ RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
     generate : function(options,rand){
 	if (!options) options = {};
 	rand = rand || RPG.Random;
-	rand.seed = options.seed || rand.seed;
+	rand.seed = (options.name && options.name.seed) || rand.seed;
 
 	var i = 0;
 
@@ -34,7 +36,7 @@ RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
 	var con = 'bcdfghjklmnpqrstvwxz' + 'bcdfgjklmnprstvw' + 'bcdfgjklmnprst';
 	var allchars = vowels + con;
 
-	var length = options.length;
+	var length = options.name.length || rand.random(4,6);
 	if (length < 1) length = 1;
 	var consnum = 1;
 	var name = '';
@@ -95,8 +97,10 @@ RPG.wordPatterns = {
 RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
     Implements : [Options],
     constraints : {
-	seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
-	pattern : Object.keys(RPG.wordPatterns)
+	words : {
+	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    pattern : Object.keys(RPG.wordPatterns)
+	}
     },
     options : {},
     initialize : function(options) {
@@ -104,12 +108,8 @@ RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
     },
 
     generate : function(options,rand) {
-	if (!options.seed) {
-	    options.seed = (Math.random() * (99999999999 - 1) + 1);
-	}
 	rand = rand || RPG.Random;
-	rand.seed = options.seed;
-
+	rand.seed =  (options.words && options.words.seed) || rand.seed;
 	var out = '';
 	RPG.wordPatterns[options.pattern].each(function(words){
 	    for (var i = 0;i<256;i++) {

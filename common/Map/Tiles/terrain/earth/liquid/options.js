@@ -1,21 +1,15 @@
-var options = {
-    property : {
-	traversableBy : {
-	    foot : {
-		cost : [-100,100,100]
-	    },
-	    steed : {
-		cost : [-100,100,100]
-	    },
-	    vehicle : {
-		cost : [-100,100,100]
-	    },
-	    boat : {
-		cost : [-100,100,3]
-	    }
-	}
+/**
+ * Liquid Terrain Tiles
+ *
+ */
+var options = require('../../../TileTypes.js').TileType.Traversable({
+    foot : {
+	cost : [-100,100,5]
+    },
+    boat : {
+	cost : [-100,100,5]
     }
-};
+});
 
 if (typeof exports != 'undefined') {
     exports.options = options;

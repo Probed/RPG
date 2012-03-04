@@ -13,7 +13,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
     Implements : [Options],
     constraints : {
 	house : {
-	    name : ["/^[a-zA-Z0-9_.]+$/",1,50,'g'],
+	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    type : RPG.tileFolderList(RPG.Tiles,'world.earth.room'),
 	    rows : [2,10,2],

@@ -14,6 +14,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
     initialize : function(options) {
 	this.parent(options);
 
+	//Client Received Page Contents:
 	this.page = {
 	    title : 'Map Editor',
 	    populates : 'pnlMainContent',
@@ -36,19 +37,29 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    options : {}
 	};
 
-	var constraints = {};
-	this.buildTileConstraints(['./common','Map','Tiles'],constraints);
-	var str = 'if (!RPG) var RPG = {};RPG.Tiles=';
+	var constraints = this.buildTileConstraints(['./common','Map','Tiles']);
+	var str = '/*This File is Generated in /server/Map/MapEditor.njs*/if (!RPG) var RPG = {};RPG.Tiles=';
 	str += JSON.encode(constraints);
 	str += ';if (typeof exports != "undefined") {module.exports = RPG;}';
 	require('fs').writeFileSync('./common/Map/Tiles/Tiles.js',str,'utf8');
 	Object.merge(RPG,{
 	    Tiles : constraints
 	});
+
+	//only after we have created RPG.Tiles can we merge in the Utilities which requires RPG.Tiles
 	Object.merge(RPG,require('../../common/Map/Tiles/Utilities.js'));
+	constraints = null;
     },
 
+    /**
+     * buildTileConstraints Here we recursivly traverse the /common/Map/Tiles  directory and build up the RPG.Tiles object
+     * Each folder can have an options.js file which will be imported and merged into the tile to give the tile it's unique abilities.
+     * option.js files will reference TileTypes.js for the different types available
+     *
+     */
     buildTileConstraints : function(dir,constraints) {
+	if (!constraints) constraints = {};
+
 	var folders = require('fs').readdirSync(dir.join('/'));
 
 	if (require('path').existsSync(dir.join('/')+'/options.js')) {
@@ -72,6 +83,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    }
 
 	}.bind(this));
+	return constraints;
     },
 
     onRequest : function(request,response) {

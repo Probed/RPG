@@ -46,8 +46,10 @@ RPG.CreateCharacter = new Class({
 		}.bind(this),
 		'click:relay(div.RandomName)' : this.randFuncs[r++] = function(event) {
 		    this.charName.value = RPG.Generator.Name.generate({
-			seed : RPG.Random.seed,
-			length:RPG.Random.random(3,11)
+			name : {
+			    seed : RPG.Random.seed,
+			    length:RPG.Random.random(3,11)
+			}
 		    });
 		}.bind(this),
 		'click:relay(div.RandomGender)' : this.randFuncs[r++] = function(event) {

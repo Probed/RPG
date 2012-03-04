@@ -1,5 +1,5 @@
 /**
- * Shrub Tiles
+ * Door Tiles
  */
 var options = require('../../../TileTypes.js').TileType.Traversable({
     foot : {

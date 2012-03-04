@@ -3,9 +3,9 @@ var RPG = module.exports = {};
 Object.merge(RPG,
     require('../Map/MapEditor.njs'),
     require('../Character/Character.njs'),
-    require('../../common/Map/Generators/Dungeon.js')
-//    require('../../common/Map/Generators/House.js'),
-//    require('../../common/Map/Generators/Terrain.js')
+    require('../../common/Map/Generators/Dungeon.js'),
+    require('../../common/Map/Generators/House.js'),
+    require('../../common/Map/Generators/Terrain.js')
     );
 
 RPG.InitGame = new (RPG.InitGameClass = new Class({
@@ -63,20 +63,19 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	rand.seed =(Math.random() * (99999999999 - 1) + 1);
 
 
-//	var rt = RPG.Generator.Terrain.random(mapName,rand);
-//	Object.merge(universe,rt.universe);
-
-//	var randRow = Object.getSRandom(rt.generated.sand,rand);
-//	var randCol = Object.getSRandom(randRow.rand,rand);
-//	var charStartPoint = [Number.from(randRow.key),Number.from(randCol.key)];
+	var rt = RPG.Generator.Terrain.random(mapName,rand);
+	Object.merge(universe,rt.universe);
+	var randRow = Object.getSRandom(rt.generated.sand,rand);
+	var randCol = Object.getSRandom(randRow.rand,rand);
+	var charStartPoint = [Number.from(randRow.key),Number.from(randCol.key)];
 //
 //	var h = RPG.Generator.House.random(mapName,rand);
 //	Object.merge(universe,h.universe);
 //	var charStartPoint = h.generated.frontGate[0];
 
-	var d = RPG.Generator.Dungeon.random(mapName,rand);
-	Object.merge(universe,d.universe);
-	var charStartPoint = d.generated.stairsUp;
+//	var d = RPG.Generator.Dungeon.random(mapName,rand);
+//	Object.merge(universe,d.universe);
+//	var charStartPoint = d.generated.stairsUp;
 
 	RPG.MapEditor.beginUserUniverseSave(
 	//request

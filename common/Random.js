@@ -1,5 +1,24 @@
 if (!RPG) var RPG = {};
+if (typeof exports != 'undefined') {
+    module.exports = RPG;
+}
 
+/**
+ * Adds Object.getSRandom function to Object
+ * This allows you to retrieve a seeded random key,content from an object.
+ *
+ * Eg: source = {
+ *	    1 : content,
+ *	    2 : content2,
+ *	    3 : content3
+ *	};
+ *
+ *	Returns {
+ *	    key : random (1 or 2 or 3)
+ *	    value (content or content2 or content3)
+ *	}
+ *
+ */
 Object.extend({
     getSRandom : function(source,rand,ignore) {
 	var keys = Object.keys(source);
@@ -12,12 +31,20 @@ Object.extend({
     }
 });
 
+/**
+ * Returns a seeded random element from the array
+ * Eg: source = [1,2,3]
+ *	return = 1 or 2 or 3 (randomly selected)
+ */
 Array.extend({
     getSRandom : function(source,rand) {
 	return source[Math.floor((rand || RPG.Random).random(0,source.length))];
     }
 })
 
+/**
+ * Seeded Randomness
+ */
 RPG.Random = {
     seed : Math.random() * (99999999999 - 1) + 1,
     oldSeed : null,
@@ -45,7 +72,3 @@ RPG.Random = {
 	RPG.Random.seed = RPG.Random.oldSeed;
     }
 };
-
-if (typeof exports != 'undefined') {
-    module.exports = RPG;
-}

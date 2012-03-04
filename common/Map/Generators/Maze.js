@@ -11,15 +11,15 @@ if (typeof exports != 'undefined') {
 RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
     Implements : [Options],
     constraints : {
-	name : ["/^[a-zA-Z0-9_.]+$/",1,50,'g'],
-	seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
-	randomSeed : false,
-	tileGroup :  ['world.road.asphalt'],
-	height : [8,1024,25],
-	width : [8,1024,45],
-	sparse : [0,512,0],
-	offsetRow : [-9999,9999,0],
-	offsetCol : [-9999,9999,0]
+	maze : {
+	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
+	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    randomSeed : false,
+	    tile :  RPG.tileFolderList(RPG.Tiles,'world.earth.road'),
+	    height : [8,64,32],
+	    width : [8,64,32],
+	    sparse : [0,10,0]
+	}
     },
     options : {},
     initialize : function(options) {
@@ -34,52 +34,45 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	    array2d : []
 	};
 
-	if (options.randomSeed) {
-	    options.seed = (Math.random() * (99999999999 - 1) + 1);
+	if (options.maze.randomSeed) {
+	    options.maze.seed = (Math.random() * (99999999999 - 1) + 1);
 	}
 	rand = rand || RPG.Random;
-	rand.seed = options.seed;
+	rand.seed = options.maze.seed;
 
-	options.height = Number.from(options.height) ||  10;
-	options.width = Number.from(options.height) ||  10;
-	options.offsetRow = Number.from(options.offsetRow) || 0;
-	options.offsetCol = Number.from(options.offsetCol) || 0;
-
+	options.maze.height = Number.from(options.maze.height) ||  10;
+	options.maze.width = Number.from(options.maze.height) ||  10;
 
 	maze.str = this.mazeToStr(this.createMaze(options,rand));
 
 	var strRows = maze.str.split('\r\n');
 	var r = 0;
 	var c = 0;
-	//clean the string
-	maze.array2d = [];
 
-	options.maze = {};
-	options.maze_cache = {};
-
+	//clean the maze string
 	strRows.each(function(row) {
 	    //console.log(row+'\r\n');
-	    row = row.replace(/\+/gi,options.tileGroup+',');
+	    row = row.replace(/\+/gi,'w,');
 	    row = row.replace(/[s]{3}/gi,'s,');
 	    row = row.replace(/[e]{1}/gi,'e,');
 	    row = row.replace(/[1]{3}/gi,'1,');
 	    row = row.replace(/[2]{1}/gi,'2,');
 	    row = row.replace(/[3]{3}/gi,'3,');
-	    row = row.replace(/[-]{3}/gi,options.tileGroup+',');
-	    row = row.replace(/\|/gi,options.tileGroup+',');
+	    row = row.replace(/[-]{3}/gi,'w,');
+	    row = row.replace(/\|/gi,'w,');
 	    row = row.substring(0,row.length-1);
 	    maze.array2d.push(row.split(','));
 	});
 	maze.array2d.pop();
 
-	for (var x=0;x<Number.from(options.sparse);x++) {
+	for (var x=0;x<Number.from(options.maze.sparse);x++) {
 	    r=0;
 	    c=0;
 	    maze.array2d.each(function(row,index,rows) {
 		row.each(function(col) {
 		    if (!rows[r]) return;
 		    if (!rows[r][c]) return;
-		    var ablr = RPG.getAboveBelowLeftRight(rows,options.tileGroup,[r,c]);
+		    var ablr = RPG.getAboveBelowLeftRight(rows,'w',[r,c]);
 		    if (r > 0 && c > 0 && r<rows.length-1 && c < rows[r].length-1) {
 			//trim single walls
 			if (((ablr.above?1:0) + (ablr.below?1:0) + (ablr.left?1:0) + (ablr.right?1:0)) == 1) {
@@ -97,17 +90,26 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	c=0;
 	maze.array2d.each(function(row,rIdx,rows) {
 	    row.each(function(col, cIdx) {
-
 		switch (col) {
-		    case options.tileGroup:
-			var orientation = RPG.getTileOrientation(maze.array2d,options.tileGroup,[rIdx,cIdx]);
+		    case 'w':
+			var orientation = RPG.getTileOrientation(maze.array2d,'w',[r,c]);
 			if (orientation) {
-
-			    RPG.replaceTile(maze.tiles,options.tileGroup,[r+options.offsetRow,c+options.offsetCol],
-				RPG.createTile(options.tileGroup,maze.cache,{
+			    RPG.pushTile(maze.tiles,[r,c],
+				RPG.createTile('terrain.earth.solid.grass',maze.cache,{
+				    property : {
+					tileName : '1',
+					folderName : options.maze.name,
+					image : {
+					    name : '1.png'
+					}
+				    }
+				})
+				);
+			    RPG.replaceTile(maze.tiles,'w',[r,c],
+				RPG.createTile(options.maze.tile,maze.cache,{
 				    property : {
 					tileName : orientation,
-					folderName : options.name,
+					folderName : options.maze.name,
 					image : {
 					    name : orientation+'.png',
 					    size : 150,
@@ -120,13 +122,13 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 			}
 			break;
 		    default:
-			RPG.pushTile(maze.tiles,[r+options.offsetRow,c+options.offsetCol],
+			RPG.pushTile(maze.tiles,[r,c],
 			    RPG.createTile('terrain.earth.solid.grass',maze.cache,{
 				property : {
-				    tileName : 'g3',
-				    folderName : options.name,
+				    tileName : '1',
+				    folderName : options.maze.name,
 				    image : {
-					name : 'g3.png'
+					name : '1.png'
 				    }
 				}
 			    })
@@ -145,8 +147,8 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
     },
     createMaze : function(options,rand) {
 	rand = rand || RPG.Random;
-	var y  = Math.floor(options.width /2);
-	var x  = Math.floor(options.height /2);
+	var y  = Math.floor(options.maze.width /2);
+	var x  = Math.floor(options.maze.height /2);
 	var n=x*y-1;
 	var j = 0;
 	var k = 0;

@@ -78,7 +78,7 @@ RPG.canMoveToTile = function(options) {
     var traversable = false
     tiles.each(function(tile){
 	var c = Object.getFromPath(map.cache,tile);
-	if (c && c.options && c.options.property && c.options.property.traversableBy) {
+	if (c && c.options && c.options.property && c.options.traverse) {
 	    traversable = true;
 	} else {
 	    traversable = false;

@@ -14,7 +14,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
     Implements : [Options],
     constraints : {
 	dungeon : {
-	    name : ["/^[a-zA-Z0-9_.]+$/",1,50,'g'],
+	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    height : [4,10,5],
 	    width : [4,10,5],
@@ -103,12 +103,14 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 
 	var cleaned = [];
 	var str = RPG.Generator.Maze.mazeToStr(RPG.Generator.Maze.createMaze({
-	    name : 'g',
-	    height : options.dungeon.height * 2,
-	    width : options.dungeon.width * 2,
-	    sparse : 0,
-	    offsetRow : 0,
-	    offsetCol : 0
+	    maze : {
+		name : options.dungeon.name,
+		height : options.dungeon.height * 2,
+		width : options.dungeon.width * 2,
+		sparse : 0,
+		offsetRow : 0,
+		offsetCol : 0
+	    }
 	},rand));
 	var strRows = str.split('\r\n');
 	var c = 0;

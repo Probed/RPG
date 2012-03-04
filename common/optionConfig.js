@@ -1,3 +1,34 @@
+/**
+ *  optionConfig.js is used to traverse option constraint objects recurcivly to provide both input and validation of input
+ *		    input received from a constraint object creates an identical object with the input values where the constraints were.
+ *
+ *  the simplest option constraint object looks like this:
+ *  {
+ *	optionName : constraint
+ *  }
+ *  more complex nested:
+ *  {
+ *	name : {
+ *	    name2 : constraint,
+ *	    name3 : {
+ *		name4 : constraint
+ *	    }
+ *	}
+ *}
+ *
+ *  optionName : can be any name you desire and will be displayed to the user as the input Label
+ *		Special treatment is given for the following name types:
+ *		    optionName like on[A-Z]*  are event properties and they are given a textarea within which to define the event stuff
+ *
+ *  constraint : takes on many forms:
+ *	[num,num,num] = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
+ *	[string,num,num[,string]] = regex must be quoted to make it a string since JSON.encode/decode does not do native regex eg "/regex/". Min Length, Max Length, Default Value.
+ *	[string[,string]] = Select one from the list (first one is default)
+ *	[true/false] = Checkbox yes/no,
+ *	number = Must be numeric, but is unconstrained (number specified is default number)
+ *	string = Must be string, but is unconstrained (string specified is default string)
+ *	object = Traverse into this object for more constraints
+ */
 if (!RPG) var RPG = {};
 
 if (typeof exports != 'undefined') {
@@ -7,18 +38,28 @@ if (typeof exports != 'undefined') {
 
 /**
  * Accepts a string or array path.
- * obj is optional if you want to append to existing object
+ * source is optional if you want to append to existing object
+ *
  * returns new nested object from the path
- * eg : ['p1','p2','p3'] or 'p1.p2.p3'  Resulting in->  p1:{p2:{p3:{}}}
+ * example:
+ * path = ['p1','p2','p3'] or
+ * path = 'p1.p2.p3'
+ *
+ * root = p1: {
+ *	    p2: {
+ *		p3 : child = {}
+ *	    }
+ *	}
+ *
  * return {
  *  root : p1
  *  child : p3
  * }
  */
 Object.extend({
-    pathToObject : function(obj,path) {
+    pathToObject : function(source,path) {
 	if (typeOf(path) == 'string') path = path.split('.');
-	var child = obj || {};
+	var child = source || {};
 	var root = child;
 	path.each(function(p){
 	    if (!child[p]) child[p] = {};
@@ -33,7 +74,11 @@ Object.extend({
 
 
 RPG.optionCreator = {
-
+    /**
+     * Returns a Div Element Tabbed Input Form for a option constraints object
+     *
+     * Recursivly traverses an option constrain object an generates tabs for the first level of constraints, the nested tables for all sub level constraints
+     */
     getOptionTabs : function(content,key,optPath,loadOptions,id) {
 	var tabMenu = null;
 	var tabBody = new Element('div');
@@ -111,52 +156,55 @@ RPG.optionCreator = {
 	    rows : [[tabs],[tabBody]]
 	});
     },
+
     /**
-     *  content : the object/other from the Object.each(content) recurses the content tree eg {terrain:{grass:{options:{}}}
-     *	key : appended to create the optPath
-     *	optPath : array or null. gets filled/emptied as creator is recused (looks like eg: ['terrain','grass'] etc
-     *	load : object to load values from,
+     *	Recursivly traverses an option constrain object and generates nested tables for all constraints
+     *
+     *  constraint_options : a constrain options object
+     *	optionsName : appended to create the optionsPath (can be null to start. used primarily by the recursion)
+     *	optionsPath : array or null. gets filled/emptied with the optionsName to get track of the depth
+     *	loadOptions : a filled out options object or null,
      *	id : added to the className to uniquely identify this whole set of options
      *
      */
-    getOptionTable : function(content,key,optPath,loadOptions,id) {
-	if (!optPath || (optPath && typeOf(optPath) != 'array')) {
-	    optPath = [];
+    getOptionTable : function(constraint_options,optionName,optionsPath,loadOptions,id) {
+	if (!optionsPath || (optionsPath && typeOf(optionsPath) != 'array')) {
+	    optionsPath = [];
 	}
-	key && optPath.push(key);
+	optionName && optionsPath.push(optionName);
 
 	/**
 	 * Reached the depth of the config.
 	 * use the content of the config to
 	 */
-	if (typeOf(content) != 'object') {
+	if (typeOf(constraint_options) != 'object') {
 	    var elm = null;
 	    var value = null;
 	    var className = 'mapEditorConfigInput configFor_'+id
 	    if (loadOptions) {
-		value = Object.getFromPath(loadOptions,optPath);
+		value = Object.getFromPath(loadOptions,optionsPath);
 	    }
 
-	    var con0 = (typeOf(content) == 'array'?content[0]:content);
-	    var con1 = (typeOf(content) == 'array' && content[1]) || null;
-	    var con2 = (typeOf(content) == 'array' && content[2]) || null;
-	    var con3 = (typeOf(content) == 'array' && content[3]) || null;
+	    var con0 = (typeOf(constraint_options) == 'array'?constraint_options[0]:constraint_options);
+	    var con1 = (typeOf(constraint_options) == 'array' && constraint_options[1]) || null;
+	    var con2 = (typeOf(constraint_options) == 'array' && constraint_options[2]) || null;
+	    var con3 = (typeOf(constraint_options) == 'array' && constraint_options[3]) || null;
 
-	    var type0 = (typeOf(content) == 'array' && typeOf(con0)) || null;
-	    var type1 = (typeOf(content) == 'array' && typeOf(con1)) || null;
-	    var type2 = (typeOf(content) == 'array' && typeOf(con2)) || null;
+	    var type0 = (typeOf(constraint_options) == 'array' && typeOf(con0)) || null;
+	    var type1 = (typeOf(constraint_options) == 'array' && typeOf(con1)) || null;
+	    var type2 = (typeOf(constraint_options) == 'array' && typeOf(con2)) || null;
 
 	    switch (true) {
 
 		/**
 		 * Array: [min,max,default]
 		 */
-		case (Number.from(con0)!=null && Number.from(con1)!=null && content.length <= 3) :
+		case (Number.from(con0)!=null && Number.from(con1)!=null && constraint_options.length <= 3) :
 		    con2 = con2 || 0;
 		    elm = new Element('div').adopt(
 			new Element('input',{
 			    type : 'text',
-			    id : optPath.join('__'),
+			    id : optionsPath.join('__'),
 			    value : (value?value:''+con2),
 			    size : (value?value:''+con2).length > 3?(value?value:''+con2).length:3,
 			    title : '(Min:'+con0+' Max:'+con1+')',
@@ -180,11 +228,11 @@ RPG.optionCreator = {
 		/**
 		 * Array: [regex,min,max,default]
 		 */
-		case (type0 == 'string' && Number.from(con1)!=null && Number.from(con2) !=null  && content.length <= 4) :
+		case (type0 == 'string' && Number.from(con1)!=null && Number.from(con2) !=null  && constraint_options.length <= 4) :
 		    elm = new Element('div').adopt(
 			new Element('input',{
 			    type : 'text',
-			    id : optPath.join('__'),
+			    id : optionsPath.join('__'),
 			    value : (value?value:''+(con3 || '')),
 			    size : 10,
 			    title : '(Min:'+con1+' Max:'+con2+')',
@@ -198,15 +246,19 @@ RPG.optionCreator = {
 			    html : 'Random',
 			    events : {
 				click : function(event) {
+				    var n = null;
 				    if (typeof exports != 'undefined') {
-					this.getParent().getElements('input')[0].value = require('./Map/Generators/Words.js').Generator.Name.generate({
-					    length :  RPG.Random.random(this.retrieve('min'),this.retrieve('max'))
-					});
+					n = require('./Map/Generators/Words.js').Generator.Name;
 				    } else {
-					this.getParent().getElements('input')[0].value = RPG.Generator.Name.generate({
-					    length :  RPG.Random.random(this.retrieve('min'),this.retrieve('max'))
-					});
+					n = RPG.Generator.Name;
 				    }
+				    this.getParent().getElements('input')[0].value = n.generate({
+					name : {
+					    seed : RPG.Random.seed,
+					    length :  RPG.Random.random(this.retrieve('min'),this.retrieve('max'))
+					}
+				    });
+
 				}
 			    }
 			}).store('min',con1).store('max',con2)
@@ -219,10 +271,10 @@ RPG.optionCreator = {
 		 */
 		case (type0 == 'string') :
 		    var select = new Element('select',{
-			id : optPath.join('__'),
+			id : optionsPath.join('__'),
 			'class' : className
 		    });
-		    content.each(function(opt){
+		    constraint_options.each(function(opt){
 			select.adopt(new Element('option',{
 			    html : ''+opt,
 			    selected : (value==opt?true:false)
@@ -241,7 +293,7 @@ RPG.optionCreator = {
 				    this.getParent().getElements('select')[0].value = Array.getSRandom(this.retrieve('opts'));
 				}
 			    }
-			}).store('opts',Array.clone(content))
+			}).store('opts',Array.clone(constraint_options))
 			);
 		    break;
 
@@ -250,12 +302,12 @@ RPG.optionCreator = {
 		 * Key like /^on[A-Z]/
 		 * matches events
 		 */
-		case (/^on[A-Z]/.test(key)):
+		case (/^on[A-Z]/.test(optionName)):
 		    elm = new Element('textarea',{
 			cols : 30,
 			rows : 3,
-			id : optPath.join('__'),
-			html : (value?value:content),
+			id : optionsPath.join('__'),
+			html : (value?value:constraint_options),
 			'class' : className
 		    });
 		    break;
@@ -263,11 +315,11 @@ RPG.optionCreator = {
 		/**
 		 * Boolean Values
 		 */
-		case (typeOf(content[0])) == 'boolean' || content === 'true' || content === 'false' :
+		case (typeOf(constraint_options[0])) == 'boolean' || constraint_options === 'true' || constraint_options === 'false' :
 		    elm = new Element('input',{
 			type : 'checkbox',
-			id : optPath.join('__'),
-			checked : (value?value:content),
+			id : optionsPath.join('__'),
+			checked : (value?value:constraint_options),
 			'class' : className
 		    });
 		    break;
@@ -278,21 +330,21 @@ RPG.optionCreator = {
 		default:
 		    elm = new Element('input',{
 			type : 'text',
-			id : optPath.join('__'),
-			value : (value?value:content),
-			size : (typeOf(content) == 'number'?3:10),
+			id : optionsPath.join('__'),
+			value : (value?value:constraint_options),
+			size : (typeOf(constraint_options) == 'number'?3:10),
 			'class' : className
 		    });
 		    break;
 	    }
-	    key && optPath.pop();
+	    optionName && optionsPath.pop();
 	    value = null;
 	    className = null;
 	    return elm; //Return the newly created element to be inserted into the table
 
 	}
 	var tbl = new HtmlTable({
-	    zebra : optPath.length%2 == 1,
+	    zebra : optionsPath.length%2 == 1,
 	    selectable : false,
 	    useKeyboard : false,
 	    properties : {
@@ -301,7 +353,7 @@ RPG.optionCreator = {
 	});
 
 	var rows = [];
-	Object.each(content,function(opt,k){
+	Object.each(constraint_options,function(opt,k){
 	    rows.push([
 	    {
 		properties : {
@@ -313,19 +365,19 @@ RPG.optionCreator = {
 		properties : {
 		    'class' : 'NoWrap'
 		},
-		content : RPG.optionCreator.getOptionTable(opt,k,optPath,loadOptions,id) //recursively load options
+		content : RPG.optionCreator.getOptionTable(opt,k,optionsPath,loadOptions,id) //recursively load options
 	    }
 	    ]
 	    );
 	});
 	tbl.pushMany(rows);
-	optPath.pop();//pop off the last path name from the optionpath
+	optionsPath.pop();//pop off the last path name from the optionpath
 	return tbl.toElement(); //return the table of options
     },
 
     /**
      * pID refers to the parent element ID that contains all config elements. can be null
-     * id : the id as used in the getOptionTable call
+     * id : the id as used in the  RPG.optionCreator.getOptionTable
      *
      * returns populated options object
      */
@@ -364,7 +416,11 @@ RPG.optionCreator = {
     /**
      * random
      *
-     * uses the constraints to generate random options
+     * uses a option constraints object to generate a random options object
+     * ex:
+     *	constraint_options : { optionName : [0,5,2] }
+     *	returns : { optionName : Random(0,5) }
+     *
      */
     random : function(constraint_options,rand,options,path,key) {
 	if (!options) options = {};
@@ -396,11 +452,18 @@ RPG.optionCreator = {
 		 * Array: [regex,min,max,default]
 		 */
 		case (type0 == 'string' && Number.from(con1)!=null && Number.from(con2) !=null  && content.length <= 4) :
+		    var n = null;
 		    if (typeof exports != 'undefined') {
-			opt.child[optName] = require('./Map/Generators/Words.js').Generator.Name.random(rand);
+			n = require('./Map/Generators/Words.js').Generator.Name
 		    } else {
-			opt.child[optName] = RPG.Generator.Name.random(rand);
+			n = RPG.Generator.Name;
 		    }
+		    opt.child[optName] = n.generate({
+			name : {
+			    seed : rand.seed,
+			    length : rand.random(Number.from(con1),Number.from(con2))
+			}
+		    });
 		    break;
 
 
@@ -451,8 +514,9 @@ RPG.optionValidator = {
     /**
      * Merge constraint options from the main object (eg: RPG.terrain, RPG.world, RPG.npc etc)
      * Path : eg ['terrain','dirt']
-     * Constraints : main object (eg: RPG.terrain, RPG.world, RPG.npc etc)
+     * Constraints : nested constraints object
      *
+     * exapmle:
      * terrain : {
      *	    options : {
      *		name : [constraint1],	    <--- overridden by dirt's options.name
@@ -464,7 +528,7 @@ RPG.optionValidator = {
      *		}
      *	    }
      *
-     Returns: a recursivly merged object who contains all parent options while allowing child options to override parent options
+     * Returns: a recursivly merged object who contains all parent options while allowing child options to override parent options
      *
      * options : {
      *	name : [constraint2],
@@ -474,6 +538,7 @@ RPG.optionValidator = {
     getConstraintOptions : function(path, constraints) {
 	var constraing_options = {};
 	var cPath = [];
+	constraing_options = Object.clone(constraints.options);
 	path.each(function(p){
 	    cPath.push(p);
 	    var opts = Object.getFromPath(constraints,cPath);
@@ -487,23 +552,27 @@ RPG.optionValidator = {
     },
 
     /**
-     * recursivly validate tile options
+     * recursivly validate options against a options constraint object
+     *
+     * returns empty array if all is ok
+     *	      or array of errors encountered.
+     *
      */
-    validate : function(tile_options,constraint_options) {
+    validate : function(options,option_constraints) {
 	var errors = [];
-	Object.each(tile_options, function(content,key){
-	    RPG.optionValidator._validateRecurse(content,key,constraint_options,[],errors);
+	Object.each(options, function(content,key){
+	    RPG.optionValidator._validateRecurse(content,key,option_constraints,[],errors);
 	});
 	return errors;
     },
-    _validateRecurse : function(content,key,constraint_options,path,errors) {
+    _validateRecurse : function(content,key,option_constraints,path,errors) {
 	path.push(key);
 	if (typeOf(content) == 'object') {
 	    Object.each(content, function(c,k){
-		RPG.optionValidator._validateRecurse(c,k,constraint_options,path,errors);
+		RPG.optionValidator._validateRecurse(c,k,option_constraints,path,errors);
 	    });
 	} else {
-	    var constraint = Object.getFromPath(constraint_options,path);
+	    var constraint = Object.getFromPath(option_constraints,path);
 
 	    var con0 = typeOf(constraint) == 'array' && constraint[0] || constraint;
 	    var con1 = typeOf(constraint) == 'array' && constraint[1] || null;

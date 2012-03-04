@@ -1791,31 +1791,12 @@ RPG.MapEditor = new Class({
 		{
 		    properties : {
 			'class' : 'vTop',
-			rowspan : 2,
 			styles : {
 			    'max-width' : 168
 			}
 		    },
 		    content : this.tileWindowImagesDiv = new Element('div')
 		},
-		{
-		    properties : {
-			'class' : 'textCenter textMedium'
-		    },
-		    content : new Element('div',{
-			'class' : 'toolBarTabs'
-		    }).adopt(
-			this.tabMenu = new Element('ul',{
-			    'class' : 'tab-menu NoWrap',
-			    id : 'mapTileConfigTabs'
-			}),
-			new Element('div',{
-			    'class' : 'clear'
-			})
-			)
-		}
-		],
-		[
 		{
 		    properties : {
 			'class' : 'vTop'
@@ -1888,68 +1869,17 @@ RPG.MapEditor = new Class({
 	    path = options.path.slice(1,path.length-1);
 	}
 	var constraint_options = RPG.optionValidator.getConstraintOptions(path,RPG.Tiles);
-	var rows = {};
 	var loadOptions = null;
 	if (options.cache != RPG.Tiles) {
 	    loadOptions = Object.getFromPath(options.cache,options.path).options;
 	}
-	/**
-	 * Display options table
-	 */
-	Object.each(constraint_options,function(opt,key) {
-	    rows[key] = [];
-	    rows[key].push([{
-		content : RPG.optionCreator.getOptionTable(opt,key,[],loadOptions,'tile')
-	    }]);
-	}.bind(this));
-	constraint_options = null;
-	loadOptions = null;
+	if (constraint_options.teleportTo) {
+	    constraint_options.teleportTo.mapName = [''].append(Object.keys(this.currentUniverse.maps));
+	}
 
-	this.tabBodyDiv.empty();
-	this.tabMenu.empty();
-	this.tabMenu.adopt(
-	    new Element('li',{
-		'class' : 'selected'
-	    }).adopt(
-		new Element('a',{
-		    html:'All',
-		    events : {
-			click : function(event) {
-			    $$('.mapTileConfigTabContent').each(function(elm){
-				elm.show();
-			    });
-			}.bind(this)
-		    }
-		})
-		));
-	Object.each(rows, function(r,k){
-	    this.tabMenu.adopt(
-		new Element('li').adopt(
-		    new Element('a',{
-			html:k.capitalize(),
-			events : {
-			    click : function(event) {
-				$$('.mapTileConfigTabContent').each(function(elm){
-				    elm.hide();
-				});
-				$('mapTabBody_'+k).show();
-			    }.bind(this)
-			}
-		    })
-		    ));
-	    this.tabBodyDiv.adopt(new HtmlTable({
-		zebra : false,
-		selectable : false,
-		useKeyboard : false,
-		properties : {
-		    id : 'mapTabBody_'+k,
-		    'class' : 'mapTileConfigTabContent',
-		    cellpadding : 0
-		},
-		rows : r
-	    }).toElement());
-	}.bind(this));
-	MUI.initializeTabs('mapTileConfigTabs');
+	this.tabBodyDiv.empty().adopt(RPG.optionCreator.getOptionTabs(constraint_options,null,[],loadOptions,'tile'));
+
+	MUI.initializeTabs('tile_mapTileConfigTabs');
     },
 
     saveTileToCurrentMap : function(options) {
