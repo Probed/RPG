@@ -68,7 +68,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	folders.each(function(name){
 	    if (name == 'options.js') return;
 	    var stat = require('fs').statSync(dir.join('/')+'/'+name);
-	    if (stat.isFile() && /[jpg]|[gif]|[png]|[bmp]$/i.test(name)) {
+	    if (stat.isFile() && /bmp|gif|png|jpg$/i.test(name)) {
 		if (!constraints.options) constraints.options = {};
 		if (!constraints.options.property) constraints.options.property = {};
 		if (!constraints.options.property.image) constraints.options.property.image = {};

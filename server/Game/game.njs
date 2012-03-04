@@ -51,6 +51,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    response.onRequestComplete(response,game);
 		    return;
 		}
+		game.user = request.user;
 
 		switch (true) {
 		    //process game commands:
@@ -61,6 +62,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 			    dir : request.url.query.dir
 			},
 			function(universe){
+			    if (universe.error) {
+				response.onRequestComplete(response,universe);
+				return;
+			    }
 			    Object.merge(require('../Cache.njs').Cache.retrieve(request.user.options.userID,'universe_'+character.location.universeID),universe);
 			    response.onRequestComplete(response,universe);
 			});
@@ -132,36 +137,24 @@ RPG.Game = new (RPG.GameClass = new Class({
 	var newLoc = RPG[options.dir](options.game.character.location.point,1);
 
 
-	RPG.moveCharacterToTile(options.game,newLoc, function(move) {
-	    if (move.error) {
-		callback(move);
+	RPG.moveCharacterToTile(options.game,newLoc,options.dir,function(moveEvents) {
+	    if (moveEvents.error) {
+		callback(moveEvents);
 		return;
 	    }
-	    options.game.character.location.point = newLoc;
-	    options.game.character.location.dir = options.dir.charAt(0);
-
-	    RPG.Character.beginCharacterSave({
-		user : options.user,
-		url : {
-		    query : {
-			characterID : options.game.character.database.characterID
-		    }
-		},
-		data : options.game.character
-	    },
-	    //response
-	    {
-		onRequestComplete : function(r,character) {
-		    if (character.error) {
-			callback(character);
-			return;
-		    }
-		    RPG.Tile.getViewableTiles({
-			userID : options.userID,
-			universe : options.game.universe,
-			character : character
-		    },callback);
-		}.bind(this)
+	    RPG.Tile.getViewableTiles({
+		userID : options.userID,
+		universe : options.game.universe,
+		character : options.game.character
+	    },function(universe){
+		Object.merge(options.game.universe,universe);
+		callback({
+		    game : {
+			universe : Object.cleanEmpty(universe),//only send back the new stuff
+			character : options.game.character
+		    },
+		    events : Object.cleanEmpty(moveEvents)
+		});
 	    });
 	});
     }

@@ -1280,6 +1280,10 @@ var defined = function(value){
 	return value != null;
 };
 
+var empty = function(value){
+	return value == null || (typeof value == 'object' && Object.keys(value).length > 0);
+};
+
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 Object.extend({
@@ -1295,6 +1299,14 @@ Object.extend({
 
 	cleanValues: function(object, method){
 		method = method || defined;
+		for (var key in object) if (!method(object[key])){
+			delete object[key];
+		}
+		return object;
+	},
+
+	cleanEmpty: function(object, method){
+		method = method || empty;
 		for (var key in object) if (!method(object[key])){
 			delete object[key];
 		}

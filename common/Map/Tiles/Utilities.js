@@ -1,14 +1,11 @@
 if (!RPG) var RPG = {};
 
 if (typeof exports != 'undefined') {
-    Object.merge(
-	RPG,require('../../optionConfig.js'),
-	RPG,require('./Tiles.js'),
-	RPG,require('./TileTypes.js'),
-	RPG,require('./property.js'),
-	RPG,require('./traverse.js'),
-	RPG,require('./teleportTo.js'),
-	RPG,require('../Generators/Utilities.js'));
+    Object.merge(RPG,require('../../../server/Log/Log.njs'));
+    Object.merge(RPG,require('../../optionConfig.js'));
+    Object.merge(RPG,require('./Tiles.js'));
+    Object.merge(RPG,require('./TileTypes.js'));
+    Object.merge(RPG,require('../Generators/Utilities.js'));
     module.exports = RPG;
 }
 
@@ -68,16 +65,16 @@ RPG.getMapTileStyles = function(options) {
 
 /**
  * For all the tiles at a given point merge the tile options together then call each resulting tiletype, tiletypes may be overwritten by higher tiles.
- * Required Options: {
- *	universe,
- *	character,
- *	point
- *	},
- *	tiles = array of tile paths: [['terrain','dirt'],['world','hut'],...] (hut may override dir)
+ * Required Options:
+ *  game : conains the user, universe, character, etc
+ *  point : the location of the tiles
+ *  tiles : the tiles at the location we are triggering eg [tile,tile,tile]
+ *  event : string like 'onBeforeEnter' or 'onBeforeLeave' or 'onEnter' etc
+ *  events : and object containing all the event results
  *
- *
+ *  callback : called when all tiletypes at a specfic locaion have been triggered. returns the results of all as a merged object
  */
-RPG.triggerTileTypes = function(game, tiles, event, callback) {
+RPG.triggerTileTypes = function(game,point,dir, tiles, event, events, callback) {
     if (!game || !tiles || !event || !callback) return;
     var map = game.universe.maps[game.character.location.mapName];
     var len = tiles.length;
@@ -94,14 +91,27 @@ RPG.triggerTileTypes = function(game, tiles, event, callback) {
     //loop through each tile type. eg travers, teleportTo, property etc
     Object.each(mergedTileOptions.options,function(content,key,source){
 	//if there exists a function to handle this trigger; create a function wrapper, push it onto the stack then execute each one after the other.
-	if (RPG.Tiles[key]) {
+	if (typeof exports != 'undefined' && !RPG.Tiles[key]) {
+	    RPG.Log('filesystem','TileType lookup: '+key+'.js');
+	    if (require('path').existsSync('./common/Map/Tiles/'+key+'.js')) {
+		Object.merge(RPG,require('./'+key+'.js'))
+	    } else {
+		RPG.Tiles[key] = 'None';//skip future checks
+	    }
+	}
+
+	if (RPG.Tiles[key] && RPG.Tiles[key] != 'None') {
 	    triggers.push(function(){
+
 		RPG.Tiles[key]({
 		    game : game,
+		    point : point,
+		    dir : dir,
 		    tiles : tiles,
 		    merged : source,
 		    contents : content,
-		    event : event
+		    event : event,
+		    events : events
 		},function(result){
 		    Object.merge(results,result);
 		    triggerChain.callChain();
@@ -128,7 +138,7 @@ RPG.triggerTileTypes = function(game, tiles, event, callback) {
  *	point,
  *	callback
  */
-RPG.moveCharacterToTile = function(game,point,callback) {
+RPG.moveCharacterToTile = function(game,point,dir,callback) {
     var map = game.universe.maps[game.character.location.mapName];
     var newLocTiles = map.tiles[point[0]] && map.tiles[point[0]][point[1]];
     var curLocTiles = map.tiles[game.character.location.point[0]][game.character.location.point[1]];
@@ -137,26 +147,26 @@ RPG.moveCharacterToTile = function(game,point,callback) {
 	error : 'Cannot move to that location. No Tiles Found.'
     });
 
-    var move = {};
+    var moveEvents = {};
     //check to see if we can leave the current tile:
-    RPG.triggerTileTypes(game,curLocTiles,'onBeforeLeave',function(beforeLeaveResults){
+    RPG.triggerTileTypes(game,point,dir,curLocTiles,'onBeforeLeave',moveEvents,function(beforeLeaveResults){
 	if (beforeLeaveResults && beforeLeaveResults.error) {
 	    callback(beforeEnterResults);
 	    return;
 	}
 	if (beforeLeaveResults) {
-	    Object.merge(move,{
+	    Object.merge(moveEvents,{
 		onBeforeLeave : beforeLeaveResults
 	    });
 	}
 	//check to see if we can enter the new tile
-	RPG.triggerTileTypes(game,newLocTiles,'onBeforeEnter',function(beforeEnterResults){
+	RPG.triggerTileTypes(game,point,dir,newLocTiles,'onBeforeEnter',moveEvents,function(beforeEnterResults){
 	    if (beforeEnterResults && beforeEnterResults.error) {
 		callback(beforeEnterResults);
 		return;
 	    }
 	    if (beforeEnterResults) {
-		Object.merge(move,{
+		Object.merge(moveEvents,{
 		    onBeforeEnter : beforeEnterResults
 		});
 	    }
@@ -167,28 +177,28 @@ RPG.moveCharacterToTile = function(game,point,callback) {
 		return;
 	    }
 	    //actually leave the current tile
-	    RPG.triggerTileTypes(game,curLocTiles,'onLeave',function(leaveResults){
+	    RPG.triggerTileTypes(game,point,dir,curLocTiles,'onLeave',moveEvents,function(leaveResults){
 		if (leaveResults && leaveResults.error) {
 		    callback(leaveResults);
 		    return;
 		}
 		if (leaveResults) {
-		    Object.merge(move,{
+		    Object.merge(moveEvents,{
 			onLeave : leaveResults
 		    });
 		}
 		//now enter the new tile
-		RPG.triggerTileTypes(game,newLocTiles,'onEnter',function(enterResults){
+		RPG.triggerTileTypes(game,point,dir,newLocTiles,'onEnter',moveEvents,function(enterResults){
 		    if (enterResults && enterResults.error) {
 			callback(enterResults);
 			return;
 		    }
 		    if (enterResults) {
-			Object.merge(move,{
+			Object.merge(moveEvents,{
 			    onEnter : enterResults
 			});
 		    }
-		    callback(move);
+		    callback(moveEvents);
 		});
 	    });
 	});

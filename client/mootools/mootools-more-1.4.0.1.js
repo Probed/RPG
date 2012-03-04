@@ -1,5 +1,5 @@
 // MooTools: the javascript framework.
-// Load this file's selection again by visiting: http://mootools.net/more/be449d9d5803a427d4f31a6c37d0050a 
+// Load this file's selection again by visiting: http://mootools.net/more/be449d9d5803a427d4f31a6c37d0050a
 // Or build this file again with packager using: packager build More/More More/Events.Pseudos More/Class.Refactor More/Class.Binds More/Class.Occlude More/Chain.Wait More/Array.Extras More/Date More/Date.Extras More/Number.Format More/Object.Extras More/String.Extras More/String.QueryString More/URI More/URI.Relative More/Hash More/Hash.Extras More/Element.Forms More/Elements.From More/Element.Event.Pseudos More/Element.Event.Pseudos.Keys More/Element.Measure More/Element.Pin More/Element.Position More/Element.Shortcuts More/Form.Request More/Form.Request.Append More/Form.Validator More/Form.Validator.Inline More/Form.Validator.Extras More/OverText More/Fx.Elements More/Fx.Accordion More/Fx.Move More/Fx.Reveal More/Fx.Scroll More/Fx.Slide More/Fx.SmoothScroll More/Fx.Sort More/Drag More/Drag.Move More/Slider More/Sortables More/Request.JSONP More/Request.Queue More/Request.Periodical More/Assets More/Color More/Group More/Hash.Cookie More/IframeShim More/Table More/HtmlTable More/HtmlTable.Zebra More/HtmlTable.Sort More/HtmlTable.Select More/Keyboard More/Keyboard.Extras More/Mask More/Scroller More/Tips More/Spinner More/Locale More/Locale.en-US.Date More/Locale.en-US.Form.Validator More/Locale.en-US.Number
 /*
 ---
@@ -492,6 +492,10 @@ var defined = function(value){
 	return value != null;
 };
 
+var empty = function(value){
+	return value == null || (typeof value == 'object' && Object.keys(value).length > 0);
+}
+
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 Object.extend({
@@ -507,6 +511,14 @@ Object.extend({
 
 	cleanValues: function(object, method){
 		method = method || defined;
+		for (var key in object) if (!method(object[key])){
+			delete object[key];
+		}
+		return object;
+	},
+
+	cleanEmpty: function(object, method){
+		method = method || empty;
 		for (var key in object) if (!method(object[key])){
 			delete object[key];
 		}
@@ -4715,7 +4727,7 @@ Form.Validator.addAllThese([
 			if (typeOf(props.length) != 'null') return (element.get('value').length == props.length || element.get('value').length == 0);
 			else return true;
 		}
-	}],	
+	}],
 
 	['minLength', {
 		errorMsg: function(element, props){
@@ -8305,7 +8317,7 @@ var Table = this.Table = function(){
 	this.length = 0;
 	var keys = [],
 	    values = [];
-	
+
 	this.set = function(key, value){
 		var index = keys.indexOf(key);
 		if (index == -1){
@@ -8337,7 +8349,7 @@ var Table = this.Table = function(){
 	this.each = this.forEach = function(fn, bind){
 		for (var i = 0, l = this.length; i < l; i++) fn.call(bind, keys[i], values[i], this);
 	};
-	
+
 };
 
 if (this.Type) new Type('Table', Table);

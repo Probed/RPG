@@ -225,30 +225,16 @@ RPG.Map = new Class({
 	    };
 
 	    this.characterMoving = true;
-	    RPG.moveCharacterToTile(game,newLoc, function(move){
+	    RPG.moveCharacterToTile(game,newLoc,dir, function(move){
 		if (move.error) {
 		    RPG.Error.notify(move);
 		    this.characterMoving = false;
 		    return;
+		} else {
+		    this.options.Character.changeDirection(dir);
+		    this.refreshMap();
+		    this.characterMoving = false;
 		}
-		new Request.JSON({
-		    url : '/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+this.options.character.database.characterID+'&dir='+dir,
-		    onFailure : function(error) {
-			RPG.Error.notify(error);
-			this.characterMoving = false;
-		    }.bind(this),
-		    onSuccess : function(universe) {
-			Object.merge(this.options.universe,universe);
-			this.characterMoving = false;
-		    }.bind(this)
-		}).get();
-
-		$('mR'+(this.options.character.location.point[0] - this.rowOffset)+'mC'+(this.options.character.location.point[1]-this.colOffset)).set('html','&nbsp;');
-
-		this.options.character.location.point = newLoc;
-		this.options.Character.changeDirection(dir.charAt(0));
-		this.refreshMap();
-
 	    }.bind(this));
 	}
     }

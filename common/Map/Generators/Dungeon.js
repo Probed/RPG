@@ -4,7 +4,6 @@ if (!RPG.Generator) RPG.Generator = {};
 
 
 if (typeof exports != 'undefined') {
-    console.log(require('../Tiles/Utilities.js'));
     Object.merge(RPG,require('./Utilities.js'));
     Object.merge(RPG,require('../Tiles/Utilities.js'));
     Object.merge(RPG,require('../Tiles/Tiles.js'));
