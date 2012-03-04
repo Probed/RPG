@@ -31,26 +31,25 @@ This object defines the relationships between hashtags and the pages they load.
 A Cloneable object that gives seeded random values.
 
 Options:
-`seed` : `float` any real number
-`random` : `function(min,max)` returns a random number between min and max (or 0 and 1 if no min/max is provided)
+    `seed` : `float` any real number
+    `random` : `function(min,max)` returns a random number between min and max (or 0 and 1 if no min/max is provided)
 
-`RPG.Random.seed = '12345';
-var randNum = RPG.Random.random(0,100);
-`
+    `RPG.Random.seed = '12345';
+    `var randNum = RPG.Random.random(0,100);`
+
 
 #### function: `Object.getSRandom(source,rand,ignore)`
 
 Allows you to retrieve a seeded random value from an object.
 
-`var obj = {
-    '1' : 'value1'
-    '2' : 'value2'
-    'a' : 'valueA'
-};
-var rand = Object.getSRandom(obj,RPG.Random,'2'); //ignores the key '2'
-//out: rand.key = '1' (randomly selected)
-//out: rand.value = 'value1'
-`
+    `var obj = {`
+        `'1' : 'value1'`
+        `'2' : 'value2'`
+        `'a' : 'valueA'`
+    `};`
+    `var rand = Object.getSRandom(obj,RPG.Random,'2'); //ignores the key '2'`
+    `//out: rand.key = '1' (randomly selected)`
+    `//out: rand.value = 'value1'`
 
 #### function: `Array.getSRandom(source,rand)`
 
