@@ -15,6 +15,12 @@ All Client/Server interactions are processed through [index.njs](https://github.
 
 All Server-side-only javascript files use the extension `.njs`
 
+Windows IIS Notes:
+
+* Set the Default Document to `index.njs`
+* Set the iisnode Handler Mapping to `index.njs`
+* Ensure the `CustomErrorModule` is removed from the websites modules. Otherwise when the Node.js responds with an 4xx,5xx header IISNode forwards that through IIS which then applies a custom error notification which overwrites the Node.js response body
+
 
 ### Client Side / Common Javascript
 -----------------------------------
