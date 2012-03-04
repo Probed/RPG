@@ -12,12 +12,12 @@ It has not been tested in any other environment.
 
 All Client/Server interactions are processed through [index.njs](https://github.com/Probed/RPG/blob/master/index.njs) which is just a stub file that redirects flow into [/server/rpgApp.njs](https://github.com/Probed/RPG/blob/master/server/rpgApp.njs)
 
-All Server-side-only javascript files use the extension '.njs'
+All Server-side-only javascript files use the extension `.njs`
 
 
 ### Client Side / Common Javascript
 
-All Client/Common javascript files use normal .js extension.
+All Client/Common javascript files use normal `.js` extension.
 
 
 ### Netbeans
