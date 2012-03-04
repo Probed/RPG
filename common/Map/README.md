@@ -1,4 +1,4 @@
-Map Map Map Map Map Map etc
+Universe / Map / Map.cache / Map.tiles
 ---
 
 The Top most object is called a `universe` which will contain everything for that universe.
@@ -81,7 +81,7 @@ The map tiles is a simple 2d object containing paths to cached tiles.
         },
         '2' : { /*row2*/
             '1' : [grass,dirt[,...]], /*row2 col1*/
-	    ...
-	}
+            ...
+        }
         ...
     }
