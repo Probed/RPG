@@ -9,7 +9,6 @@ Object.merge(RPG,
     require('../Character/Character.njs'),
     require('../Game/game.njs')
     );
-
 RPG.Play =  new (RPG.PlayClass = new Class({
     Extends : RPG.PageBaseClass,
     options : {
@@ -17,7 +16,6 @@ RPG.Play =  new (RPG.PlayClass = new Class({
     },
     initialize : function(options) {
 	this.parent(options);
-
 	this.page = {
 	    title : 'Adventure Time!',
 	    populates : 'pnlMainContent',

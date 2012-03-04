@@ -4,7 +4,7 @@
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tile) RPG.Tile = {};
+if (!RPG.Tiles) RPG.Tiles = {};
 if (typeof exports != 'undefined') {
     Object.merge(
 	RPG,require('../../optionConfig.js'),
@@ -23,7 +23,7 @@ if (typeof exports != 'undefined') {
  *
  * callback : MUST CALLBACK
  */
-RPG.Tile.traverse = function(options,callback) {
+RPG.Tiles.traverse = function(options,callback) {
 
     switch (options.event) {
 	case 'onBeforeEnter' :
@@ -32,7 +32,7 @@ RPG.Tile.traverse = function(options,callback) {
 	    });
 	    break;
 
-	    
+
 	case 'onEnter' :
 	    callback();
 	    break;

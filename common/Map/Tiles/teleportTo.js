@@ -3,16 +3,15 @@
  *
  */
 if (!RPG) var RPG = {};
-if (!RPG.Tile) RPG.Tile = {};
+if (!RPG.Tiles) RPG.Tiles = {};
 if (typeof exports != 'undefined') {
-    Object.merge(
-	RPG,require('../../optionConfig.js'),
-	RPG,require('./Tiles.js'),
-	RPG,require('../Generators/Utilities.js'),
-	require('../Generators/Dungeon.js'),
-	require('../Generators/House.js'),
-	require('../Generators/Maze.js'),
-	require('../Generators/Terrain.js'));
+    Object.merge(RPG,require('../../optionConfig.js'));
+    Object.merge(RPG,require('./Tiles.js'));
+    Object.merge(RPG,require('./Utilities.js'));
+    Object.merge(RPG,require('../Generators/Utilities.js'));
+//    Object.merge(RPG,require('../Generators/Dungeon.js'));
+//    Object.merge(RPG,require('../Generators/House.js'));
+//    Object.merge(RPG,require('../Generators/Terrain.js'));
     module.exports = RPG;
 }
 
@@ -27,7 +26,7 @@ if (typeof exports != 'undefined') {
  *
  * callback : MUST CALLBACK
  */
-RPG.Tile.teleportTo = function(options,callback) {
+RPG.Tiles.teleportTo = function(options,callback) {
 
     switch (options.event) {
 	case 'onBeforeEnter' :
@@ -42,10 +41,10 @@ RPG.Tile.teleportTo = function(options,callback) {
 
 	case 'onEnter' :
 	    if (!options.contents.mapName && options.contents.generator) {
-		var g = RPG.Generator[options.contents.generator].random(options.merged.property.tileName);
-		var randRow = Object.getSRandom(g.generated.tiles);
-		var randCol = Object.getSRandom(randRow.rand);
-		var charStartPoint = [Number.from(randRow.key),Number.from(randCol.key)];
+//		var g = RPG.Generator[options.contents.generator].random(options.merged.property.tileName);
+//		var randRow = Object.getSRandom(g.generated.tiles);
+//		var randCol = Object.getSRandom(randRow.rand);
+//		var charStartPoint = [Number.from(randRow.key),Number.from(randCol.key)];
 
 		if (typeof exports != 'undefined') {//server
 		//save new universe

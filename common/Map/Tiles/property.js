@@ -4,7 +4,7 @@
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tile) RPG.Tile = {};
+if (!RPG.Tiles) RPG.Tiles = {};
 if (typeof exports != 'undefined') {
     Object.merge(
 	RPG,require('../../optionConfig.js'),
@@ -24,7 +24,7 @@ if (typeof exports != 'undefined') {
  *
  * callback : MUST CALLBACK
  */
-RPG.Tile.property = function(options,callback) {
+RPG.Tiles.property = function(options,callback) {
 
     //ALL Tiles Have Property options be careful here
     callback();

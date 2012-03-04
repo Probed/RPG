@@ -94,9 +94,9 @@ RPG.triggerTileTypes = function(game, tiles, event, callback) {
     //loop through each tile type. eg travers, teleportTo, property etc
     Object.each(mergedTileOptions.options,function(content,key,source){
 	//if there exists a function to handle this trigger; create a function wrapper, push it onto the stack then execute each one after the other.
-	if (RPG.Tile[key]) {
+	if (RPG.Tiles[key]) {
 	    triggers.push(function(){
-		RPG.Tile[key]({
+		RPG.Tiles[key]({
 		    game : game,
 		    tiles : tiles,
 		    merged : source,

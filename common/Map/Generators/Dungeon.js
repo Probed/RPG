@@ -1,13 +1,17 @@
 if (!RPG) var RPG = {};
 if (!RPG.Generator) RPG.Generator = {};
 
+
+
 if (typeof exports != 'undefined') {
+    console.log(require('../Tiles/Utilities.js'));
     Object.merge(RPG,require('./Utilities.js'));
     Object.merge(RPG,require('../Tiles/Utilities.js'));
     Object.merge(RPG,require('../Tiles/Tiles.js'));
     Object.merge(RPG,require('./Words.js'));
     Object.merge(RPG,require('./Maze.js'));
     module.exports = RPG;
+
 }
 
 RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
