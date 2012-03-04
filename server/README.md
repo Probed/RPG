@@ -5,7 +5,7 @@ All requests are processed through [rpgApp.njs](https://github.com/Probed/RPG/bl
 
 ### rpgApp.njs
 --------------
-Starts the server listening the specified port. In the case of IISNode we need to use `process.env.PORT`
+Starts the Node.js server listening on the specified port. In the case of IISNode we need to use `process.env.PORT`
 
 #### Imports
 ------------
@@ -25,13 +25,13 @@ All requests begin at `onRequest` and are handled in the following order:
 2. Check to see if an XmlHttpRequest is being made.
     1. `false` : No XHR means initial load - Send the client the `/server/index.html` template. End Request
     2. `true` : pass control to `routeXHR`
-3 `routeXHR` uses the querystring parameter `a` as the 'Action' to be performed. `a` can contain a hashtag which signifies the `/server/pages/` to use
+3. `routeXHR` uses the querystring parameter `a` as the 'Action' to be performed. `a` can contain a hashtag which signifies the `/server/pages/` to use
     1. if `a` contains a `?` in it's value, everything after the `?` (seperated by `::`) is converted into a querystring an appended to the current querystring
-4. attempt to handle the request using the `/common/pages.js` object.
+4. Attempt to handle the request using the `/common/pages.js` object.
     1. if a suitable handler is found then control is passed to the handler.
-5. attempt to handle the request in other ways
+5. Attempt to handle the request in other ways
     1. if a suitable handler is found then control is passed to the handler.
-6   return an error if no suitable handler was found.
+6.   return an error if no suitable handler was found.
 
 #### Response Handling
 ----------------------
