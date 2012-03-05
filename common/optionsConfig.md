@@ -129,7 +129,7 @@ The use of `RPG.Generator.Name` for random strings is only a stop-gap solution a
 
 Primarily used with `RPG.Tiles` so i'll use that as the example.
 
-Example RPG.Tiles object:
+Example RPG.Tiles object. We will be recursively merging together the `options` from the object such that child options override parent options.
 
     terrain : {
         options : {
@@ -157,23 +157,26 @@ Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`const
 * `constraints` : the object holding the constraint values to be merged.
     * example : `RPG.Tiles`
 
-`path` = ['terrain']
+`path` = `['terrain']`
 
-    var terrain_options = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
-    terrain_options.name : ["/[a-zA-Z]/",1,10]
-    terrain_options.color : undefined
-    terrain_options.stickiness : undefined
+    var constraints = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
 
-`path` = ['terrain','grass']
+    constraints.name : ["/[a-zA-Z]/",1,10]
+    constraints.color : undefined
+    constraints.stickiness : undefined
 
-    var grass_options = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
-    grass_options.name : ["/[a-zA-Z1-9]/",5,25]
-    grass_options.color : ['green','brown']
-    grass_options.stickiness : undefined
+`path` = `['terrain','grass']`
 
-`path` = ['terrain','grass','marijuana']
+    var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
 
-    var mj_options = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
-    mj_options.name : ['kush','lambs breath','etc']
-    mj_options.color : ['green','brown',purple]
-    mj_options.stickiness : [0,10,1]
+    constraints.name : ["/[a-zA-Z1-9]/",5,25]
+    constraints.color : ['green','brown']
+    constraints.stickiness : undefined
+
+`path` = `['terrain','grass','marijuana']`
+
+    var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
+
+    constraints.name : ['kush','lambs breath','etc']
+    constraints.color : ['green','brown',purple]
+    constraints.stickiness : [0,10,1]
