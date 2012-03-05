@@ -35,7 +35,7 @@ more complex nested syntax:
 
 * `constraint` : takes on many forms:
     * `[num,num,num]` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
-    * `[string,num,num[,string]]` = regex must be quoted to make it a string since JSON.encode/decode does not do native regex eg "/regex/". Min Length, Max Length, Default Value.
+    * `["/regex/",num,num[,string]]` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: **"/regex/"**
     * `[string[,string]]` = Select one from the list (first one is default)
     * `[true/false]` = Checkbox yes/no,
     * `number` = Must be numeric, but is unconstrained (number specified is default number)
