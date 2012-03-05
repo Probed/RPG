@@ -5,10 +5,10 @@ The [optionsConfig.js](https://github.com/Probed/RPG/blob/master/common/optionCo
 is used to recursively walk `options` and `option_constraints` objects to provide:
 
 * [HTML Input elements](#input) arranged in tabs/tables for each `constraint`
-* Creation of `options` object from the HTML input elements.
-* Validation of input values against a `option_constraints` object
-* Seeded random generation of an `options` objects values from an `option_constrains` object
-* Recursive merging of `options_constraints` into a single `options_constrains` (used by Tiles so child constraints override parent constraints)
+* [Creation](#create) of `options` object from the HTML input elements.
+* [Validation](#validate) of input values against a `option_constraints` object
+* [Seeded random](#random) generation of an `options` objects values from an `option_constrains` object
+* [Recursive merging](#merge) of `options_constraints` into a single `options_constrains` (used by Tiles so child constraints override parent constraints)
 
 the simplest option constraint object looks like this:
 
@@ -44,8 +44,9 @@ more complex nested syntax:
 * `string` = Must be string, but is unconstrained (string specified is default string)
 * `object` = Traverse into this object for more constraints
 
-## User Input Example<a name="input"></a>
----
+<a name="input"></a>
+
+## User Input Example
 
 First we define our `options_constrains` object somewhere
 
@@ -71,6 +72,8 @@ Or Retrieve an HTML Table with input values for `option_constraints` with the id
 
     var tableElement = RPG.optionCreator.getOptionTable(option_constraints,null,null,null,'opts');
 
+<a name="create"></a>
+
 #### Retrieve an `options` object
 
 Upon filling out the option values in the table 'opts' from above we retrieve an `options` object from the table with all the values from the input elements
@@ -89,6 +92,8 @@ Our populated `options` object looks something like this and is identical in str
         }
     }
 
+<a name="validate"></a>
+
 #### Validate an `options` object
 
 Now that we have the input `options` values we need to validate it against the `option_constraints`.
@@ -96,9 +101,10 @@ The `validate` function returns an `array` of `errors` or an empty array if no e
 
     var errors = RPG.optionValidator.validate(options,option_constraints);
 
+<a name="random"></a>
 
 ## Seeded Random Options
----
+
 Using the `constrains_options` object from above we can generate random values for our `options` object
 
     var random_options = RPG.optionCreator.random(option_constraints,RPG.Random);
@@ -116,3 +122,57 @@ Using the `constrains_options` object from above we can generate random values f
     }
 
 The use of `RPG.Generator.Name` for random strings is only a stop-gap solution and needs to be further refined.
+
+<a name="merge"></a>
+
+## Merging Constraint Options
+
+Primarily used with `RPG.Tiles` so i'll use that as the example.
+
+Example RPG.Tiles object:
+
+    terrain : {
+        options : {
+            name : ["/[a-zA-Z]/",1,10],
+        },
+        grass : {
+            options : {
+                name: ["/[a-zA-Z1-9]/",5,25],
+		color : ['green','brown']
+            },
+            marijuana : {
+                options : {
+                    name : ['kush','lambs breath','etc'],
+		    stickiness : [0,10,1],
+                    color : ['green','brown',purple]
+                }
+            }
+        }
+    }
+
+Perform the merge using RPG.optionValidator.getConstraintOptions(`path` , `constraints`)
+
+* `path` : the path to the child object. can be a string or array:
+    * example : `['terrain','grass']` or `'terrain.grass'`
+* `constraints` : the object holding the constraint values to be merged.
+    * example : `RPG.Tiles`
+
+   var terrain_options = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
+
+    terrain_options.name : ["/[a-zA-Z]/",1,10]
+    terrain_options.color : undefined
+    terrain_options.stickiness : undefined
+
+
+    var grass_options = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
+
+    grass_options.name : ["/[a-zA-Z1-9]/",5,25]
+    grass_options.color : ['green','brown']
+    grass_options.stickiness : undefined
+
+
+    var mj_options = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
+
+    mj_options.name : ['kush','lambs breath','etc']
+    mj_options.color : ['green','brown',purple]
+    mj_options.stickiness : [0,10,1]
