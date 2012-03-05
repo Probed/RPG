@@ -4,13 +4,11 @@ Options Configuration Stuff
 The [optionsConfig.js](https://github.com/Probed/RPG/blob/master/common/optionConfig.js) file
 is used to recursively walk `options` and `option_constraints` objects to provide:
 
-* HTML Input elements arranged in tabs/tables for each `constraint`
+* [HTML Input elements](#input) arranged in tabs/tables for each `constraint`
 * Creation of `options` object from the HTML input elements.
 * Validation of input values against a `option_constraints` object
 * Seeded random generation of an `options` objects values from an `option_constrains` object
 * Recursive merging of `options_constraints` into a single `options_constrains` (used by Tiles so child constraints override parent constraints)
-
-Input received from a constraint object creates an identical object with the input values where the constraints were.
 
 the simplest option constraint object looks like this:
 
@@ -18,7 +16,7 @@ the simplest option constraint object looks like this:
         name : constraint
     };
 
-more complex nested:
+more complex nested syntax:
 
     var option_constraints = {
         name : {
@@ -32,8 +30,9 @@ more complex nested:
 
 `name` : can be any name you desire and will be displayed to the user as the `input Label` (using camelCase will display for the user seperated words: ex: Camel Case
 
-* Special treatment is given for the following name types:
-    * optionName like on[A-Z]  are event properties and they are given a textarea within which to define the event stuff
+* Special treatment is given for the following names:
+    * `name` like on[A-Z]  are event properties and they are given a textarea within which to define the event stuff
+    * `name` equals 'options' **ignored**
 
 `constraint` : takes on many forms:
 
@@ -45,7 +44,7 @@ more complex nested:
 * `string` = Must be string, but is unconstrained (string specified is default string)
 * `object` = Traverse into this object for more constraints
 
-### User Input Example
+## User Input Example<a id="input"></a>
 ---
 
 First we define our `options_constrains` object somewhere
@@ -98,7 +97,7 @@ The `validate` function returns an `array` of `errors` or an empty array if no e
     var errors = RPG.optionValidator.validate(options,option_constraints);
 
 
-### Seeded Random Options
+## Seeded Random Options
 ---
 Using the `constrains_options` object from above we can generate random values for our `options` object
 
@@ -112,6 +111,8 @@ Using the `constrains_options` object from above we can generate random values f
                 height : 16.349812938993434, //(random float between 0 and 50)
                 width : 32.9012938910923123  //(random float between 0 and 50)
             },
-            name : 'alkjapioefkjawoiqoweioasd' //(Uses `RPG.Generator.Name` to create a random name between 1 and 50 characters long
+            name : 'alkjapioefkjawoiqoweioasd' //Uses RPG.Generator.Name to create a random name between 1 and 50 chars long
         }
     }
+
+The use of `RPG.Generator.Name` for random strings is only a stop-gap solution and needs to be further refined.
