@@ -19,7 +19,7 @@ This file contains a free form object which should, in later development, be use
 
 **See [optionConfig.md](https://github.com/Probed/RPG/tree/master/common/optionsConfig.md) for more details.**
 
-#### This understanding of this file is critical to any understanding of `options` and `option_constraints` within the application.
+#### Understanding this file is critical to any understanding of `options` and `option_constraints` within the application.
 
 ## [pages.js](https://github.com/Probed/RPG/tree/master/common/pages.js)
 This object defines the relationships between hashtags and the pages they load.
