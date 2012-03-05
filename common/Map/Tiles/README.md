@@ -46,7 +46,8 @@ Each TileType returns a `constraint_options` object which can be merged into a t
 
 ### Simple TileType example:
 
-#### 1. Define the TileType in `TileTypes.js`
+---
+1. Define the TileType in `TileTypes.js`
 
     RPG.TileType.Teleport = function(options) {
         options = options || {};
@@ -61,7 +62,8 @@ Each TileType returns a `constraint_options` object which can be merged into a t
         };
     }
 
-#### 2. Create the file `/common/Map/Tiles/teleportTo.js` to handle teleportTo events.
+---
+2. Create the file `/common/Map/Tiles/teleportTo.js` to handle teleportTo events.
 
 Events executed in this order:
 
@@ -70,11 +72,13 @@ Events executed in this order:
 3. `onLeave`       : after the character has left the current tile
 4. `onEnter`       : after the character has moved into the new tile
 
-#### 3. Create an `options.js` file in the tile folder you want to give `teleportTo` properties to.
+---
+3. Create an `options.js` file in the tile folder you want to give `teleportTo` properties to.
 
  ex: `/common/Map/Tiles/world/stair/options.js`
 
-#### 4. Inside the `/common/Map/Tiles/world/stair/options.js` file:
+---
+4. Inside the `/common/Map/Tiles/world/stair/options.js` file:
 
     exports.options = require('../../TileTypes.js').TileType.Teleport({
 
@@ -85,4 +89,5 @@ Events executed in this order:
 
     });
 
-#### 5. The tile `['world','stair']` will now teleport a character to a randomly generated house with no warning.
+---
+5. The tile `['world','stair']` will now teleport a character to a randomly generated house with no warning. It will also update itself with the generated `mapName` and `point` so a new map will not be generated the next time around.
