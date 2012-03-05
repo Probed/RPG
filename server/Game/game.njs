@@ -150,7 +150,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		Object.merge(options.game.universe,universe);
 		callback({
 		    game : {
-			universe : Object.cleanEmpty(universe),//only send back the new stuff
+			universe : universe,//only send back the new stuff
 			character : options.game.character
 		    },
 		    events : Object.cleanEmpty(moveEvents)

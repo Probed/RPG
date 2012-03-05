@@ -36,10 +36,10 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		callback(universe);
 		return;
 	    } else {
-		RPG.Log('lookup','Universe: '+options.character.location.universeID);
+		RPG.Log('database hit','Universe: '+options.character.location.universeID);
 	    }
 	} else {
-	    RPG.Log('lookup','Loading Universe: '+options.universeID);
+	    RPG.Log('database hit','Loading Universe: '+options.universeID);
 	}
 
 	require('../Database/mysql.njs').mysql.query(
@@ -86,7 +86,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 
 		} else {
 		    callback({
-			error : 'The universe '+ (options.universeID || options.universeName) +' could not be found.'
+			error : 'The universe '+ (options.universeID || options.universeName) +' could not be found for user: '+options.userID+'.'
 		    });
 		}
 	    });

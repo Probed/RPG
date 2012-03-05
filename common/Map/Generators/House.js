@@ -116,7 +116,8 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	    frontDoor : null,
 	    backDoor : null,
 	    stairsUp : null,
-	    starsDown : null
+	    starsDown : null,
+	    possibleStartLocations : []
 	};
 
 	this.createHouse(options,rand,house);
@@ -480,10 +481,11 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	    }
 	});
 
-	house.frontDoor = fDoor;
-	house.backDoor = bDoor;
-	house.frontGate = fGate;
-	house.backGate = bGate;
+	house.frontDoor = fDoor[0];
+	house.backDoor = bDoor[0];
+	house.frontGate = fGate[0];
+	house.backGate = bGate[0];
 	house.propertyArea = pArea;
+	house.possibleStartLocations.push(house.frontGate,house.backGate);
     }
 }))();

@@ -78,8 +78,21 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 	var heightMap1D = [];
 	var terrain = {
 	    tiles : {},
-	    cache : {}
+	    cache : {},
+	    heightMap2D : {},
+	    liquid : {},
+	    solid : {},
+	    deep : {},
+	    shallow : {},
+	    sand : {},
+	    swamp : {},
+	    grass : {},
+	    dirt : {},
+	    rock : {},
+	    mountain : {},
+	    possibleStartLocations : []
 	};
+
 	rand = rand || RPG.Random;
 	rand.seed = options.terrain.seed || rand.seed;
 
@@ -92,17 +105,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 	var avg = heightMap1D.average() + Number.from(options.terrain.seaLevel);//determine the average height of everything
 
 	//RPG.generateRivers(heightMap1D,terrain.size,avg, -0.7,Number.from(terrain.maxRivers),10);
-	terrain.heightMap2D = {};
-	terrain.liquid = {};
-	terrain.solid = {};
-	terrain.deep = {};
-	terrain.shallow = {};
-	terrain.sand = {};
-	terrain.swamp = {};
-	terrain.grass = {};
-	terrain.dirt = {};
-	terrain.rock = {};
-	terrain.mountain = {};
+
 
 	for(x=0; x<options.terrain.size;x++) {
 	    for(y=0; y<options.terrain.size;y++){
@@ -293,6 +296,9 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 	    terrain.trees
 	    ]);
 
+	var randRow = Object.getSRandom(terrain.solid,rand);
+	var randCol = Object.getSRandom(randRow.rand,rand);
+	terrain.possibleStartLocations.push([Number.from(randRow.key),Number.from(randCol.key)]);
 	return terrain;
     },
 

@@ -27,7 +27,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(map) 'map' object mergable with a universe eg: {maps:{mapName:{...}}
      */
     loadMap : function(options,callback) {
-
+	RPG.Log('database hit','Loading Map: '+ (options.mapID || options.mapName));
 	require('../Database/mysql.njs').mysql.query(
 	    'SELECT mapID, mapName, m.options '+
 	    'FROM maps m, universes un ' +
@@ -67,7 +67,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 				callback(tiles);
 				return;
 			    }
-			    callback(Object.merge(universe.maps[mapResult['mapName']],tiles));
+			    callback(universe,tiles);
+
 			});
 		    } else {
 			callback(universe);

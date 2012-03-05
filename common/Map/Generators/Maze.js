@@ -31,7 +31,8 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	    cache : {},
 	    tiles : {},
 	    str : '',
-	    array2d : []
+	    array2d : [],
+	    possibleStartLocations : []
 	};
 
 	if (options.maze.randomSeed) {
@@ -91,6 +92,9 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	maze.array2d.each(function(row,rIdx,rows) {
 	    row.each(function(col, cIdx) {
 		switch (col) {
+		    case 's' :
+		    case 'e' :
+			maze.possibleStartLocations.push([r,c]);
 		    case 'w':
 			var orientation = RPG.getTileOrientation(maze.array2d,'w',[r,c]);
 			if (orientation) {

@@ -86,13 +86,16 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 	    roomAreas : [],
 	    corridorAreas : [],
 	    stairsUp : null,
-	    stairsDown : null
+	    stairsDown : null,
+	    possibleStartLocations : []
 	};
 
 	dungeon.tiles = {};
 	dungeon.cache = {};
 
 	this.createDungeonMaze(options,rand,dungeon);
+
+	dungeon.possibleStartLocations.push(dungeon.stairsUp);
 
 	return dungeon;
     },

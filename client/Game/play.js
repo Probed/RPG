@@ -78,7 +78,7 @@ RPG.Play = new Class({
 		    onloaded:function(){
 			this.gameDiv.empty();
 			if (this.gamesCache[game.character.database.characterID]) {
-			    this.gameDiv.adipt(this.gamesCache[game.character.database.characterID].toElement());
+			    this.gameDiv.adopt(this.gamesCache[game.character.database.characterID].toElement());
 			} else {
 			    this.gameDiv.adopt(
 				(this.gamesCache[game.character.database.characterID] = new RPG.Game(game)).toElement()

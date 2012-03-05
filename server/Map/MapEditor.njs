@@ -268,10 +268,10 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 			    request.user.saveUniverseCounter = 0; //counts up when a query is made, counts down when the query finishes
 
 			    if (!request.user.saveUniverseObj.maps || (request.user.saveUniverseObj.maps && request.user.saveUniverseObj.maps.length < 1)) {
-				this.endUserUniverseSave(request,response, {
-				    error : 'This universe currently has no maps.<br>Please add a map before saving.'
-				});
-				return;
+//				this.endUserUniverseSave(request,response, {
+//				    error : 'This universe currently has no maps.<br>Please add a map before saving.'
+//				});
+//				return;
 			    }
 
 			    request.user.saveUniverseReturn = {
@@ -387,7 +387,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		} else {
 		    if (results && results[0] && results[0]['universeName']) {
 			callback({
-			    error : 'You have a Universe named <b>"'+results[0]['universeName']+'"</b> already.<br>Please choose another name.'
+			    error : 'You have a Universe named <b>"'+results[0]['universeName']+'"(id:'+Number.from(universeID)+')</b> already.<br>Please choose another name.'
 			});
 		    } else {
 			callback(null);

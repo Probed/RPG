@@ -139,13 +139,13 @@ RPG.triggerTileTypes = function(game,point,dir, tiles, event, events, callback) 
  *	callback
  */
 RPG.moveCharacterToTile = function(game,point,dir,callback) {
-    var map = game.universe.maps[game.character.location.mapName];
-    var newLocTiles = map.tiles[point[0]] && map.tiles[point[0]][point[1]];
-    var curLocTiles = map.tiles[game.character.location.point[0]][game.character.location.point[1]];
 
-    if (!newLocTiles) callback({
-	error : 'Cannot move to that location. No Tiles Found.'
-    });
+    var map = game.universe.maps[game.character.location.mapName];
+    if (!map) callback({});
+    var newLocTiles = map.tiles && map.tiles[point[0]] && map.tiles[point[0]][point[1]];
+    if (!newLocTiles) callback({});
+    var curLocTiles = map.tiles && map.tiles[game.character.location.point[0]] && map.tiles[game.character.location.point[0]][game.character.location.point[1]];
+    if (!curLocTiles) callback({});
 
     var moveEvents = {};
     //check to see if we can leave the current tile:
@@ -323,7 +323,7 @@ RPG.removeTile = function(tiles,path,point) {
 }
 
 RPG.pushTile = function(tiles,point,path) {
-    if (!path) return;
+    if (!path) return null;
     var r = point[0];
     var c = point[1];
     if (!RPG.tilesContainsPath(tiles,path,point) && !RPG.isTileBlocked(tiles,point)) {
@@ -332,17 +332,20 @@ RPG.pushTile = function(tiles,point,path) {
 	tiles[r][c].push(typeOf(path) == 'string'?path.split('.'):path);
     }
     r=c=null;
+    return path;
 }
 RPG.pushTiles = function(tiles,point,paths) {
-    if (!paths) return;
+    var ret = [];
+    if (!paths) return null;
     if (typeOf(paths[0]) == 'array') {
 	var len = paths.length;
 	for (var i=0;i<len;i++) {
-	    RPG.pushTile(tiles,point,paths[i]);
+	    ret.push(RPG.pushTile(tiles,point,paths[i]));
 	}
     } else {
-	RPG.pushTile(tiles,point,paths)
+	ret.push(RPG.pushTile(tiles,point,paths));
     }
+    return ret;
 }
 
 RPG.appendTile = function(tiles,point,path) {

@@ -50,6 +50,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	}
 
 	var sql = '(';
+	var cnt = 0;
 	options.tilePoints.each(function(point){
 	    if (cachedTiles && cachedTiles[point[0]] && cachedTiles[point[0]][point[1]]) {
 
@@ -58,13 +59,16 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    } else {
 		sql += RPG.getPointSQL(point);
 		sql += ',';
+		cnt++;
 	    }
 	});
 
 	if (sql.length > 1) {
 	    sql = sql.substr(0,sql.length-1);
 	    sql += ')';
+	    RPG.Log('database hit','Tiles: Loading ' + cnt + ' tiles ');
 	} else {
+	    RPG.Log('cache','Tiles: none to load.');
 	    callback({});
 	    return;
 	}
@@ -170,7 +174,9 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	if (pathSql.length > 1) {
 	    pathSql = pathSql.substr(0,pathSql.length-1);
 	    pathSql += ')';
+	    RPG.Log('database hit','TileCache: Loading ' + pathSql.length + ' tile cache objects.');
 	} else {
+	    RPG.Log('no tiles','TileCache: None or all in cache');
 	    callback({});
 	    return;
 	}
