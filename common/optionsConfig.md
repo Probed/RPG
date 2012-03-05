@@ -138,7 +138,7 @@ Example RPG.Tiles object:
         grass : {
             options : {
                 name: ["/[a-zA-Z1-9]/",5,25],
-		color : ['green','brown']
+                color : ['green','brown']
             },
             marijuana : {
                 options : {
@@ -150,29 +150,30 @@ Example RPG.Tiles object:
         }
     }
 
-Perform the merge using RPG.optionValidator.getConstraintOptions(`path` , `constraints`)
+Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`constraints`)
 
 * `path` : the path to the child object. can be a string or array:
     * example : `['terrain','grass']` or `'terrain.grass'`
 * `constraints` : the object holding the constraint values to be merged.
     * example : `RPG.Tiles`
 
-   var terrain_options = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
+`path` = ['terrain']
 
+    var terrain_options = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
     terrain_options.name : ["/[a-zA-Z]/",1,10]
     terrain_options.color : undefined
     terrain_options.stickiness : undefined
 
+`path` = ['terrain','grass']
 
     var grass_options = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
-
     grass_options.name : ["/[a-zA-Z1-9]/",5,25]
     grass_options.color : ['green','brown']
     grass_options.stickiness : undefined
 
+`path` = ['terrain','grass','marijuana']
 
     var mj_options = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
-
     mj_options.name : ['kush','lambs breath','etc']
     mj_options.color : ['green','brown',purple]
     mj_options.stickiness : [0,10,1]
