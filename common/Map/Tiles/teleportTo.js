@@ -87,7 +87,7 @@ RPG.Tiles.teleportTo = function(options,callback) {
 			if (!found) {
 			    var obj = null;
 			    RPG.pushTile(m.tiles,loc,
-				RPG.createTile(['generatedTeleport'],m.cache,{
+				RPG.createTile('world.earth.teleport',m.cache,{
 				    property : {
 					tileName : 'GT',
 					folderName : g.options[options.contents.generator.toLowerCase()].name

@@ -26,6 +26,46 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	this.setOptions(options);
     },
 
+    /**
+     * random
+     *
+     * returns object {
+     * maze : {}
+     * universe: {
+     *	maps : {
+     *	    [mapName] = {
+     *		tiles : {},
+     *		cache : {}
+     *		}
+     *	    }
+     *	}
+     * }
+     */
+    random : function(mapName,rand) {
+	rand = rand || RPG.Random;
+	var universe = {
+	    maps : {}
+	};
+	var map = universe.maps[mapName] = {}
+	map.options = {};
+	map.options.generator = {
+	    Maze : {
+		options : RPG.optionCreator.random(this.constraints,rand)
+	    }
+	};
+
+	var maze = RPG.Generator.Maze.generate(map.options.generator.Maze.options,rand);
+
+	map.tiles = maze.tiles;
+	map.cache = maze.cache;
+
+	return {
+	    options : map.options.generator.Maze.options,
+	    universe : universe,
+	    generated : maze
+	};
+    },
+
     generate : function(options,rand){
 	var maze = {
 	    cache : {},
@@ -94,7 +134,20 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 		switch (col) {
 		    case 's' :
 		    case 'e' :
-			maze.possibleStartLocations.push([r,c]);
+			if (c>0) {
+			    maze.possibleStartLocations.push([r,c]);
+			}
+			RPG.pushTile(maze.tiles,[r,c],
+			    RPG.createTile('terrain.earth.solid.grass',maze.cache,{
+				property : {
+				    tileName : '1',
+				    folderName : options.maze.name,
+				    image : {
+					name : '1.png'
+				    }
+				}
+			    })
+			    );
 		    case 'w':
 			var orientation = RPG.getTileOrientation(maze.array2d,'w',[r,c]);
 			if (orientation) {
