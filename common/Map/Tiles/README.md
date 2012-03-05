@@ -70,14 +70,19 @@ Events executed in this order:
 3. `onLeave`       : after the character has left the current tile
 4. `onEnter`       : after the character has moved into the new tile
 
-#### 3. Create an `options.js` in the tile folder you want to have teleportTo properties: ex: `/common/Map/Tiles/world/stair/options.js`
+#### 3. Create an `options.js` file in the tile folder you want to give `teleportTo` properties to.
+
+ ex: `/common/Map/Tiles/world/stair/options.js`
 
 #### 4. Inside the `/common/Map/Tiles/world/stair/options.js` file:
 
-    exports.options = require('../TileTypes.js').TileType.Teleport({
+    exports.options = require('../../TileTypes.js').TileType.Teleport({
+
        //override if nescessary, or add additional options
+
         warn : [false], //give no warning, just go
         generator : ['House'] //restrict to on house generators for this tile
+
     });
 
 #### 5. The tile `['world','stair']` will now teleport a character to a randomly generated house with no warning.
