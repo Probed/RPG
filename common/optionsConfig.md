@@ -28,21 +28,21 @@ more complex nested syntax:
         name5 : constraint3
     };
 
-`name` : can be any name you desire and will be displayed to the user as the `input Label` (using camelCase will display for the user seperated words: ex: Camel Case
+* `name` : can be any name you desire and will be displayed to the user as the `input Label` (using camelCase will display for the user seperated words: ex: Camel Case
+    * Special treatment is given for the following names:
+        * `name` like on[A-Z]  are event properties and they are given a textarea within which to define the event stuff
+        * `name` equals 'options' **ignored**
 
-* Special treatment is given for the following names:
-    * `name` like on[A-Z]  are event properties and they are given a textarea within which to define the event stuff
-    * `name` equals 'options' **ignored**
+* `constraint` : takes on many forms:
+    * `[num,num,num]` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
+    * `[string,num,num[,string]]` = regex must be quoted to make it a string since JSON.encode/decode does not do native regex eg "/regex/". Min Length, Max Length, Default Value.
+    * `[string[,string]]` = Select one from the list (first one is default)
+    * `[true/false]` = Checkbox yes/no,
+    * `number` = Must be numeric, but is unconstrained (number specified is default number)
+    * `string` = Must be string, but is unconstrained (string specified is default string)
+    * `object` = Traverse into this object for more constraints
 
-`constraint` : takes on many forms:
 
-* `[num,num,num]` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
-* `[string,num,num[,string]]` = regex must be quoted to make it a string since JSON.encode/decode does not do native regex eg "/regex/". Min Length, Max Length, Default Value.
-* `[string[,string]]` = Select one from the list (first one is default)
-* `[true/false]` = Checkbox yes/no,
-* `number` = Must be numeric, but is unconstrained (number specified is default number)
-* `string` = Must be string, but is unconstrained (string specified is default string)
-* `object` = Traverse into this object for more constraints
 
 <a name="input"></a>
 
@@ -60,7 +60,7 @@ First we define our `options_constrains` object somewhere
         }
     }
 
-#### Get an HTML Element
+#### 1. Get an HTML Element
 
 Next we can retrieve an HTML Table with tabbed input values for `option_constraints`
 The first level of constrains are given Tab selectors. (in the case of this example `property` would be a tab)
@@ -74,7 +74,7 @@ Or Retrieve an HTML Table with input values for `option_constraints` with the id
 
 <a name="create"></a>
 
-#### Retrieve an `options` object
+#### 2. Retrieve an `options` object from an HTML Element
 
 Upon filling out the option values in the table 'opts' from above we retrieve an `options` object from the table with all the values from the input elements
 
@@ -94,7 +94,7 @@ Our populated `options` object looks something like this and is identical in str
 
 <a name="validate"></a>
 
-#### Validate an `options` object
+#### 3. Validate an `options` object
 
 Now that we have the input `options` values we need to validate it against the `option_constraints`.
 The `validate` function returns an `array` of `errors` or an empty array if no errors were encountered.
@@ -123,13 +123,17 @@ Using the `constrains_options` object from above we can generate random values f
 
 The use of `RPG.Generator.Name` for random strings is only a stop-gap solution and needs to be further refined.
 
+
+
 <a name="merge"></a>
 
 ## Merging Constraint Options
 
 Primarily used with `RPG.Tiles` so i'll use that as the example.
 
-Example RPG.Tiles object. We will be recursively merging together the `options` from the object such that child options override parent options.
+We will be recursively merging together the `options` from the object such that child options override parent options.
+
+**Example** `RPG.Tiles` object.
 
     terrain : {
         options : {
@@ -143,7 +147,7 @@ Example RPG.Tiles object. We will be recursively merging together the `options` 
             marijuana : {
                 options : {
                     name : ['kush','lambs breath','etc'],
-		    stickiness : [0,10,1],
+                    stickiness : [0,10,1],
                     color : ['green','brown',purple]
                 }
             }
