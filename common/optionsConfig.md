@@ -3,6 +3,7 @@ Options Configuration Stuff
 
 The [optionsConfig.js](https://github.com/Probed/RPG/blob/master/common/optionConfig.js) file
 is used to recursively walk `options` and `option_constraints` objects to provide:
+
 * HTML Input elements arranged in tabs/tables for each `constraint`
 * Creation of `options` object from the HTML input elements.
 * Validation of input values against a `option_constraints` object
@@ -30,6 +31,7 @@ more complex nested:
     };
 
 `name` : can be any name you desire and will be displayed to the user as the `input Label` (using camelCase will display for the user seperated words: ex: Camel Case
+
 * Special treatment is given for the following name types:
     * optionName like on[A-Z]  are event properties and they are given a textarea within which to define the event stuff
 
@@ -43,7 +45,8 @@ more complex nested:
 * `string` = Must be string, but is unconstrained (string specified is default string)
 * `object` = Traverse into this object for more constraints
 
-#### User Input Example
+### User Input Example
+---
 
 First we define our `options_constrains` object somewhere
 
@@ -57,6 +60,7 @@ First we define our `options_constrains` object somewhere
         }
     }
 
+#### Get an HTML Element
 
 Next we can retrieve an HTML Table with tabbed input values for `option_constraints`
 The first level of constrains are given Tab selectors. (in the case of this example `property` would be a tab)
@@ -68,6 +72,7 @@ Or Retrieve an HTML Table with input values for `option_constraints` with the id
 
     var tableElement = RPG.optionCreator.getOptionTable(option_constraints,null,null,null,'opts');
 
+#### Retrieve an `options` object
 
 Upon filling out the option values in the table 'opts' from above we retrieve an `options` object from the table with all the values from the input elements
 
@@ -85,13 +90,16 @@ Our populated `options` object looks something like this and is identical in str
         }
     }
 
+#### Validate an `options` object
+
 Now that we have the input `options` values we need to validate it against the `option_constraints`.
 The `validate` function returns an `array` of `errors` or an empty array if no errors were encountered.
 
     var errors = RPG.optionValidator.validate(options,option_constraints);
 
-#### Seeded Random Options
 
+### Seeded Random Options
+---
 Using the `constrains_options` object from above we can generate random values for our `options` object
 
     var random_options = RPG.optionCreator.random(option_constraints,RPG.Random);
