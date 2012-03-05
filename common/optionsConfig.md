@@ -48,7 +48,7 @@ more complex nested syntax:
 
 ## User Input Example
 
-First we define our `options_constrains` object somewhere
+#### 1. Define our `options_constrains` object
 
     var option_constraints = {
         property : {
@@ -60,7 +60,7 @@ First we define our `options_constrains` object somewhere
         }
     }
 
-#### 1. Get an HTML Element
+#### 2. Get an HTML Element
 
 Next we can retrieve an HTML Table with tabbed input values for `option_constraints`
 The first level of constrains are given Tab selectors. (in the case of this example `property` would be a tab)
@@ -74,7 +74,7 @@ Or Retrieve an HTML Table with input values for `option_constraints` with the id
 
 <a name="create"></a>
 
-#### 2. Retrieve an `options` object from an HTML Element
+#### 3. Retrieve an `options` object from an HTML Element
 
 Upon filling out the option values in the table 'opts' from above we retrieve an `options` object from the table with all the values from the input elements
 
@@ -94,7 +94,7 @@ Our populated `options` object looks something like this and is identical in str
 
 <a name="validate"></a>
 
-#### 3. Validate an `options` object
+#### 4. Validate an `options` object
 
 Now that we have the input `options` values we need to validate it against the `option_constraints`.
 The `validate` function returns an `array` of `errors` or an empty array if no errors were encountered.
