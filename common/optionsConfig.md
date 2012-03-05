@@ -44,7 +44,7 @@ more complex nested syntax:
 * `string` = Must be string, but is unconstrained (string specified is default string)
 * `object` = Traverse into this object for more constraints
 
-## User Input Example<a id="input"></a>
+## User Input Example<a name="input"></a>
 ---
 
 First we define our `options_constrains` object somewhere
