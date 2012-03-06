@@ -191,7 +191,14 @@ Example usage:
                        folderName : 'Folder'
                    }
                });
-    //path = ['Folder','terrain','grass','Name']
+    Results:
+    path : ['folderName','terrain','grass','tileName']
+    map : {
+        cache : {
+            folderName : { terrain : { grass : { tileName : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}
+        }
+        tiles : {}
+    };
 
 <a name="cloneTile"></a>
 ---
@@ -223,7 +230,15 @@ Example usage:
                        folderName : 'newFolderName'
                    }
                });
-    //path = ['newTileName','terrain','grass','newFolderName']
+    Results:
+    path : ['newTileName','terrain','grass','newFolderName']
+    map : {
+        cache : {
+            folderName    : { terrain : { grass : { tileName    : { options : { property : { tileName : 'tileName',    folderName : 'folderName' }}}}}},
+            newFolderName : { terrain : { grass : { newTileName : { options : { property : { tileName : 'newTileName', folderName : 'newFolderName' }}}}}},
+        }
+        tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
+    };
 
 
 
