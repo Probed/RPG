@@ -124,35 +124,169 @@ Using [RPG.createTile](#createTile) and [RPG.pushTile](#pushTile) we can easily 
 
 #[Utilities.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/Utilities.js)
 
-This file adds a number of necessary functions for manipulating individual [Tiles](#Tiles) and [Map.tiles](https://github.com/Probed/RPG/tree/master/common/Map/README.md)
+This file adds a number of necessary functions for manipulating individual [Tiles](#Tiles), [Map.tiles](https://github.com/Probed/RPG/tree/master/common/Map/) and [Map.cache](https://github.com/Probed/RPG/tree/master/common/Map/)
 
-* [RPG.getMapTileStyles](#getMapTileStyles) - returns a styles object which can be applied to an Element to display a set of tiles
-* [RPG.triggerTileTypes](#triggerTileTypes) - merges tiles into one tile and passes control to a [TileType](#TileTypes) handler
-* [RPG.moveCharacterToTile](#moveCharacterToTile) - move events trigger [TileType](#TileTypes) handlers for each event onEnter, onLeave etc
-* [RPG.tileFolderList](#tileFolderList) - retrieve available child tile names.
-* [RPG.getTileDefaults](#getTileDefaults) - retrieve default filled `options` object for a Tile
-* [RPG.createTile](#createTile) - use the given `options` to create a tile `path` in the given `cache` and return the new `path`
-* [RPG.cloneTile](#cloneTile) - clone a tile `path` including its `cache`d object at a given `point`
-* [RPG.removeAllTiles](#removeAllTiles) - empty a given `point` of all tile paths
-* [RPG.removeTile](#removeTile) - remove the given tile `path` from a `point`
-* [RPG.pushTile](#pushTile) - push a tile `path` onto the given `point`
-* [RPG.pushTiles](#pushTiles) - push a list of tile `paths` onto the given `point`
-* [RPG.appendTile](#appendTile) - append a tile `path` to the given `point`
-* [RPG.setTile](#setTile) - overwrite all existing tile paths with the give tile `path` at the given `point`
-* [RPG.unshiftTile](#unshiftTile) - unshift a tile `path` into the given `point`
-* [RPG.replaceTile](#replaceTile) - replaces the given tile `path` with a new tile `path` at the given `point`
-* [RPG.blockTiles](#blockTiles) - place a 'blocked' tile path at the given `points`
-* [RPG.isTileBlocked](#isTileBlocked) - checks to see if a tile at the given `point` has the tile path 'blocked'
-* [RPG.getTileOrientation](#getTileOrientation) - returns an `orientation` value of a tile `path` at the given `point`
-* [RPG.orientTiles](#orientTiles) - for each tile `callback` with `orientation` for the given tile `path`
-* [RPG.getAboveBelowLeftRight](#getAboveBelowLeftRight) - returns an object specifying if the given tile `path`, at the given `point`, has neighbors of the same tile `path`
-* [RPG.tilesContainsPath](#tilesContainsPath) - returns true/false if a tile `path` exists at a given `point`
-* [RPG.tilesContainsPartialPath](#tilesContainsPartialPath) - returns true/false if a partial tile `path` exists at a given `point`
-* [RPG.offsetTiles](#offsetTiles) - offset the location of `Map.tiles` in the given `direction`s by the `offset` values
-* [RPG.mergeTiles](#mergeTiles) - take an array of `Map.tiles` and merge them into a single `Map.tiles`
-* [RPG.paintPoints](#paintPoints) - push the given tile `paths` to each `point` supplied
-* [RPG.paintAreas](#paintAreas) - calls `RPG.paintArea` for each given `area` with the given `areaPaths` object descriptors ([More](#) on `areaPaths`)
-* [RPG.paintArea](#paintArea) - paint the given `Map.tiles` with the `areaPaths` object descriptors mapped onto the given `area` ([More](#) on `areaPaths`)
-* [RPG.paintRoomArea](#paintRoomArea) - paint `Map.tiles` with the `areaPaths` object descriptors mapped onto the given `rooms` ([More](#) on `areaPaths`)
+* `Map.cache`
+    * [RPG.createTile](#createTile) - use the given tile `options` to create a tile `path` in the given `cache` and return the new `path`
+    * [RPG.cloneTile](#cloneTile) - clone a tile `path` including its `cache`d object at a given `point` and return the clone `path`
+
+* `Map.tiles`
+    * [RPG.pushTile](#pushTile) - push a tile `path` onto the given `point`
+    * [RPG.pushTiles](#pushTiles) - push a list of tile `paths` onto the given `point`
+    * [RPG.appendTile](#appendTile) - append a tile `path` to the given `point`
+    * [RPG.setTile](#setTile) - overwrite all existing tile paths with the give tile `path` at the given `point`
+    * [RPG.unshiftTile](#unshiftTile) - unshift a tile `path` into the given `point`
+    * [RPG.replaceTile](#replaceTile) - replaces the given tile `path` with a new tile `path` at the given `point`
+    * [RPG.removeAllTiles](#removeAllTiles) - empty a given `point` of all tile paths
+    * [RPG.removeTile](#removeTile) - remove the given tile `path` from a `point`
+    * [RPG.blockTiles](#blockTiles) - place a 'blocked' tile path at the given `points`
+    * [RPG.isTileBlocked](#isTileBlocked) - checks to see if a tile at the given `point` has the tile path 'blocked'
+    * [RPG.orientTiles](#orientTiles) - for each tile `callback` with `orientation` for the given tile `path`
+    * [RPG.tilesContainsPath](#tilesContainsPath) - returns true/false if a tile `path` exists at a given `point`
+    * [RPG.tilesContainsPartialPath](#tilesContainsPartialPath) - returns true/false if a partial tile `path` exists at a given `point`
+    * [RPG.offsetTiles](#offsetTiles) - offset the location of `Map.tiles` in the given `direction`s by the `offset` values
+    * [RPG.mergeTiles](#mergeTiles) - take an array of `Map.tiles` and merge them into a single `Map.tiles`
+    * [RPG.paintPoints](#paintPoints) - push the given tile `paths` to each `point` supplied
+    * [RPG.paintAreas](#paintAreas) - calls `RPG.paintArea` for each given `area` with the given `areaPaths` object descriptors ([More](#) on `areaPaths`)
+    * [RPG.paintArea](#paintArea) - paint the given `Map.tiles` with the `areaPaths` object descriptors mapped onto the given `area` ([More](#) on `areaPaths`)
+    * [RPG.paintRoomArea](#paintRoomArea) - paint `Map.tiles` with the `areaPaths` object descriptors mapped onto the given `rooms` ([More](#) on `areaPaths`)
+    * [RPG.moveCharacterToTile](#moveCharacterToTile) - move events trigger [TileType](#TileTypes) handlers for each event onEnter, onLeave etc
 
 
+* tile `Path`
+    * [RPG.getMapTileStyles](#getMapTileStyles) - returns a styles object which can be applied to an Element to display a set of tiles
+    * [RPG.triggerTileTypes](#triggerTileTypes) - merges tiles into one tile and passes control to a [TileType](#TileTypes) handler
+    * [RPG.tileFolderList](#tileFolderList) - retrieve available child tile names.
+    * [RPG.getTileDefaults](#getTileDefaults) - retrieve default filled `options` object for a Tile
+    * [RPG.getTileOrientation](#getTileOrientation) - returns an `orientation` value of a tile `path` at the given `point`
+    * [RPG.getAboveBelowLeftRight](#getAboveBelowLeftRight) - returns an object specifying if the given tile `path`, at the given `point`, has neighbors of the same tile `path`
+
+
+## `Maps.cache` modifying functions
+
+<a name="createTile"></a>
+
+#### `RPG.createTile`(`path`,`cache`,`options`)
+
+This function inserts a tile into the `cache` and returns a `new path` for the tile.
+
+* Notes:
+    * All `options` must contain a `property.tileName` and `property.folderName` or an exception is raised
+    * This only returns a tile `path` it does not add the tile to `map.tiles` in any way.
+
+* **Input**
+    * `path` : raw tile path ex: ['terrain','grass']
+    * `cache` : the `map.cache` object where the tile will be created in
+    * `options` : the `options` for the tile
+* **Output**
+    * `new path` : a new tile path which contains a folder name and tile name. ex ['folderName','terrain','grass','tileName']
+
+Example usage:
+
+    var map : {
+            cache : {}
+            tiles : {}
+    };
+    var path = RPG.createTile(['terrain','grass'],map.cache,{
+                   property : {
+                       tileName : 'Name',
+                       folderName : 'Folder'
+                   }
+               });
+    //path = ['Folder','terrain','grass','Name']
+
+<a name="cloneTile"></a>
+
+#### `RPG.cloneTile`(`tiles`,`clonePath`,`point`,`cache`,`options`)
+
+This function takes an existing tile overriding any of the existing tiles `options` with the input `options`  and calls `RPG.createTile` to make the cloned tile. Finally the `new path` is returned
+
+* Notes:
+    * This only returns a tile `path` it does not add the tile to `map.tiles` in any way.
+
+* **Input**
+    * `tiles` : `map.tiles` object
+    * `clonePath` : tile path to be cloned ex: ['folderName','terrain','grass','tileName']
+    * `point` : the point in `map.tiles` ex: [0,0]
+    * `cache` : the `map.cache` object where the tile will be created in
+    * `options` : the overriding `options` for the new cloned tile
+* **Output**
+    * `new path` : a new tile path which contains a folder name and tile name. ex ['folderName','terrain','grass','tileName']
+
+Example usage:
+
+    var map : {
+            cache : { terrain : { grass : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}
+            tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
+    };
+    var path = RPG.cloneTile(map.tiles,['folderName','terrain','grass','tileName'],[1,1],map.cache,{
+                   property : {
+                       tileName : 'newTileName',
+                       folderName : 'newFolderName'
+                   }
+               });
+    //path = ['newTileName','terrain','grass','newFolderName']
+
+
+## `Maps.tiles` modifying functions
+
+<a name="pushTile"></a>
+
+#### `RPG.pushTile`(`tiles`,`point`,`path`)
+
+This function is similar to array.push() and pushes a the tile `path` into the map.`tiles` at the given `point`
+
+* **Input**
+    * `tiles` : `map.tiles` object
+    * `point` : the point in `map.tiles` ex: [0,0]
+    * `path` : tile path to be pushed ex: ['folderName','terrain','grass','tileName']
+* **Output**
+    * none (the `tiles` object is modified directly)
+
+Example usage:
+
+    var map : {
+            cache : {}
+            tiles : {}
+        };
+    RPG.pushTile(map.tiles,[1,1],
+        RPG.createTile(['terrain','grass'],map.cache,{
+            property : {
+                tileName : 'tileName',
+                folderName : 'folderName'
+            }
+        })
+    );
+    Results:
+    map : {
+        cache : { terrain : { grass : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}
+        tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
+    };
+
+
+<a name="pushTiles"></a>
+<a name="appendTile"></a>
+<a name="setTile"></a>
+<a name="unshiftTile"></a>
+<a name="replaceTile"></a>
+<a name="removeAllTiles"></a>
+<a name="blockTiles"></a>
+<a name="isTileBlocked"></a>
+<a name="orientTiles"></a>
+<a name="tilesContainsPath"></a>
+<a name="tilesContainsPartialPath"></a>
+<a name="offsetTiles"></a>
+<a name="mergeTiles"></a>
+<a name="paintPoints"></a>
+<a name="paintAreas"></a>
+<a name="paintArea"></a>
+<a name="paintRoomArea"></a>
+<a name="moveCharacterToTile"></a>
+
+## tile `paths` functions
+<a name="getMapTileStyles"></a>
+<a name="triggerTileTypes"></a>
+<a name="tileFolderList"></a>
+<a name="getTileDefaults"></a>
+<a name="getTileOrientation"></a>
+<a name="getAboveBelowLeftRight"></a>
