@@ -187,8 +187,8 @@ Example usage:
     };
     var path = RPG.createTile(['terrain','grass'],map.cache,{
                    property : {
-                       tileName : 'Name',
-                       folderName : 'Folder'
+                       tileName : 'tileName',
+                       folderName : 'folderName'
                    }
                });
     Results:
@@ -231,7 +231,7 @@ Example usage:
                    }
                });
     Results:
-    path : ['newTileName','terrain','grass','newFolderName']
+    path : ['newFolderName','terrain','grass','newTileName']
     map : {
         cache : {
             folderName    : { terrain : { grass : { tileName    : { options : { property : { tileName : 'tileName',    folderName : 'folderName' }}}}}},
