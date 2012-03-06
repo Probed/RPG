@@ -8,7 +8,7 @@ Each `universe` has (at the moment) 2 object inside it:
 * `options` : stuff about the `universe`
 * `maps` : collection of maps by `mapName`
 
-<a name="#Universe"></a>
+<a name="Universe"></a>
 
 ## Universe
 
@@ -30,7 +30,7 @@ The most basic `universe` looks like this:
     }
 
 
-<a name="#Map"></a>
+<a name="Map"></a>
 
 ## Map
 
@@ -44,7 +44,7 @@ The most basic `map` looks like this:
         tiles : {}, //map.tiles 2d object with tile paths
     };
 
-<a name="#MapCache"></a>
+<a name="MapCache"></a>
 
 ## Map.cache
 
@@ -72,7 +72,7 @@ And the `path` we paint to the `map.tiles` is
     var grass = ['terrain','grass'];
     var dirt = ['terrain','dirt'];
 
-<a name="#MapTiles"></a>
+<a name="MapTiles"></a>
 
 ## Map.tiles
 
@@ -97,7 +97,7 @@ The `map.tiles` is a simple 2d object containing `paths` to cached tiles.
     }
 
 
-<a name="#ExampleUniverse"></a>
+<a name="ExampleUniverse"></a>
 
 ## Here is an example of a simple one tile universe:
 
