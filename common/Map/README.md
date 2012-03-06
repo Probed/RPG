@@ -104,8 +104,8 @@ The `map.tiles` is a simple 2d object containing `paths` to cached tiles.
     var universe = {
         options : {
             property : {
-		universeName : 'Sample Universe',
-		author : 'Sample',
+                universeName : 'Sample Universe',
+                author : 'Sample',
                 activeMap : 'StartMap'
             },
             settings : {
