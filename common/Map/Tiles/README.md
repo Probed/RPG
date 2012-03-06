@@ -93,7 +93,7 @@ Events executed in this order:
     });
 
 ---
-##### 5. The tile `['world','stair']` will now teleport a character to a randomly generated house with no warning.
+##### 5. The tile path `['world','stair']` will now teleport a character to a randomly generated house with no warning.
 
 The Tile will also be updated with the generated `mapName` and `point` so a new map will not be generated the next time around.
 
@@ -101,7 +101,7 @@ The Tile will also be updated with the generated `mapName` and `point` so a new 
 
 <a name="Utilities"></a>
 
-#Utilities - [Utilities.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/Utilities.js)
+#[Utilities.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/Utilities.js)
 
 This file adds a number of necessary functions for manipulating individual [Tiles](#Tiles) and [Map.tiles](https://github.com/Probed/RPG/tree/master/common/Map/README.md)
 
@@ -132,6 +132,6 @@ This file adds a number of necessary functions for manipulating individual [Tile
 * [RPG.paintPoints](#paintPoints) - push the given tile `paths` to each `point` supplied
 * [RPG.paintAreas](#paintAreas) - calls `RPG.paintArea` for each given `area` with the given `areaPaths` object descriptors ([More](#) on `areaPaths`)
 * [RPG.paintArea](#paintArea) - paint the given `Map.tiles` with the `areaPaths` object descriptors mapped onto the given `area` ([More](#) on `areaPaths`)
-* [RPG.paintRoomArea](#paintRoomArea) - paint `rooms` with the `areaPaths` object descriptors mapped onto the given `area` ([More](#) on `areaPaths`)
+* [RPG.paintRoomArea](#paintRoomArea) - paint `Map.tiles` with the `areaPaths` object descriptors mapped onto the given `rooms` ([More](#) on `areaPaths`)
 
 
