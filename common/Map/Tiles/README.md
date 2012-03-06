@@ -227,7 +227,6 @@ Example usage:
     //path = ['newTileName','terrain','grass','newFolderName']
 
 
-## `Maps.tiles` modifying functions
 
 <a name="pushTile"></a>
 ---
@@ -281,8 +280,6 @@ Example usage:
 <a name="paintArea"></a>
 <a name="paintRoomArea"></a>
 <a name="moveCharacterToTile"></a>
-
-## tile `paths` functions
 <a name="getMapTileStyles"></a>
 <a name="triggerTileTypes"></a>
 <a name="tileFolderList"></a>
