@@ -81,15 +81,13 @@ Events executed in this order:
  ex: `/common/Map/Tiles/world/stair/options.js`
 
 ---
-##### 4. Inside the `/common/Map/Tiles/world/stair/options.js` file:
+##### 4. Inside the `options.js` file you just created we need to import the TileType and specify any overriding options:
+
+In this case we are overriding the `warn` and `generator` option
 
     exports.options = require('../../TileTypes.js').TileType.Teleport({
-
-        //override if nescessary, or add additional options
-
-        warn : [false], //give no warning, just go
+        warn : [false],       //give no warning, just go
         generator : ['House'] //restrict to on house generators for this tile
-
     });
 
 ---
