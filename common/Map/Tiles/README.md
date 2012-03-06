@@ -161,12 +161,11 @@ This file adds a number of necessary functions for manipulating individual [Tile
     * [RPG.getTileOrientation](#getTileOrientation) - returns an `orientation` value of a tile `path` at the given `point`
     * [RPG.getAboveBelowLeftRight](#getAboveBelowLeftRight) - returns an object specifying if the given tile `path`, at the given `point`, has neighbors of the same tile `path`
 
-
-## `Maps.cache` modifying functions
+---
 
 <a name="createTile"></a>
-
-#### `RPG.createTile`(`path`,`cache`,`options`)
+---
+#### function `RPG.createTile`(`path`,`cache`,`options`)
 
 This function inserts a tile into the `cache` and returns a `new path` for the tile.
 
@@ -196,8 +195,8 @@ Example usage:
     //path = ['Folder','terrain','grass','Name']
 
 <a name="cloneTile"></a>
-
-#### `RPG.cloneTile`(`tiles`,`clonePath`,`point`,`cache`,`options`)
+---
+#### function `RPG.cloneTile`(`tiles`,`clonePath`,`point`,`cache`,`options`)
 
 This function takes an existing tile overriding any of the existing tiles `options` with the input `options`  and calls `RPG.createTile` to make the cloned tile. Finally the `new path` is returned
 
@@ -231,8 +230,8 @@ Example usage:
 ## `Maps.tiles` modifying functions
 
 <a name="pushTile"></a>
-
-#### `RPG.pushTile`(`tiles`,`point`,`path`)
+---
+#### function `RPG.pushTile`(`tiles`,`point`,`path`)
 
 This function is similar to array.push() and pushes a the tile `path` into the map.`tiles` at the given `point`
 
