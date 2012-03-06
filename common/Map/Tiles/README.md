@@ -45,7 +45,7 @@ Example:
 
 #### A TileType is how we define what `options` a tile has.
 
-Each TileType returns a `constraint_options` object which can be merged into a tile's options. (see [optionConfig.md](https://github.com/Probed/RPG/tree/master/common/optionsConfig.md))
+Each TileType returns a `option_constraints` object which can be merged into a tile's options. (see [optionConfig.md](https://github.com/Probed/RPG/tree/master/common/optionsConfig.md))
 
 ### Simple TileType example:
 
@@ -97,6 +97,25 @@ Events executed in this order:
 
 The Tile will also be updated with the generated `mapName` and `point` so a new map will not be generated the next time around.
 
+##### 6. Create and Place the tile
+
+Using [RPG.createTile](#createTile) and [RPG.pushTile](#pushTile) we can easily place our new tile on a Map. Any options not specified in the createTile call will resort to defaults.
+
+    var map = {
+        cache : {},
+        tiles : {}
+    };
+    RPG.pushTile(map.tiles,[0,0],
+        RPG.createTile(['world','stair'],map.cache,{
+            property : {
+               tileName : 'Stairs',
+               folderName : 'teleporters',
+               image : {
+                   name : 'stair.png'
+               }
+            }
+        })
+    );
 
 
 <a name="Utilities"></a>
@@ -111,7 +130,7 @@ This file adds a number of necessary functions for manipulating individual [Tile
 * [RPG.tileFolderList](#tileFolderList) - retrieve available child tile names.
 * [RPG.getTileDefaults](#getTileDefaults) - retrieve default filled `options` object for a Tile
 * [RPG.createTile](#createTile) - use the given `options` to create a tile `path` in the given `cache` and return the new `path`
-* [RPG.cloneTile](#cloneTile) - clone a tile `path` at a given `point`
+* [RPG.cloneTile](#cloneTile) - clone a tile `path` including its `cache`d object at a given `point`
 * [RPG.removeAllTiles](#removeAllTiles) - empty a given `point` of all tile paths
 * [RPG.removeTile](#removeTile) - remove the given tile `path` from a `point`
 * [RPG.pushTile](#pushTile) - push a tile `path` onto the given `point`
