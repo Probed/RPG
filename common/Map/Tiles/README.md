@@ -58,15 +58,18 @@ Each TileType returns a `option_constraints` object which can be merged into a t
             teleportTo : Object.merge({ //merge incoming options with these options
                 warn : [true], //should we warn the user they are going to be teleported
                 mapName : [],  //what map name, if any, should we teleport them to
-                generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators)), //load a list of available generators
-                               //generator is used in case no mapName is provided. this way we can generate new maps on the fly
-                point : []     //the point on the map where the character should be teleported to
+                point : [],    //the point on the map where the character should be teleported to
+
+                generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators)),
+                               //loads a list of available generators
+                               //generator is used in case no mapName is provided.
+                               //this way we can generate new maps on the fly
             },options)
         };
     }
 
 ---
-##### 2. Create the file `/common/Map/Tiles/teleportTo.js` to handle teleportTo events.
+##### 2. Create the file `/common/Map/Tiles/teleportTo.js` to handle `teleportTo` events.
 
 Events executed in this order:
 
@@ -87,7 +90,7 @@ In this case we are overriding the `warn` and `generator` option
 
     exports.options = require('../../TileTypes.js').TileType.Teleport({
         warn : [false],       //give no warning, just go
-        generator : ['House'] //restrict to on house generators for this tile
+        generator : ['House'] //restrict to only the house generator for this tile
     });
 
 ---
@@ -95,6 +98,7 @@ In this case we are overriding the `warn` and `generator` option
 
 The Tile will also be updated with the generated `mapName` and `point` so a new map will not be generated the next time around.
 
+---
 ##### 6. Create and Place the tile
 
 Using [RPG.createTile](#createTile) and [RPG.pushTile](#pushTile) we can easily place our new tile on a Map. Any options not specified in the createTile call will resort to defaults.
