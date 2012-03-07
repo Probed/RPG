@@ -19,7 +19,7 @@ if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
 
-RPG.Generator.Example = new (RPG.Generator.Example = new Class({
+RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
     Extends : RPG.GeneratorBaseClass,
 
     name : 'Example',
@@ -66,7 +66,7 @@ RPG.Generator.Example = new (RPG.Generator.Example = new Class({
             }),
 
             //paint the roof tiles
-            'perimeter.tops' : RPG.createTile(['wall'],house.cache,{
+            'perimeter.tops' : RPG.createTile(['roof'],house.cache,{
                 property : {
                     tileName : 'Roof',
                     folderName : options.example.name,
