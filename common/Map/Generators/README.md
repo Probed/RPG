@@ -45,9 +45,6 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
         options.example.height = Number.from(options.example.height);
         options.example.width = Number.from(options.example.width);
 
-        var x = 0;
-        var y = 0;
-
         //Create a room area - /common/Map/Generators/Utilities.js
         var room = RPG.getRectangleArea([0,0],[options.example.height,options.example.width]);
 
