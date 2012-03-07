@@ -81,13 +81,13 @@ var dirtPath = ['terrain','dirt'];
 var tiles = {
     1 : { /*row1*/
         1 : [dirtPath, grassPath[,...]]   /*row1 col1*/
-        2 : [dirtPath[,...]],       /*row1 col2*/
+        2 : [dirtPath[,...]],             /*row1 col2*/
         3 : [dirtPath, grassPath[,...]],  /*row1 col3*/
         ...
     },
     2 : { /*row2*/
         1 : [dirtPath,grassPath[,...]],  /*row2 col1*/
-        2 : [dirtPath,[,...]],  /*row2 col2*/
+        2 : [dirtPath,[,...]],           /*row2 col2*/
         ...
     }
     ...
@@ -176,8 +176,8 @@ universe : {
             options : {
                 mapName : 'StartMap',
                 author : 'Sample'
-	    },
-	    tiles : {
+            },
+            tiles : {
                 1 : {
                     1 : [['SampleFolderName','terrain','grass','SampleTileName']]
                 }
