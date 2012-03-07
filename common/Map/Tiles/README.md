@@ -9,7 +9,7 @@ The Tiles.js file is **generated** on the server from within `/server/Map/MapEdi
 
 #### What is the Tiles.js file?
 
-The Tiles.js file is created by recursivly traversing the `/common/Map/Tiles/` directory to generate the list of available tile options.
+The Tiles.js file is created by recursivly traversing the `/common/Map/Tiles/` directory to generate the list of available tiles and tile `options`.
 
 The resulting object is one that is identical in structure to the directory structure.
 
@@ -19,24 +19,19 @@ Any Images `png`/`bmp`/`jpg`/`gif` found inside the folder will be pushed onto t
 
 Example:
 
+```javascript
     var tiles = {
-        options : {
-            /* loaded from /common/Map/Tiles/options.js */
-        },
-        terrain : {
-            grass : {
-                options : {
-                    /* loaded from /common/Map/Tiles/terrain/grass/options.js if it exists */
-                }
+        options : { /* loaded from /common/Map/Tiles/options.js */ },
+        'terrain' : {
+            'grass' : {
+                options : { /* loaded from /common/Map/Tiles/terrain/grass/options.js if it exists */ }
             },
             dirt : {
-                options : {
-                    /* loaded from /common/Map/Tiles/terrain/dirt/options.js if it exists */
-                }
+                options : { /* loaded from /common/Map/Tiles/terrain/dirt/options.js if it exists */ }
             }
         }
     }
-
+```
 
 
 <a name="TileTypes"></a>
@@ -52,6 +47,7 @@ Each TileType returns a `option_constraints` object which can be merged into a t
 ---
 ##### 1. Define the TileType `Teleport` in [TileTypes.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/TileTypes.js)
 
+```javascript
     RPG.TileType.Teleport = function(options) {
         options = options || {};
         return {
@@ -67,6 +63,7 @@ Each TileType returns a `option_constraints` object which can be merged into a t
             },options)
         };
     }
+```
 
 ---
 ##### 2. Create the file `/common/Map/Tiles/teleportTo.js` to handle `teleportTo` events.
@@ -88,10 +85,12 @@ Events executed in this order:
 
 In this case we are overriding the `warn` and `generator` option
 
+```javascript
     exports.options = require('../../TileTypes.js').TileType.Teleport({
         warn : [false],       //give no warning, just go
         generator : ['House'] //restrict to only the house generator for this tile
     });
+```
 
 ---
 ##### 5. The tile path `['world','stair']` will now teleport a character to a randomly generated house with no warning.
@@ -103,6 +102,7 @@ The Tile will also be updated with the generated `mapName` and `point` so a new 
 
 Using [RPG.createTile](#createTile) and [RPG.pushTile](#pushTile) we can easily place our new tile on a Map. Any options not specified in the createTile call will resort to defaults.
 
+```javascript
     var map = {
         cache : {},
         tiles : {}
@@ -118,7 +118,7 @@ Using [RPG.createTile](#createTile) and [RPG.pushTile](#pushTile) we can easily 
             }
         })
     );
-
+```
 
 <a name="Utilities"></a>
 
@@ -173,14 +173,15 @@ This function inserts a tile into the `cache` and returns a `new path` for the t
     * This only returns a tile `path` it does not add the tile to `map.tiles` in any way.
 
 * **Input**
-    * `path` : raw tile path ex: ['terrain','grass']
+    * `path` : raw tile path ex: `['terrain','grass']`
     * `cache` : the `map.cache` object where the tile will be created in
     * `options` : the `options` for the tile
 * **Output**
-    * `new path` : a new tile path which contains a folder name and tile name. ex ['folderName','terrain','grass','tileName']
+    * `new path` : a new tile path which contains a folder name and tile name. ex `['folderName','terrain','grass','tileName']`
 
 Example usage:
 
+```javascript
     var map : {
             cache : {}
             tiles : {}
@@ -191,14 +192,15 @@ Example usage:
                        folderName : 'folderName'
                    }
                });
-    Results:
+    //Results:
     path : ['folderName','terrain','grass','tileName']
     map : {
         cache : {
-            folderName : { terrain : { grass : { tileName : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}
+            'folderName' : { 'terrain' : { 'grass' : { 'tileName' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}
         }
         tiles : {}
     };
+```
 
 <a name="cloneTile"></a>
 ---
@@ -211,35 +213,36 @@ This function takes an existing tile overriding any of the existing tiles `optio
 
 * **Input**
     * `tiles` : `map.tiles` object
-    * `clonePath` : tile path to be cloned ex: ['folderName','terrain','grass','tileName']
-    * `point` : the point in `map.tiles` ex: [0,0]
+    * `clonePath` : tile path to be cloned ex: `['folderName','terrain','grass','tileName']`
+    * `point` : the point in `map.tiles` ex: `[0,0]`
     * `cache` : the `map.cache` object where the tile will be created in
     * `options` : the overriding `options` for the new cloned tile
 * **Output**
-    * `new path` : a new tile path which contains a folder name and tile name. ex ['folderName','terrain','grass','tileName']
+    * `new path` : a new tile path which contains a folder name and tile name. ex `['folderName','terrain','grass','tileName']`
 
 Example usage:
 
+```javascript
     var map : {
-            cache : { terrain : { grass : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}
+            cache : { 'terrain' : { 'grass' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}
             tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
     };
-    var path = RPG.cloneTile(map.tiles,['folderName','terrain','grass','tileName'],[1,1],map.cache,{
+    var path = RPG.cloneTile(map.tiles,['folderName','terrain','grass','tileName'], [1,1], map.cache,{
                    property : {
                        tileName : 'newTileName',
                        folderName : 'newFolderName'
                    }
                });
-    Results:
+    //Results:
     path : ['newFolderName','terrain','grass','newTileName']
     map : {
         cache : {
-            folderName    : { terrain : { grass : { tileName    : { options : { property : { tileName : 'tileName',    folderName : 'folderName' }}}}}},
-            newFolderName : { terrain : { grass : { newTileName : { options : { property : { tileName : 'newTileName', folderName : 'newFolderName' }}}}}},
+            'folderName'    : { 'terrain' : { 'grass' : { 'tileName'    : { options : { property : { tileName : 'tileName',    folderName : 'folderName' }}}}}},
+            'newFolderName' : { 'terrain' : { 'grass' : { 'newTileName' : { options : { property : { tileName : 'newTileName', folderName : 'newFolderName' }}}}}},
         }
         tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
     };
-
+```
 
 
 <a name="pushTile"></a>
@@ -257,6 +260,7 @@ This function is similar to array.push() and pushes a the tile `path` into the m
 
 Example usage:
 
+```javascript
     var map : {
             cache : {}
             tiles : {}
@@ -269,12 +273,12 @@ Example usage:
             }
         })
     );
-    Results:
+    //Results:
     map : {
-        cache : { terrain : { grass : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}
+        cache : { 'folderName' : { 'terrain' : { 'grass' : { 'tileName' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}}
         tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
     };
-
+```
 
 <a name="pushTiles"></a>
 <a name="appendTile"></a>
