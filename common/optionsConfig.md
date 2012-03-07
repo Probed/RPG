@@ -38,10 +38,10 @@ var option_constraints = {
         * `name` equals 'options' **ignored**
 
 * `constraint` : takes on many forms:
-    * `[num,num,num]` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
-    * `["/regex/",num,num[,string]]` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: **"/regex/"**
-    * `[string[,string]]` = Select one from the list (first one is default)
-    * `[true/false]` = Checkbox yes/no,
+    * ```javascript[num,num,num]``` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
+    * ```javascript["/regex/",num,num[,string]]``` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: ```javascript"/regex/"```
+    * ```javascript[string[,string]]``` = Select one from the list (first one is default)
+    * ```javascript[true || false]``` = Checkbox yes/no,
     * `number` = Must be numeric, but is unconstrained (number specified is default number)
     * `string` = Must be string, but is unconstrained (string specified is default string)
     * `object` = Traverse into this object for more constraints
@@ -157,7 +157,7 @@ We will be recursively merging together the `options` from the object such that 
 ```javascript
 terrain : {
     options : {
-	name : ["/[a-zA-Z]/",1,10],
+        name : ["/[a-zA-Z]/",1,10],
     },
     grass : {
 	options : {
@@ -168,7 +168,7 @@ terrain : {
 	    options : {
 		name : ['kush','lambs breath','etc'],
 		stickiness : [0,10,1],
-		color : ['green','brown',purple]
+		color : ['green','brown','purple']
 	    }
 	}
     }
@@ -182,7 +182,7 @@ Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`const
 * `constraints` : the object holding the constraint values to be merged.
     * example : `RPG.Tiles`
 
-`path` = `['terrain']`
+`path` = ```javascript['terrain']```
 
 ```javascript
 var constraints = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
@@ -192,7 +192,7 @@ constraints.color : undefined
 constraints.stickiness : undefined
 ```
 
-`path` = `['terrain','grass']`
+`path` = ```javascript['terrain','grass']```
 
 ```javascript
 var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
@@ -202,7 +202,7 @@ constraints.color : ['green','brown']
 constraints.stickiness : undefined
 ```
 
-`path` = `['terrain','grass','marijuana']`
+`path` = ```javascript['terrain','grass','marijuana']```
 
 ```javascript
 var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
