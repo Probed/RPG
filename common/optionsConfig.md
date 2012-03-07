@@ -38,10 +38,10 @@ var option_constraints = {
         * `name` equals 'options' **ignored**
 
 * `constraint` : takes on many forms:
-    * ```javascript [num,num,num]``` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
-    * ```javascript ["/regex/",num,num[,string]]``` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: ```javascript"/regex/"```
-    * ```javascript [string[,string]]``` = Select one from the list (first one is default)
-    * ```javascript [true || false]``` = Checkbox yes/no,
+    * ```[num,num,num]``` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
+    * ```["/regex/",num,num[,string]]``` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: ```javascript"/regex/"```
+    * ```[string[,string]]``` = Select one from the list (first one is default)
+    * ```[true || false]``` = Checkbox yes/no,
     * `number` = Must be numeric, but is unconstrained (number specified is default number)
     * `string` = Must be string, but is unconstrained (string specified is default string)
     * `object` = Traverse into this object for more constraints
@@ -131,11 +131,11 @@ var random_options = RPG.optionCreator.random(option_constraints,RPG.Random);
 ```javascript
 {
     property : {
-	size : {
-	    height : 16.349812938993434, //(random float between 0 and 50)
-	    width : 32.9012938910923123  //(random float between 0 and 50)
-	},
-	name : 'alkjapioefkjawoiqoweioasd' //Uses RPG.Generator.Name to create a random name between 1 and 50 chars long
+        size : {
+            height : 16.349812938993434, //(random float between 0 and 50)
+            width : 32.9012938910923123  //(random float between 0 and 50)
+        },
+        name : 'alkjapioefkjawoiqoweioasd' //Uses RPG.Generator.Name to create a random name between 1 and 50 chars long
     }
 }
 ```
@@ -155,16 +155,16 @@ We will be recursively merging together the `options` from the object such that 
 **Example** `RPG.Tiles` object.
 
 ```javascript
-terrain : {
+'terrain' : {
     options : {
         name : ["/[a-zA-Z]/",1,10],
     },
-    grass : {
+    'grass' : {
         options : {
             name: ["/[a-zA-Z1-9]/",5,25],
             color : ['green','brown']
         },
-        marijuana : {
+        'marijuana' : {
 	    options : {
                 name : ['kush','lambs breath','etc'],
                 stickiness : [0,10,1],
@@ -175,44 +175,32 @@ terrain : {
 }
 ```
 
-Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`constraints`)
+#### Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`constraints`)
 
-* `path` : the path to the child object. can be a string or array:
-    * example :
-```javascript
-['terrain','grass']```
-or
-```javascript
-'terrain.grass'
-```
-* `constraints` : the object holding the constraint values to be merged.
-    * example : `RPG.Tiles`
-
+* `path` : the path to the child object. can be a string or array `['terrain','grass']` or `'terrain.grass'`
+* `constraints` : the object holding the constraint values to be merged. ex: `RPG.Tiles`
 
 
 ```javascript
 var path = ['terrain'];
 var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
-
-constraints.name : ["/[a-zA-Z]/",1,10]
-constraints.color : undefined
-constraints.stickiness : undefined
+//constraints.name : ["/[a-zA-Z]/",1,10]
+//constraints.color : undefined
+//constraints.stickiness : undefined
 ```
 
 ```javascript
 var path = ['terrain','grass'];
 var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
-
-constraints.name : ["/[a-zA-Z1-9]/",5,25]
-constraints.color : ['green','brown']
-constraints.stickiness : undefined
+//constraints.name : ["/[a-zA-Z1-9]/",5,25]
+//constraints.color : ['green','brown']
+//constraints.stickiness : undefined
 ```
 
 ```javascript
 var path = ['terrain','grass','marijuana'];
 var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
-
-constraints.name : ['kush','lambs breath','etc']
-constraints.color : ['green','brown',purple]
-constraints.stickiness : [0,10,1]
+//constraints.name : ['kush','lambs breath','etc']
+//constraints.color : ['green','brown',purple]
+//constraints.stickiness : [0,10,1]
 ```
