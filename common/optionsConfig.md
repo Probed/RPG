@@ -23,10 +23,10 @@ more complex nested syntax:
 ```javascript
 var option_constraints = {
     name : {
-	name2 : constraint1,
-	name3 : {
-	    name4 : constraint2
-	}
+        name2 : constraint1,
+        name3 : {
+            name4 : constraint2
+        }
     },
     name5 : constraint3
 };
@@ -38,10 +38,10 @@ var option_constraints = {
         * `name` equals 'options' **ignored**
 
 * `constraint` : takes on many forms:
-    * ```javascript[num,num,num]``` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
-    * ```javascript["/regex/",num,num[,string]]``` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: ```javascript"/regex/"```
-    * ```javascript[string[,string]]``` = Select one from the list (first one is default)
-    * ```javascript[true || false]``` = Checkbox yes/no,
+    * ```javascript [num,num,num]``` = Min, Max, Default Number.  Input must fall inclusive between min and max and be a numeric value
+    * ```javascript ["/regex/",num,num[,string]]``` = Regex, Min Length, Max Length, Default Value. Note: **regex must be quoted** to make it a string since JSON.encode/decode does not do native regex. ex: ```javascript"/regex/"```
+    * ```javascript [string[,string]]``` = Select one from the list (first one is default)
+    * ```javascript [true || false]``` = Checkbox yes/no,
     * `number` = Must be numeric, but is unconstrained (number specified is default number)
     * `string` = Must be string, but is unconstrained (string specified is default string)
     * `object` = Traverse into this object for more constraints
@@ -57,13 +57,13 @@ var option_constraints = {
 ```javascript
 var option_constraints = {
     property : {
-	size : {
-	    height : [0,50,10],
-	    width : [0,50,10]
-	},
-	name : ["/[a-zA-Z1-9]/",1,50,'foo']
+        size : {
+            height : [0,50,10],
+            width : [0,50,10]
+        },
+        name : ["/[a-zA-Z1-9]/",1,50,'foo']
     }
-}
+};
 ```
 
 #### 2. Get an HTML Element
@@ -96,12 +96,12 @@ Our populated `options` object looks something like this and is identical in str
 ```javascript
 {
     property : {
-	size : {
-	    height : 10,
-	    width : 10
-	},
-	name : 'foo'
-    }
+        size : {
+            height : 10,
+            width : 10
+        },
+        name : 'foo'
+     }
 }
 ```
 
@@ -160,17 +160,17 @@ terrain : {
         name : ["/[a-zA-Z]/",1,10],
     },
     grass : {
-	options : {
-	    name: ["/[a-zA-Z1-9]/",5,25],
-	    color : ['green','brown']
-	},
-	marijuana : {
+        options : {
+            name: ["/[a-zA-Z1-9]/",5,25],
+            color : ['green','brown']
+        },
+        marijuana : {
 	    options : {
-		name : ['kush','lambs breath','etc'],
-		stickiness : [0,10,1],
-		color : ['green','brown','purple']
-	    }
-	}
+                name : ['kush','lambs breath','etc'],
+                stickiness : [0,10,1],
+                color : ['green','brown','purple']
+            }
+        }
     }
 }
 ```
@@ -178,11 +178,11 @@ terrain : {
 Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`constraints`)
 
 * `path` : the path to the child object. can be a string or array:
-    * example : `['terrain','grass']` or `'terrain.grass'`
+    * example : ```javascript ['terrain','grass']``` or ```javascript 'terrain.grass'```
 * `constraints` : the object holding the constraint values to be merged.
     * example : `RPG.Tiles`
 
-`path` = ```javascript['terrain']```
+`path` = ```javascript ['terrain']```
 
 ```javascript
 var constraints = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
@@ -192,7 +192,7 @@ constraints.color : undefined
 constraints.stickiness : undefined
 ```
 
-`path` = ```javascript['terrain','grass']```
+`path` = ```javascript ['terrain','grass']```
 
 ```javascript
 var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
@@ -202,7 +202,7 @@ constraints.color : ['green','brown']
 constraints.stickiness : undefined
 ```
 
-`path` = ```javascript['terrain','grass','marijuana']```
+`path` = ```javascript ['terrain','grass','marijuana']```
 
 ```javascript
 var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
