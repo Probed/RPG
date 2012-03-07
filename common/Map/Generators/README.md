@@ -88,8 +88,8 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
             })
         });
 
-	//all them to start anywhere inside the room.
-	exampleObj.possibleStartLocations = room.interior.all;
+        //all them to start anywhere inside the room.
+        exampleObj.possibleStartLocations = room.interior.all;
 
         //finally callback with the exampleObj
         callback(exampleObj);
