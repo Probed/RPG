@@ -178,34 +178,39 @@ terrain : {
 Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`constraints`)
 
 * `path` : the path to the child object. can be a string or array:
-    * example : ```javascript ['terrain','grass']``` or ```javascript 'terrain.grass'```
+    * example :
+```javascript
+['terrain','grass']```
+or
+```javascript
+'terrain.grass'
+```
 * `constraints` : the object holding the constraint values to be merged.
     * example : `RPG.Tiles`
 
-`path` = ```javascript ['terrain']```
+
 
 ```javascript
-var constraints = RPG.optionValidator.getConstraintOptions(['terrain'], RPG.Tiles);
+var path = ['terrain'];
+var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
 
 constraints.name : ["/[a-zA-Z]/",1,10]
 constraints.color : undefined
 constraints.stickiness : undefined
 ```
 
-`path` = ```javascript ['terrain','grass']```
-
 ```javascript
-var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass'], RPG.Tiles);
+var path = ['terrain','grass'];
+var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
 
 constraints.name : ["/[a-zA-Z1-9]/",5,25]
 constraints.color : ['green','brown']
 constraints.stickiness : undefined
 ```
 
-`path` = ```javascript ['terrain','grass','marijuana']```
-
 ```javascript
-var constraints = RPG.optionValidator.getConstraintOptions(['terrain','grass','marijuana'], RPG.Tiles);
+var path = ['terrain','grass','marijuana'];
+var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
 
 constraints.name : ['kush','lambs breath','etc']
 constraints.color : ['green','brown',purple]
