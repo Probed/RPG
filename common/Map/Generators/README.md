@@ -66,7 +66,7 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
             }),
 
             //paint the roof tiles
-            'perimeter.tops' : RPG.createTile(['roof'],house.cache,{
+            'perimeter.tops' : RPG.createTile(['roof'],example.cache,{
                 property : {
                     tileName : 'Roof',
                     folderName : options.example.name,
@@ -77,7 +77,7 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
             }),
 
             //paint floor tiles
-            'interior.all,path,openings' : RPG.createTile(['floor'],house.cache,{
+            'interior.all,path,openings' : RPG.createTile(['floor'],example.cache,{
                 property : {
                     tileName : 'Floor'
                     folderName : options.example.name,
