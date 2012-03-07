@@ -48,10 +48,10 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
         var x = 0;
         var y = 0;
 
-        //Create a room area from /common/Map/Generators/Utilities.js
+        //Create a room area - /common/Map/Generators/Utilities.js
         var room = RPG.getRectangleArea([0,0],[options.example.height,options.example.width]);
 
-        //Paint the room onto the map.tiles
+        //Paint the room onto the map.tiles - /common/Map/Tiles/Utilities.js
         RPG.paintRoomArea(exampleObj.tiles, room, {
 
             //paint wall tiles
@@ -77,7 +77,7 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
             }),
 
             //paint floor tiles
-            'interior.all,path,openings' : RPG.createTile(['floor'],example.cache,{
+            'interior.all' : RPG.createTile(['floor'],example.cache,{
                 property : {
                     tileName : 'Floor'
                     folderName : options.example.name,
@@ -87,6 +87,9 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
                 }
             })
         });
+
+	//all them to start anywhere inside the room.
+	exampleObj.possibleStartLocations = room.interior.all;
 
         //finally callback with the exampleObj
         callback(exampleObj);
