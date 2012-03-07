@@ -182,8 +182,8 @@ This function inserts a tile into the `cache` and returns a `new path` for the t
 Example usage:
 
 ```javascript
-    var map : {
-            cache : {}
+    var map = {
+            cache : {},
             tiles : {}
     };
     var path = RPG.createTile(['terrain','grass'],map.cache,{
@@ -197,7 +197,7 @@ Example usage:
     map : {
         cache : {
             'folderName' : { 'terrain' : { 'grass' : { 'tileName' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}
-        }
+        },
         tiles : {}
     };
 ```
@@ -223,8 +223,8 @@ This function takes an existing tile overriding any of the existing tiles `optio
 Example usage:
 
 ```javascript
-    var map : {
-            cache : { 'terrain' : { 'grass' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}
+    var map = {
+            cache : { 'folderName' : { 'terrain' : { 'grass' : { 'tileName': { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}},
             tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
     };
     var path = RPG.cloneTile(map.tiles,['folderName','terrain','grass','tileName'], [1,1], map.cache,{
@@ -238,8 +238,8 @@ Example usage:
     map : {
         cache : {
             'folderName'    : { 'terrain' : { 'grass' : { 'tileName'    : { options : { property : { tileName : 'tileName',    folderName : 'folderName' }}}}}},
-            'newFolderName' : { 'terrain' : { 'grass' : { 'newTileName' : { options : { property : { tileName : 'newTileName', folderName : 'newFolderName' }}}}}},
-        }
+            'newFolderName' : { 'terrain' : { 'grass' : { 'newTileName' : { options : { property : { tileName : 'newTileName', folderName : 'newFolderName' }}}}}}
+        },
         tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
     };
 ```
@@ -253,16 +253,16 @@ This function is similar to array.push() and pushes a the tile `path` into the m
 
 * **Input**
     * `tiles` : `map.tiles` object
-    * `point` : the point in `map.tiles` ex: [0,0]
-    * `path` : tile path to be pushed ex: ['folderName','terrain','grass','tileName']
+    * `point` : the point in `map.tiles` ex: `[0,0]`
+    * `path` : tile path to be pushed ex: `['folderName','terrain','grass','tileName']`
 * **Output**
     * none (the `tiles` object is modified directly)
 
 Example usage:
 
 ```javascript
-    var map : {
-            cache : {}
+    var map = {
+            cache : {},
             tiles : {}
         };
     RPG.pushTile(map.tiles,[1,1],
@@ -275,7 +275,7 @@ Example usage:
     );
     //Results:
     map : {
-        cache : { 'folderName' : { 'terrain' : { 'grass' : { 'tileName' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}}
+        cache : { 'folderName' : { 'terrain' : { 'grass' : { 'tileName' : { options : { property : { tileName : 'tileName', folderName : 'folderName' }}}}}}},
         tiles : { 1 : { 1 : [['folderName','terrain','grass','tileName']] }}
     };
 ```
