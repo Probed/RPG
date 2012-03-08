@@ -218,16 +218,17 @@ RPG.Map = new Class({
 	var i = 0;
 	for(i=0;i<amount;i++) {
 
-	    var newLoc = RPG[dir](this.options.character.location.point,1);
-	    var game = {
+	    var options = {
 		universe : this.options.universe,
-		character : this.options.character
+		character : this.options.character,
+		moveTo : RPG[dir](this.options.character.location.point,1),
+		dir : dir
 	    };
 
 	    this.characterMoving = true;
-	    RPG.moveCharacterToTile(game,newLoc,dir, function(move){
-		if (move.error) {
-		    RPG.Error.notify(move);
+	    RPG.moveCharacterToTile(options, function(moveEvents){
+		if (moveEvents.error) {
+		    RPG.Error.notify(moveEvents);
 		    this.characterMoving = false;
 		    return;
 		} else {

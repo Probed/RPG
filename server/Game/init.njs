@@ -1,7 +1,7 @@
 var RPG = module.exports = {};
 
 Object.merge(RPG,
-    require('../Map/MapEditor.njs'),
+    require('../Map/Universe.njs'),
     require('../Character/Character.njs'),
     require('../../common/Map/Generators/Dungeon.js'),
     require('../../common/Map/Generators/House.js'),
@@ -15,31 +15,42 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	this.setOptions(options);
     },
 
-    startGame : function(user, characterID, callback) {
+    /**
+     * required options
+     * user,
+     * characterID
+     */
+    startGame : function(options, callback) {
 
 	/**
 	 *
 	 */
-	RPG.Character.loadCharacter(user.options.userID,characterID,function(character) {
+	RPG.Character.load(options,function(character) {
 	    if (!character || character.error) callback(character);
 
 	    /**
 	     * Determine if we need to generate a new game
 	     */
+	    options.character = character;
 	    if (!character.location) {
-		this.newGame(user, character, callback);
+		this.newGame(options, callback);
 	    } else {
 		callback(character);
 	    }
 	}.bind(this));
     },
 
-    newGame : function(user, character, callback) {
+    /**
+     * required options
+     * user,
+     * character
+     */
+    newGame : function(options, callback) {
 	var mapName = 'StartMap';
 	var universe = {
 	    options : {
 		property : {
-		    universeName :character.name + "'s Universe",
+		    universeName :options.character.name + "'s Universe",
 		    author : 'Generated',
 		    startMap : mapName
 		},
@@ -62,40 +73,19 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	var rand = Object.clone(RPG.Random);
 	rand.seed =(Math.random() * (99999999999 - 1) + 1);
 
+	RPG.Generator.Terrain.random(mapName,rand,function(random){
+	    Object.merge(universe,random.universe);
+	    var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 
-	var rt = RPG.Generator.Terrain.random(mapName,rand);
-	Object.merge(universe,rt.universe);
-	var randRow = Object.getSRandom(rt.generated.solid,rand);
-	var randCol = Object.getSRandom(randRow.rand,rand);
-	var charStartPoint = [Number.from(randRow.key),Number.from(randCol.key)];
-//
-//	var h = RPG.Generator.House.random(mapName,rand);
-//	Object.merge(universe,h.universe);
-//	var charStartPoint = h.generated.frontGate[0];
+	    options.universe = universe;
 
-//	var d = RPG.Generator.Dungeon.random(mapName,rand);
-//	Object.merge(universe,d.universe);
-//	var charStartPoint = d.generated.stairsUp;
-
-	RPG.MapEditor.beginUserUniverseSave(
-	//request
-	{
-	    user : user,
-	    url : {
-		query :{
-		    universeName : universe.options.property.universeName
-		}
-	    },
-	    data : universe
-	},
-	//response
-	{
-	    onRequestComplete : function(r,universe) {
+	    RPG.Universe.store(options, function(universe) {
 		if (!universe || universe.error) {
 		    callback(universe);
 		    return;
 		}
-		character.location = {
+
+		options.character.location = {
 		    universeID : universe.options.database.universeID,
 		    mapID : universe.maps[mapName].options.database.mapID,
 		    mapName : mapName,
@@ -103,24 +93,12 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 		    dir : 's'
 		};
 
-		RPG.Character.beginCharacterSave(
-		//request
-		{
-		    user : user,
-		    url : {
-			query : {
-			    characterID : character.database.characterID
-			}
-		    },
-		    data : character
-		},
-		//response
-		{
-		    onRequestComplete : function(r,character) {
-			callback(character);
-		    }
+		RPG.Character.store(options,function(character) {
+		    callback(character);
 		});
-	    }
+	    });
 	});
+
+
     }
 }))();

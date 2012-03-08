@@ -15,77 +15,22 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	this.setOptions(options);
     },
 
-    createCharacter : function(request,response) {
-	if (request.method == 'POST') {
-	    if (!request.dataReceived) {
-		request.on('end',function(){
-		    this.beginCharacterSave(request,response);
-		}.bind(this));
-	    } else {
-		this.beginCharacterSave(request,response);
-	    }
-	} else {
-	    response.onRequestComplete(response,{
-		error : 'New Character must use POST.'
-	    });
-	}
-    },
-
-    beginCharacterSave : function(request,response) {
-	var character = typeOf(request.data) == 'string'?JSON.decode(request.data):request.data;
-
-	var errors = RPG.optionValidator.validate(character,RPG.character_options);
-
-	var total = 0;
-	var base = 0;
-	Object.each(RPG.Stats, function(stat,name){
-	    var val = Number.from(character.Stats[name].value);
-	    var min = RPG.getClassStat(character.Class,name,'start');
-	    base += min;
-	    total += val;
-	    if (!val) {
-		errors.push('A value for <b>'+name + '</b> must be provided.');
-
-	    }else if (val < min) {
-		errors.push(name + ' for a ' + character.Class + ' is a <b>minimum of ' + min+'</b>')
-	    }
-	}.bind(this));
-	if (total - base != RPG.difficultyVal(character.Difficulty,'Character.Stats.start')) {
-	    errors.push('Please distribute the <b>' + (RPG.difficultyVal(character.Difficulty,'Character.Stats.start') - (total - base)) +'</b> remainig stat(s)')
-	}
-
-	if (errors && errors.length > 0) {
-	    response.onRequestComplete(response,{
-		error : errors
-	    });
-	    return;
-	}
-
-
-	character.level = 1;
-	character.xp = 0;
-
-	this.checkDupeCharacterName(character,function(dupeName) {
-	    if (dupeName) {
-		response.onRequestComplete(response,dupeName);
-		return;
-	    }
-
-	    this.insertCharacter(request.user.options.userID,character,function(character){
-		response.onRequestComplete(response,character);
-	    });
-	}.bind(this));
-    },
-
-    checkDupeCharacterName : function(character, callback) {
+    /**
+     * Character names are server wide and duplicates are not allowed.
+     * required options :
+     * character
+     *
+     * callback(error || null) (null == not a dupe)
+     */
+    checkDupeName : function(options, callback) {
 	require('../Database/mysql.njs').mysql.query(
 	    'SELECT name ' +
 	    'FROM characters ' +
 	    'WHERE name = ? ' +
 	    'AND characterID <> ? ',
 	    [
-	    character.name,
-	    (character.database && Number.from(character.database.characterID)) || 0 // exclude current characterID in dupe name search if update is being performed.
+	    options.character.name,
+	    (options.character.database && Number.from(options.character.database.characterID)) || 0 // exclude current characterID in dupe name search if update is being performed.
 	    ],
 	    function(err,results) {
 		if (err) {
@@ -106,12 +51,69 @@ RPG.Character = new (RPG.CharacterClass = new Class({
     },
 
     /**
-     * Insert the character into the database,
-     * callsback with the inserted id
+     * Required options:
+     * user
+     * character
+     *
+     * callback(character || error)
      */
-    insertCharacter : function(userID,character,callback) {
-	var db =  character.database;
-	Object.erase(character,'database');//remove the database stuff from the incoming universe
+    create : function(options,callback) {
+	options.character = typeOf(options.character) == 'string'?JSON.decode(options.character):typeOf(options.character) == 'object'?options.character:{};
+	var errors = [];
+	errors = RPG.optionValidator.validate(options.character,RPG.character_options);
+
+	var total = 0;
+	var base = 0;
+	var val = null;
+	var min = null;
+	options.character.Stats && Object.each(RPG.Stats, function(stat,name){
+	    val = Number.from(options.character.Stats[name].value);
+	    min = RPG.getClassStat(options.character.Class,name,'start');
+	    base += min;
+	    total += val;
+	    if (!val) {
+		errors.push('A value for <b>'+name + '</b> must be provided.');
+	    }else if (val < min) {
+		errors.push(name + ' for a ' + options.character.Class + ' is a <b>minimum of ' + min+'</b>')
+	    }
+	}.bind(this));
+	if ((total - base) != RPG.difficultyVal(options.character.Difficulty,'Character.Stats.start')) {
+	    errors.push('Please distribute the <b>' + (RPG.difficultyVal(options.character.Difficulty,'Character.Stats.start') - (total - base)) +'</b> remainig stat(s)')
+	}
+	total = base = val = min = null;
+
+	if (errors && errors.length > 0) {
+	    callback({
+		error : errors
+	    });
+	    return;
+	}
+
+	options.character.level = options.character.level || 1;
+	options.character.xp = options.character.xp || 0;
+
+	this.checkDupeName(options,function(dupeName) {
+	    if (dupeName) {
+		callback(dupeName);
+		return;
+	    }
+	    this.store(options,function(storedCharacter){
+		callback(storedCharacter);
+	    });
+	}.bind(this));
+    },
+
+    /**
+     * Insert/Update a character in the database. (update occures when the character has a character.database.characterID present
+     * required options :
+     * user
+     * chaacter
+     *
+     * callback(character || error)
+     */
+    store : function(options,callback) {
+	var db =  options.character.database;
+	Object.erase(options.character,'database');//remove the database stuff from the incoming character
 
 	if (db && db.characterID) {
 	    if (!Number.from(db.characterID)) {
@@ -131,20 +133,20 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		'WHERE characterID = ? ' +
 		'AND userID = ? ',
 		[
-		character.name,
-		JSON.encode(character),
+		options.character.name,
+		JSON.encode(options.character),
 		db.characterID,
-		userID
+		options.user.options.userID
 		],
 		function(err,info) {
+		    RPG.Log('database update','Updated Character: '+db.characterID);
 		    if (err) {
 			callback({
 			    error : err
 			});
 		    } else {
 			if (info.affectedRows) {
-			    RPG.Log('update','Updated Character: '+db.characterID);
-			    callback(require('../Cache.njs').Cache.store(userID,'character_'+db.characterID,Object.merge(character,{
+			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+db.characterID,Object.merge(options.character,{
 				database : {
 				    characterID : db.characterID,
 				    updated : Date('now'),
@@ -172,19 +174,19 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		'created = NOW(),' +
 		'userID = ?',
 		[
-		character.name,
-		JSON.encode(character),
-		userID
+		options.character.name,
+		JSON.encode(options.character),
+		options.user.options.userID
 		],
 		function(err,info) {
+		    RPG.Log('database insert','Inserted Character: '+info.insertId);
 		    if (err) {
 			callback({
 			    error : err
 			});
 		    } else {
 			if (info.insertId) {
-			    RPG.Log('insert','Inserted Character: '+info.insertId);
-			    callback(require('../Cache.njs').Cache.store(userID,'character_'+info.insertId,Object.merge(character,{
+			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+info.insertId,Object.merge(options.character,{
 				database : {
 				    characterID : info.insertId,
 				    updated : Date('now'),
@@ -202,7 +204,14 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	}
     },
 
-    listCharacters : function(userID,callback) {
+    /**
+     * Lists all the characters for a specific user
+     * required options:
+     * user
+     *
+     * callback(list || error)
+     */
+    list : function(options,callback) {
 	require('../Database/mysql.njs').mysql.query(
 	    'SELECT characterID, name, options, created, updated '+
 	    'FROM characters c ' +
@@ -210,9 +219,10 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    'ORDER BY c.updated DESC'
 	    ,
 	    [
-	    userID
+	    options.user.options.userID
 	    ],
 	    function(err,results) {
+		RPG.Log('database hit','Loading Character List: '+options.user.options.userID);
 		if (err) {
 		    callback({
 			error : err
@@ -244,18 +254,30 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    );
     },
 
-    loadCharacter : function(userID,characterID, callback) {
+    /**
+     * Load a character from the Database
+     *
+     * required options:
+     * user,
+     * characterID || character
+     *
+     * optional options
+     * bypassCache
+     *
+     * callback(character || error)
+     */
+    load : function(options, callback) {
+	options.characterID = options.characterID || (options.character && options.character.characterID);
 	/**
 	 * Check the cache first
-	 *
 	 */
-	var chr = require('../Cache.njs').Cache.retrieve(userID,'character_'+characterID);
-	if (chr) {
-	    RPG.Log('cached','Character: '+characterID);
-	    callback(chr);
-	    return;
-	} else {
-	    RPG.Log('lookup','Loading Character: '+characterID);
+	if (!options.bypassCache) {
+	    var chr = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'character_'+options.characterID);
+	    if (chr) {
+		//RPG.Log('cached','Character: '+options.characterID);
+		callback(chr);
+		return;
+	    }
 	}
 
 	/**
@@ -267,10 +289,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    'WHERE c.userID = ? '+
 	    'AND c.characterID = ? ',
 	    [
-	    userID,
-	    characterID
+	    options.user.options.userID,
+	    options.characterID
 	    ],
 	    function(err,results) {
+		RPG.Log('database hit','Loading Character: '+options.characterID);
 		if (err) {
 		    callback({
 			error : err
@@ -278,7 +301,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		} else {
 		    if (results && results[0]) {
 			var result = results[0];
-			callback(require('../Cache.njs').Cache.store(userID,'character_'+characterID, Object.merge({
+			callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+options.characterID, Object.merge({
 			    database : {
 				characterID : result['characterID'],
 				created : result['created'],
@@ -298,14 +321,25 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    );
     },
 
-    deleteCharacter : function(userID,characterID,callback) {
+    /**
+     * Delete a character from the Database
+     *
+     * required options:
+     * user,
+     * characterID || character
+     *
+     * callback(success || error)
+     */
+    'delete' : function(options, callback) {
+	options.characterID = options.characterID || (options.character && options.character.characterID);
+
 	require('../Database/mysql.njs').mysql.query(
 	    'DELETE FROM characters ' +
 	    'WHERE userID = ? '+
 	    'AND characterID = ?',
 	    [
-	    userID,
-	    characterID
+	    options.user.options.userID,
+	    options.characterID
 	    ],
 	    function(err,info) {
 		if (err) {
@@ -316,10 +350,10 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		    if (info.affectedRows) {
 			callback({
 			    success : true,
-			    characterID : characterID
+			    characterID : options.characterID
 			});
-			RPG.Log('delete','Character Deleted: '+characterID);
-			require('../Cache.njs').Cache.remove(userID,'character_'+characterID);
+			RPG.Log('delete','Character Deleted: '+options.characterID);
+			require('../Cache.njs').Cache.remove(options.user.options.userID,'character_'+options.characterID);
 
 		    } else {
 			callback({
@@ -332,7 +366,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
     },
 
 
-    calcSightRadius : function(character, callback) {
+    /**
+     * required options:
+     * character
+     */
+    calcSightRadius : function(options, callback) {
 	callback(5);
     }
 }))();

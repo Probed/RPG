@@ -1,10 +1,6 @@
 /**
- * Hut Tiles
+ * cave Tiles
  */
-var options = require('../../../../TileTypes.js').TileType.Teleport({
+exports.options = require('../../../../TileTypes.js').TileType.Teleport({
     generator : ['Dungeon']
 });
-
-if (typeof exports != 'undefined') {
-    exports.options = options;
-}

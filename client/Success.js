@@ -12,6 +12,33 @@ RPG.Success = new (new Class({
     initialize : function() {
 
     },
+    notify : function(suc) {
+	var message = '';
+	if (suc.responseText) {
+	    var rep = JSON.decode(suc.responseText,true);
+	    if (rep && rep.error && rep.error.each) {
+		rep.error.each(function(err){
+		    message += err +'<br>';
+		});
+	    } else if (rep && typeOf(rep.error) == 'object') {
+		message = JSON.stringify(rep.error);
+	    } else if (rep) {
+		message = rep.error;
+	    } else if (typeOf(suc) == 'string') {
+		message = suc;
+	    } else {
+		message = 'No Message :(';
+	    }
+	} else if (typeOf(suc) == 'array') {
+	    suc.each(function(err){
+		message += err +'<br>';
+	    });
+	}else if (typeOf(suc) == 'object') {
+	    message = JSON.stringify(suc);
+	}
+	MUI.notification(message);
+    },
+
     show : function(suc) {
 	var message = '';
 	if (suc && suc.success && suc.success.each) {

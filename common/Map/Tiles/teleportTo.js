@@ -17,16 +17,14 @@ if (typeof exports != 'undefined') {
 
 /**
  * Options:
- * game : the game object which includes things like the universe, character etc
+ * game : the game object which includes things like the user, universe, character, moveTo, dir etc
  * tiles : the array of tiles for which the tile type is being triggered
- * point : the location of the tiles
- * dir : director n/e/s/w
  * merged : contains the merged options of all the tiles
- * contents : contains the options for this specific TileType from the merged options. Use This Mostly.
+ * contents : contains the actual options for this specific TileType from the merged options. Use This Mostly.
  * event : [onBeforeEnter, onEnter, onLeave etc]
  * events : Contains all the results from the current round of TileType event triggers
  *
- * callback : MUST CALLBACK
+ * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 RPG.Tiles.teleportTo = function(options,callback) {
 
@@ -57,95 +55,94 @@ RPG.Tiles.teleportTo = function(options,callback) {
 		    rand.seed =(Math.random() * (99999999999 - 1) + 1);
 		    var mapName = options.merged.property.tileName;
 
-		    var g = RPG.Generator[options.contents.generator].random(mapName,rand);
-		    Object.merge(newUniverse,g.universe);
-		    var charStartPoint = Array.getSRandom(g.generated.possibleStartLocations,rand);
-		    newUniverse.options.settings.activeMap = mapName;
-		    /**
-		     * Update the new map start points to teleport back to where they came from
-		     */
-		    g.generated.possibleStartLocations.each(function(loc){
-			//at each start location in the new universe
-			//find or create a tile with teleportTo properties and update it to point to the current map
-			var m = newUniverse && newUniverse.maps && newUniverse.maps[mapName];
-			if (!m) return;
-			var tiles = m.tiles[loc[0]] && m.tiles[loc[0]][loc[1]];
-			if (!tiles) return;
-			var found = null;
-			tiles.each(function(tilePath){
-			    var tile = Object.getFromPath(m.cache,tilePath);
-			    if (!tile) return;
-			    Object.each(tile.options,function(content,key){
-				if (key == 'teleportTo') {
-				    found = tile;
-				    tile.options.teleportTo.mapName = options.game.character.location.mapName;
-				    tile.options.teleportTo.point = options.game.character.location.point;
-				}
-			    });
-			});
-			//no teleport tile fouond.. generate one
-			if (!found) {
-			    var obj = null;
-			    RPG.pushTile(m.tiles,loc,
-				RPG.createTile('world.earth.teleport',m.cache,{
-				    property : {
-					tileName : 'GT',
-					folderName : g.options[options.contents.generator.toLowerCase()].name
-				    },
-				    teleportTo : {
-					mapName : options.game.character.location.mapName,
-					point : options.game.character.location.point
+		    RPG.Generator[options.contents.generator].random(mapName,rand,function(random){
+			Object.merge(newUniverse,random.universe);
+			var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
+			newUniverse.options.settings.activeMap = mapName;
+			/**
+			 * Update the new map start points to teleport back to where they came from
+			 */
+			random.generated.possibleStartLocations.each(function(loc){
+			    //at each start location in the new universe
+			    //find or create a tile with teleportTo properties and update it to point to the current map
+			    var m = newUniverse && newUniverse.maps && newUniverse.maps[mapName];
+			    if (!m) return;
+			    var tiles = m.tiles[loc[0]] && m.tiles[loc[0]][loc[1]];
+			    if (!tiles) return;
+			    var found = null;
+			    tiles.each(function(tilePath){
+				var tile = Object.getFromPath(m.cache,tilePath);
+				if (!tile) return;
+				Object.each(tile.options,function(content,key){
+				    if (key == 'teleportTo') {
+					found = tile;
+					tile.options.teleportTo.mapName = options.game.character.location.mapName;
+					tile.options.teleportTo.point = options.game.character.location.point;
 				    }
-				})
-				);
-			}
-		    });
-
-		    /**
-		     * Update the current map tile cache with the newly generated map name so it knows what to load next time
-		     */
-		    newUniverse.maps[options.game.character.location.mapName] = {
-			options : options.game.universe.maps[options.game.character.location.mapName].options
-		    };//make an entry in the new universe for the current maps cached tiles
-		    var newCache = newUniverse.maps[options.game.character.location.mapName].cache = {};
-		    var curCache = options.game.universe.maps[options.game.character.location.mapName].cache;
-
-		    //loop through each of the tiles at the current location
-		    Object.each(options.tiles,function(tilePath){
-			if (!tilePath) return;
-			//get the cached object from the current universe
-			var curTile = Object.getFromPath(curCache,tilePath);
-			if (!curTile || !curTile.options) return;
-			if (Object.keys(curTile.options).contains('teleportTo')) {
-
-			    //make an entry in the new universe for the updated detils of the tile
-			    var newTile = Object.pathToObject(newCache,tilePath);
-			    newTile.child.options = curTile.options;
-			    //finally set the teleportTo mapName option and starting location
-			    newTile.child.options.teleportTo.mapName = mapName;
-			    newTile.child.options.teleportTo.point = charStartPoint;
-			}
-		    });
-
-		    //console.log(newUniverse.maps[options.game.character.location.mapName]);
-		    RPG.MapEditor.beginUserUniverseSave(
-		    //request
-		    {
-			user : options.game.user,
-			url : {
-			    query :{
-				universeName : newUniverse.options.property.universeName
+				});
+			    });
+			    //no teleport tile fouond.. generate one
+			    if (!found) {
+				var obj = null;
+				RPG.pushTile(m.tiles,loc,
+				    RPG.createTile('world.earth.teleport',m.cache,{
+					property : {
+					    tileName : 'GT',
+					    folderName : random.options[options.contents.generator.toLowerCase()].name
+					},
+					teleportTo : {
+					    mapName : options.game.character.location.mapName,
+					    point : options.game.character.location.point
+					}
+				    })
+				    );
 			    }
-			},
-			data : newUniverse
-		    },
-		    //response
-		    {
-			onRequestComplete : function(r,universe) {
+			});
+
+			/**
+			 * Update the current map tile cache with the newly generated map name so it knows what to load next time
+			 */
+
+			newUniverse.maps[options.game.character.location.mapName] = {
+			    options : options.game.universe.maps[options.game.character.location.mapName].options
+			};//make an entry in the new universe for the current maps cached tiles
+			var newCache = newUniverse.maps[options.game.character.location.mapName].cache = {};
+			var curCache = options.game.universe.maps[options.game.character.location.mapName].cache;
+
+			RPG.Log('debug',JSON.encode(newUniverse.maps[options.game.character.location.mapName]));
+
+			//loop through each of the tiles at the current location
+			Object.each(options.tiles,function(tilePath){
+			    if (!tilePath) return;
+			    //get the cached object from the current universe
+			    var curTile = Object.getFromPath(curCache,tilePath);
+			    if (!curTile || !curTile.options) return;
+			    if (Object.keys(curTile.options).contains('teleportTo')) {
+
+				//make an entry in the new universe for the updated detils of the tile
+				var newTile = Object.pathToObject(newCache,tilePath);
+				newTile.child.options = curTile.options;
+				//finally set the teleportTo mapName option and starting location
+				newTile.child.options.teleportTo.mapName = mapName;
+				newTile.child.options.teleportTo.point = charStartPoint;
+			    }
+			});
+
+			//console.log(newUniverse.maps[options.game.character.location.mapName]);
+			//we do not want this placed in cache yet otherwise the getViewableTiles method returns nothing
+			var storeoptions = {
+			    user : options.game.user,
+			    universe : newUniverse,
+			    character : options.game.character,
+			    bypassCache : true
+			};
+
+			RPG.Universe.store(storeoptions,function(universe) {
 			    if (!universe || universe.error) {
 				callback(universe);
 				return;
 			    }
+
 			    options.game.character.location = Object.merge(options.game.character.location,{
 				universeID : universe.options.database.universeID,
 				mapID : universe.maps[mapName].options.database.mapID,
@@ -153,31 +150,17 @@ RPG.Tiles.teleportTo = function(options,callback) {
 				point : charStartPoint
 			    });
 
-			    RPG.Character.beginCharacterSave(
-			    //request
-			    {
-				user : options.game.user,
-				url : {
-				    query : {
-					characterID : options.game.character.database.characterID
-				    }
-				},
-				data : options.game.character
-			    },
-			    //response
-			    {
-				onRequestComplete : function(r,character) {
-				    if (character.error) {
-					callback(character);
-					return;
-				    }
-				    callback({
-					traverse : false,
-					teleportTo : Object.clone(character.location)
-				    });
+			    RPG.Character.store(storeoptions,function(character) {
+				if (character.error) {
+				    callback(character);
+				    return;
 				}
+				callback({
+				    traverse : false,
+				    teleportTo : Object.clone(character.location)
+				});
 			    });
-			}
+			});
 		    });
 
 		} else {
@@ -192,8 +175,8 @@ RPG.Tiles.teleportTo = function(options,callback) {
 		if (typeof exports != 'undefined') {
 
 		    //verify the map exists:
-		    RPG.Universe.loadUniverse({
-			userID : options.game.user.options.userID,
+		    RPG.Universe.load({
+			user : options.game.user,
 			mapName : options.contents.mapName,
 			universeID : options.game.character.location.universeID,
 			tilePoints : [options.contents.point]
@@ -213,53 +196,30 @@ RPG.Tiles.teleportTo = function(options,callback) {
 			    options : Object.clone(universe.options)
 			};
 			updateUniverse.options.settings.activeMap = options.contents.mapName;
-			RPG.MapEditor.beginUserUniverseSave(
-			//request
-			{
+
+			var storeoptions = {
 			    user : options.game.user,
-			    url : {
-				query :{
-				    universeName : updateUniverse.options.property.universeName
-				}
-			    },
-			    data : updateUniverse
-			},
-			//response
-			{
-			    onRequestComplete : function(r,universe) {
-				if (!universe || universe.error) {
-				    callback(universe);
+			    universe : updateUniverse,
+			    character : updateCharacter
+			};
+			RPG.Universe.store(storeoptions,function(universe) {
+			    if (!universe || universe.error) {
+				callback(universe);
+				return;
+			    }
+
+			    RPG.Character.store(storeoptions,function(character) {
+				if (character.error) {
+				    callback(character);
 				    return;
 				}
 
-				RPG.Character.beginCharacterSave(
-				//request
-				{
-				    user : options.game.user,
-				    url : {
-					query : {
-					    characterID : options.game.character.database.characterID
-					}
-				    },
-				    data : updateCharacter
-				},
-				//response
-				{
-				    onRequestComplete : function(r,character) {
-					if (character.error) {
-					    callback(character);
-					    return;
-					}
-
-					options.game.character = character;
-					callback({
-					    traverse : false,
-					    teleportTo : Object.clone(character.location)
-					});
-
-				    }
-				});//end save character
-			    }
+				options.game.character = character;
+				callback({
+				    traverse : false,
+				    teleportTo : Object.clone(character.location)
+				});
+			    });//end save character
 			});//end save universe
 		    });//end load map
 

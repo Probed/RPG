@@ -1694,20 +1694,22 @@ RPG.MapEditor = new Class({
 				    errors = null;
 				    return;
 				}
-				var generated = RPG.Generator[generator].generate(options);
-				if (generated.tiles && generated.cache) {
-				    Object.merge(map.tiles,generated.tiles);
-				    Object.merge(map.cache,generated.cache);
-				    Object.merge(map.options.generator[generator].options,options);
-				    this.refreshMapTree('');
-				    this.refreshMap();
 
-				} else if (typeOf(generated) == 'string') {
-				    RPG.Success.show('Generated: <b>'+generated+'</b>');
+				RPG.Generator[generator].generate(options,RPG.Random,function(generated){
+				    if (generated.tiles && generated.cache) {
+					Object.merge(map.tiles,generated.tiles);
+					Object.merge(map.cache,generated.cache);
+					Object.merge(map.options.generator[generator].options,options);
+					this.refreshMapTree('');
+					this.refreshMap();
+
+				    } else if (typeOf(generated) == 'string') {
+					RPG.Success.show('Generated: <b>'+generated+'</b>');
+				    }
+				    if ($('generatorWindow')) {
+				//MUI.closeWindow($('generatorWindow'));
 				}
-				if ($('generatorWindow')) {
-			    //MUI.closeWindow($('generatorWindow'));
-			    }
+				}.bind(this));
 			    }.bind(this)
 			}
 		    }),

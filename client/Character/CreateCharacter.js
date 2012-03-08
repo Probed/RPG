@@ -605,7 +605,7 @@ RPG.CreateCharacter = new Class({
 		RPG.Error.show(error);
 	    }.bind(this),
 	    onSuccess : function(result) {
-		RPG.Success.show('Your character has been sucessfully created.');
+		RPG.Success.notify('Your character has been sucessfully created.');
 		this.fireEvent('created',[result]);
 	    }.bind(this)
 	}).post(JSON.encode(character));

@@ -71,6 +71,8 @@ RPG.App = new (RPG.AppClass = new Class({
 		request.dataReceived = true;
 		reqData = null;
 	    });
+	} else {
+	    request.dataReceived = true;
 	}
 	var url = require('url').parse(request.url, true);
 	RPG.Log('request','Processing '+request.url);
@@ -160,12 +162,12 @@ RPG.App = new (RPG.AppClass = new Class({
 		var handler = require(page.requires.js)[page.requires.exports];
 		if (typeOf(handler) == 'class') {
 		    if (page.requires.singleton && this.handlerCache[page.requires.js]) {
-			RPG.Log('cached','Routing to: '+page.requires.js);
+			//RPG.Log('cached','Routing to: '+page.requires.js);
 			this.handlerCache[page.requires.js].onRequest(request,response);
 			handled = true;
 			return;
 		    } else {
-			RPG.Log('new','Routing to: '+page.requires.js);
+			//RPG.Log('new','Routing to: '+page.requires.js);
 			(handler = new handler(page.options)).onRequest(request,response);
 			if (page.requires.singleton) {
 			    this.handlerCache[page.requires.js] = handler;
@@ -174,7 +176,7 @@ RPG.App = new (RPG.AppClass = new Class({
 			return;
 		    }
 		} else {
-		    RPG.Log('static','Routing to: '+page.requires.js);
+		    //RPG.Log('static','Routing to: '+page.requires.js);
 		    require(page.requires.js)[page.requires.exports].onRequest(request,response);
 		    handled = true;
 		    return;
@@ -187,7 +189,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	 */
 	switch (true) {
 	    case url.query.a == 'reloadMainMenu' :
-		RPG.Log('info','Reloaded Main Menu')
+		//RPG.Log('info','Reloaded Main Menu')
 		response.onRequestComplete(response,{
 		    mainMenu : RPG.mainMenu,
 		    pages : RPG.pages

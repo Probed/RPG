@@ -23,6 +23,7 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 	    requires : {
 		css : ['/client/mochaui/themes/charcoal/css/Character/Character.css'],
 		js : [
+		'/common/Map/Generators/Generators.js',
 		'/client/Game/play.js',
 		'/common/optionConfig.js',
 		'/common/Character/Character.js',
@@ -59,16 +60,32 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 	}
 	switch (true) {
 	    case request.url.query.m == 'CreateCharacter' :
-		RPG.Character.createCharacter(request,response);
+		if (!request.dataReceived) {
+		    request.on('end',function(){
+			this.onRequest(request,response);
+		    }.bind(this));
+		    return;
+		}
+		RPG.Character.create({
+		    user : request.user,
+		    character : request.data
+		}, function(character){
+		    response.onRequestComplete(response,character);
+		});
 		break;
 
 	    case request.url.query.m == 'ListCharacters' :
-		RPG.Character.listCharacters(request.user.options.userID,function(characters){
+		RPG.Character.list({
+		    user : request.user
+		},function(characters){
 		    response.onRequestComplete(response,characters);
 		});
 		break;
 	    case request.url.query.m == 'DeleteCharacter' :
-		RPG.Character.deleteCharacter(request.user.options.userID,Number.from(request.url.query.characterID), function(result){
+		RPG.Character['delete']({
+		    user : request.user,
+		    characterID : request.url.query.characterID
+		}, function(result){
 		    response.onRequestComplete(response,result);
 		});
 		break;
@@ -78,9 +95,12 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		break;
 
 	    default :
-		RPG.Character.listCharacters(request.user.options.userID,function(characters){
-		    this.page.options.characters = characters;
-		    response.onRequestComplete(response,this._onRequest(request,this.page));
+		RPG.Character.list({
+		    user : request.user
+		},function(characters){
+		    var p = Object.clone(this.page);
+		    p.options.characters = characters;
+		    response.onRequestComplete(response,this._onRequest(request,p));
 		}.bind(this));
 		break;
 	}

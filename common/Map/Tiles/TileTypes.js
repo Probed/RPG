@@ -41,6 +41,23 @@ if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
 
+RPG.TileType.Property = function(options) {
+    return {
+	property : Object.merge({
+	    tileName : ["/^[a-zA-Z0-9'.`_ ]+$/",1,50],
+	    folderName : ["/^[a-zA-Z0-9]+$/",1,50],
+	    image : {
+		name : [],
+		size : [-200,200,100],
+		top : [-200,200,0],
+		left : [-200,200,0],
+		repeat : ['no-repeat','repeat-x','repeat-y','repeat']
+	    }
+	},options||{})
+    };
+}
+
+
 /**
  * Teleport Tile:
  * options :
@@ -50,7 +67,6 @@ if (typeof exports != 'undefined') {
  *	point : [x,y] location on the map where the character will be teleported to
  */
 RPG.TileType.Teleport = function(options) {
-    options = options || {};
     return {
 	teleportTo : Object.merge({
 	    warn : [true],
@@ -71,7 +87,6 @@ RPG.TileType.Teleport = function(options) {
  *	etc
  */
 RPG.TileType.Traversable = function(options) {
-    options = options || {};
     return {
 	traverse : Object.merge({
 	    foot : {
@@ -89,6 +104,6 @@ RPG.TileType.Traversable = function(options) {
 	    spaceship : {
 		cost : [-100,100,100]
 	    }
-	},options)
+	},options||{})
     };
 }

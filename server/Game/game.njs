@@ -36,47 +36,41 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	}
 
-	RPG.InitGame.startGame(request.user, request.url.query.characterID, function(character) {
+	RPG.InitGame.startGame({
+	    user : request.user,
+	    characterID : request.url.query.characterID
+	}, function(character) {
 	    if (!character || character.error) {
 		response.onRequestComplete(response,character);
 		return;
 	    }
 
 	    this.loadGame({
-		userID : request.user.options.userID,
+		user : request.user,
 		character : character
-
 	    },function(game) {
 		if (game.error) {
 		    response.onRequestComplete(response,game);
 		    return;
 		}
-		game.user = request.user;
-
 		switch (true) {
 		    //process game commands:
 		    case request.url.query.m == 'MoveCharacter' :
-			this.moveCharacter({
-			    user : request.user,
-			    game : game,
-			    dir : request.url.query.dir
-			},
-			function(universe){
-			    if (universe.error) {
-				response.onRequestComplete(response,universe);
+			game.dir = request.url.query.dir;
+
+			this.moveCharacter(game, function(changes){
+			    if (changes.error) {
+				response.onRequestComplete(response,changes);
 				return;
 			    }
-			    Object.merge(require('../Cache.njs').Cache.retrieve(request.user.options.userID,'universe_'+character.location.universeID),universe);
-			    response.onRequestComplete(response,universe);
+
+			    Object.merge(require('../Cache.njs').Cache.retrieve(request.user.options.userID,'universe_'+changes.game.character.location.universeID),changes.game.universe);
+			    response.onRequestComplete(response,changes);
 			});
 			break;
 
 		    default :
-			RPG.Tile.getViewableTiles({
-			    userID : request.user.options.userID,
-			    character : character,
-			    universe : game.universe
-			},function(universe){
+			RPG.Tile.getViewableTiles(game,function(universe){
 			    if (universe.error) {
 				response.onRequestComplete(response,universe);
 				return;
@@ -98,33 +92,29 @@ RPG.Game = new (RPG.GameClass = new Class({
 
     /**
      * Required options:
-     * userID
+     * user
      * character
      *
-     * callback(gameObject)
+     * callback(game || error)
      */
     loadGame : function(options,callback) {
 
-	RPG.Universe.loadUniverse({
-	    userID : options.userID,
-	    character : options.character
-	},function(universe) {
+	RPG.Universe.load(options,function(universe) {
 	    if (!universe || universe.error) {
 		callback(universe);
 		return;
 	    }
-	    callback({
-		character : options.character,
-		universe : universe
-	    });
-	}.bind(this));
+	    options.universe = universe;
+	    callback(options);
+	});
     },
 
     /**
      * required options
-     * user,
-     * game
-     * dir, = direction (n,e,s,w)
+     * user
+     * character
+     * universe
+     * dir = direction (n,e,s,w)
      */
     moveCharacter : function(options,callback) {
 	if (!RPG.dirs.contains(options.dir)) {
@@ -133,25 +123,20 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    });
 	}
 
-	options.userID = options.user.options.userID;
-	var newLoc = RPG[options.dir](options.game.character.location.point,1);
+	options.moveTo = RPG[options.dir](options.character.location.point,1);
 
 
-	RPG.moveCharacterToTile(options.game,newLoc,options.dir,function(moveEvents) {
+	RPG.moveCharacterToTile(options,function(moveEvents) {
 	    if (moveEvents.error) {
 		callback(moveEvents);
 		return;
 	    }
-	    RPG.Tile.getViewableTiles({
-		userID : options.userID,
-		universe : options.game.universe,
-		character : options.game.character
-	    },function(universe){
-		Object.merge(options.game.universe,universe);
+	    RPG.Tile.getViewableTiles(options,function(universe){
+		Object.merge(options.universe,universe);
 		callback({
 		    game : {
 			universe : universe,//only send back the new stuff
-			character : options.game.character
+			character : options.character
 		    },
 		    events : Object.cleanEmpty(moveEvents)
 		});
