@@ -11,11 +11,13 @@ if (typeof exports != 'undefined') {
 }
 
 RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
+    Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
+    name : 'Terrain',
     constraints : {
 	terrain : {
 	    name : ['/^[a-zA-Z0-9_.]+$/',1,20,'G'],
-	    size : ['32','64','128','256','64'],
+	    size : [8,8,8],//['32','64','128','256','64'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    choas : [0.1,0.9,0.5],
 	    smoothTerrain : [0,5,5],
@@ -31,48 +33,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 	this.setOptions(options);
     },
 
-    /**
-     * random
-     *
-     * returns object {
-     * terrain : {}
-     * universe: {
-     *	maps : {
-     *	    [mapName] = {
-     *		tiles : {},
-     *		cache : {}
-     *		}
-     *	    }
-     *	}
-     * }
-     */
-    random : function(mapName,rand) {
-	rand = rand || RPG.Random;
-
-	var universe = {
-	    maps : {}
-	};
-	var map = universe.maps[mapName] = {};
-	map.options = {};
-	map.options.generator = {
-	    Terrain : {
-		options : RPG.optionCreator.random(this.constraints,rand)
-	    }
-	};
-
-	var terrain = RPG.Generator.Terrain.generate(map.options.generator.Terrain.options,rand);
-
-	map.tiles = terrain.tiles;
-	map.cache = terrain.cache;
-
-	return {
-	    options : map.options.generator.Terrain.options,
-	    universe : universe,
-	    generated : terrain
-	};
-    },
-
-    generate : function(options,rand) {
+    generate : function(options,rand,callback) {
 	var x = 0;
 	var y = 0;
 	var heightMap1D = [];
@@ -299,7 +260,8 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 	var randRow = Object.getSRandom(terrain.solid,rand);
 	var randCol = Object.getSRandom(randRow.rand,rand);
 	terrain.possibleStartLocations.push([Number.from(randRow.key),Number.from(randCol.key)]);
-	return terrain;
+
+	callback(terrain);
     },
 
     /**

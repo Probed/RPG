@@ -4,28 +4,39 @@ if (!RPG.Generator) RPG.Generator = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Random.js'));
     Object.merge(RPG,require('../../optionConfig.js'));
+    Object.merge(RPG,require('./Generators.js'));
     module.exports = RPG;
 }
 
 RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
+    Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
+
+    name : 'Name',
     constraints : {
 	name : {
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    length : [2,12,6]//min/max/def
 	}
     },
+
     options : {},
     initialize : function(options) {
 	this.setOptions(options);
     },
 
-    random : function(rand) {
-	rand = rand || RPG.Random;
-	return this.generate(RPG.optionCreator.random(this.constraints,rand),rand);
+    random : function(rand,mapName,callback) {
+	if (!callback) {
+	    this.generate(RPG.optionCreator.random(this.constraints,rand),rand,function(generated){
+		callback(generated);
+	    });
+	    return null;
+	} else {
+	    return this.generate(RPG.optionCreator.random(this.constraints,rand),rand);
+	}
     },
 
-    generate : function(options,rand){
+    generate : function(options,rand,callback){
 	if (!options) options = {};
 	rand = rand || RPG.Random;
 	rand.seed = (options.name && options.name.seed) || rand.seed;
@@ -60,7 +71,12 @@ RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
 	name = name.charAt(0).toUpperCase() + name.substring(1, name.length)
 	i = vowels = con = allchars = length = consnum = null;
 
-	return name;
+	if (callback) {
+	    callback(name);
+	    return null;
+	} else {
+	    return name;
+	}
     }
 }))();
 
@@ -95,7 +111,10 @@ RPG.wordPatterns = {
  * and randomly constructs a sentance from the avaiable words
  */
 RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
+    Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
+
+    name : 'Words',
     constraints : {
 	words : {
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
@@ -107,7 +126,19 @@ RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
 	this.setOptions(options);
     },
 
-    generate : function(options,rand) {
+    random : function(rand,mapName,callback) {
+	rand = rand || RPG.Random;
+	if (callback) {
+	    this.generate(RPG.optionCreator.random(this.constraints,rand),rand,function(generated){
+		callback(generated);
+	    });
+	    return null;
+	} else {
+	    return this.generate(RPG.optionCreator.random(this.constraints,rand),rand);
+	}
+    },
+
+    generate : function(options,rand,callback) {
 	rand = rand || RPG.Random;
 	rand.seed =  (options.words && options.words.seed) || rand.seed;
 	var out = '';
@@ -120,6 +151,11 @@ RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
 		}
 	    }
 	});
-	return out;
+	if (callback) {
+	    callback(out);
+	    return null;
+	} else {
+	    return out;
+	}
     }
 }))();

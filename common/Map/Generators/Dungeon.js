@@ -14,7 +14,9 @@ if (typeof exports != 'undefined') {
 }
 
 RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
+    Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
+    name : 'Dungeon',
     constraints : {
 	dungeon : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
@@ -36,47 +38,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 	this.setOptions(options);
     },
 
-    /**
-     * random
-     *
-     * returns object {
-     * house : {}
-     * universe: {
-     *	maps : {
-     *	    [mapName] = {
-     *		tiles : {},
-     *		cache : {}
-     *		}
-     *	    }
-     *	}
-     * }
-     */
-    random : function(mapName,rand) {
-	rand = rand || RPG.Random;
-	var universe = {
-	    maps : {}
-	};
-	var map = universe.maps[mapName] = {}
-	map.options = {};
-	map.options.generator = {
-	    Dungeon : {
-		options : RPG.optionCreator.random(this.constraints,rand)
-	    }
-	};
-
-	var dungeon = RPG.Generator.Dungeon.generate(map.options.generator.Dungeon.options,rand);
-
-	map.tiles = dungeon.tiles;
-	map.cache = dungeon.cache;
-
-	return {
-	    options : map.options.generator.Dungeon.options,
-	    universe : universe,
-	    generated : dungeon
-	};
-    },
-
-    generate : function(options,rand){
+    generate : function(options,rand,callback){
 	rand = rand || RPG.Random;
 	rand.seed = options.dungeon.seed || rand.seed;
 
@@ -97,7 +59,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 
 	dungeon.possibleStartLocations.push(dungeon.stairsUp);
 
-	return dungeon;
+	callback(dungeon);
     },
 
     createDungeonMaze : function(options,rand,dungeon) {

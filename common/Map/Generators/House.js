@@ -6,10 +6,12 @@ if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../Tiles/Utilities.js'));
     Object.merge(RPG,require('../Tiles/Tiles.js'));
     Object.merge(RPG,require('./Words.js'));
+    Object.merge(RPG,require('./Generators.js'));
     module.exports = RPG;
 }
 
 RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
+    Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
     constraints : {
 	house : {
@@ -57,47 +59,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	this.setOptions(options);
     },
 
-    /**
-     * random
-     *
-     * returns object {
-     * house : {}
-     * universe: {
-     *	maps : {
-     *	    [mapName] = {
-     *		tiles : {},
-     *		cache : {}
-     *		}
-     *	    }
-     *	}
-     * }
-     */
-    random : function(mapName,rand) {
-	rand = rand || RPG.Random;
-	var universe = {
-	    maps : {}
-	};
-	var map = universe.maps[mapName] = {}
-	map.options = {};
-	map.options.generator = {
-	    House : {
-		options : RPG.optionCreator.random(this.constraints,rand)
-	    }
-	};
-
-	var house = RPG.Generator.House.generate(map.options.generator.House.options,rand);
-
-	map.tiles = house.tiles;
-	map.cache = house.cache;
-
-	return {
-	    options : map.options.generator.House.options,
-	    universe : universe,
-	    generated : house
-	};
-    },
-
-    generate : function(options,rand) {
+    generate : function(options,rand,callback) {
 	rand = rand || RPG.Random;
 	rand.seed = options.house.seed || rand.seed;
 
@@ -122,7 +84,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 
 	this.createHouse(options,rand,house);
 
-	return house;
+	callback(house);
     },
 
     createHouse : function(options,rand,house) {

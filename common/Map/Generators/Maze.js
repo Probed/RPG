@@ -5,11 +5,15 @@ if (typeof exports != 'undefined') {
     Object.merge(RPG,require('./Utilities.js'));
     Object.merge(RPG,require('../Tiles/Utilities.js'));
     Object.merge(RPG,require('../Tiles/Tiles.js'));
+    Object.merge(RPG,require('./Generators.js'));
     module.exports = RPG;
 }
 
 RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
+    Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
+
+    name : 'Maze',
     constraints : {
 	maze : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
@@ -26,47 +30,7 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	this.setOptions(options);
     },
 
-    /**
-     * random
-     *
-     * returns object {
-     * maze : {}
-     * universe: {
-     *	maps : {
-     *	    [mapName] = {
-     *		tiles : {},
-     *		cache : {}
-     *		}
-     *	    }
-     *	}
-     * }
-     */
-    random : function(mapName,rand) {
-	rand = rand || RPG.Random;
-	var universe = {
-	    maps : {}
-	};
-	var map = universe.maps[mapName] = {}
-	map.options = {};
-	map.options.generator = {
-	    Maze : {
-		options : RPG.optionCreator.random(this.constraints,rand)
-	    }
-	};
-
-	var maze = RPG.Generator.Maze.generate(map.options.generator.Maze.options,rand);
-
-	map.tiles = maze.tiles;
-	map.cache = maze.cache;
-
-	return {
-	    options : map.options.generator.Maze.options,
-	    universe : universe,
-	    generated : maze
-	};
-    },
-
-    generate : function(options,rand){
+    generate : function(options,rand,callback){
 	var maze = {
 	    cache : {},
 	    tiles : {},
@@ -200,7 +164,7 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	});
 	strRows = r = c = null;
 
-	return maze;
+	callback(maze);
     },
     createMaze : function(options,rand) {
 	rand = rand || RPG.Random;
