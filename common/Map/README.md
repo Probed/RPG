@@ -146,7 +146,7 @@ universe.options.settings.startMap = map.property.mapName;
 /*
  * 4. Add a Tile to the universe
  */
-RPG.pushTile(map.tiles,[0,0], //push the tile path onto the map.tiles at x:0 y:0
+RPG.pushTile(map.tiles,[1,1], //push the tile path onto the map.tiles at x:1 y:1
     RPG.createTile(['terrain','grass'],map.cache,{  //create the tile in the map.cache
         property : {
             tileName : 'SampleTileName',
