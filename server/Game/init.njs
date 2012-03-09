@@ -78,6 +78,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	    var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 
 	    options.universe = universe;
+	    options.bypassCache = true;
 
 	    RPG.Universe.store(options, function(universe) {
 		if (!universe || universe.error) {
