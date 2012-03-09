@@ -17,7 +17,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
     constraints : {
 	terrain : {
 	    name : ['/^[a-zA-Z0-9_.]+$/',1,20,'G'],
-	    size : [8,8,8],//['32','64','128','256','64'],
+	    size : ['32','64','128','256','64'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    choas : [0.1,0.9,0.5],
 	    smoothTerrain : [0,5,5],
