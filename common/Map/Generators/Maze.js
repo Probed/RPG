@@ -20,8 +20,8 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    randomSeed : false,
 	    tile :  RPG.tileFolderList(RPG.Tiles,'world.earth.road'),
-	    height : [8,64,32],
-	    width : [8,64,32],
+	    height : [8,32,16],
+	    width : [8,32,16],
 	    sparse : [0,10,0]
 	}
     },

@@ -35,13 +35,13 @@ RPG.getMapTileStyles = function(options) {
 
 	var len = tiles.length;
 	for (var x=0; x<len;x++) {
-	    var t = tiles[x];
-	    var theTile = Object.getFromPath(options.map.cache,t);
+	    var path = tiles[x];
+	    var theTile = Object.getFromPath(options.map.cache,path);
 	    if (!theTile) {
 
 		continue;
 	    }
-	    styles['background-image'] = 'url("/common/Map/Tiles/'+t.slice(1,t.length-1).join('/')+'/'+escape(theTile.options.property.image.name)+'"),' + styles['background-image'];
+	    styles['background-image'] = 'url("'+RPG.getMapTileImage(path,theTile)+'"),' + styles['background-image'];
 	    styles['background-position'] = (theTile.options.property.image.left?theTile.options.property.image.left+'% ':'0% ') + (theTile.options.property.image.top?theTile.options.property.image.top+'%,':'0%,') + styles['background-position'];
 	    styles['background-size'] = (theTile.options.property.image.size?theTile.options.property.image.size+'%,':'100%,') + styles['background-size'];
 	    styles['background-repeat'] = (theTile.options.property.image.repeat?theTile.options.property.image.repeat+',':'no-repeat,') + styles['background-repeat'];
@@ -61,6 +61,15 @@ RPG.getMapTileStyles = function(options) {
     }
     return styles;
 
+}
+RPG.getMapTileCursor = function(path,tile) {
+    return {
+	'cursor' : 'url("'+RPG.getMapTileImage(path,tile)+'"), pointer'
+    };
+}
+
+RPG.getMapTileImage = function(path,tile) {
+    return '/common/Map/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+escape(tile.options.property.image.name)+'';
 }
 
 /**

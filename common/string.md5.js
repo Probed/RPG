@@ -207,6 +207,12 @@ requires:
 	return (convertToHex(a) + convertToHex(b) + convertToHex(c) + convertToHex(d)).toLowerCase();
     }
 
+    Array.implement({
+	'toMD5' :  function(){
+	    return this.join('').toMD5();
+	}
+    })
+
     String.implement({
 	'toMD5': function()
 	{

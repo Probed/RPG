@@ -21,8 +21,8 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 	dungeon : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
-	    height : [4,10,5],
-	    width : [4,10,5],
+	    height : [3,7,5],
+	    width : [3,7,5],
 	    type : RPG.tileFolderList(RPG.Tiles,'world.earth.room')
 	},
 	rooms : {

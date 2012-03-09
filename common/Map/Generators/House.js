@@ -18,8 +18,8 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    type : RPG.tileFolderList(RPG.Tiles,'world.earth.room'),
-	    rows : [2,10,2],
-	    cols : [2,10,2]
+	    rows : [2,4,2],
+	    cols : [2,4,2]
 	},
 	property : {
 	    lawn : RPG.tileFolderList(RPG.Tiles,'terrain.earth.solid'),

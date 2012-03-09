@@ -408,17 +408,21 @@ RPG.MapEditor = new Class({
 		event.preventDefault();
 	    }.bind(this),
 	    'mousedown:relay(td.M_tileHolder)' : function(event) {
-		this.paintingTiles = true;
-		this.draggingMap = true;
-		this.dragMapStart = {
-		    x : event.event.pageX,
-		    y : event.event.pageY
-		};
+		if ($$('.selectedTile')[0]) {
+		    this.paintingTiles = true;
+		} else {
+		    this.draggingMap = true;
+		    this.dragMapStart = {
+			x : event.event.pageX,
+			y : event.event.pageY
+		    };
+		}
 		event.preventDefault();
 	    }.bind(this),
 	    'mouseup:relay(td.M_tileHolder)' : function(event) {
 		this.paintingTiles = false;
 		event.preventDefault();
+	    //drag mouse up handled below in document events
 	    }.bind(this),
 	    'mouseenter:relay(td.M_tileHolder)' : function(event) {
 		if (!event) return;
@@ -468,9 +472,7 @@ RPG.MapEditor = new Class({
 			);
 		    this.tilePicker(event.target.retrieve('options'))
 		} else {
-		    this.expandTree(['currentTileCache__'+event.target.retrieve('tilePath').join('__')]);
-		    $$('.selectedTile').removeClass('selectedTile');
-		    $$('#currentTileCache__'+event.target.retrieve('tilePath').join('__')+' a').addClass('selectedTile');
+		    this.toggleSelectedTile('currentTileCache',event.target.retrieve('tilePath'))
 		    this.tilePickerDiv.empty().hide();
 		}
 	    }.bind(this)
@@ -517,6 +519,14 @@ RPG.MapEditor = new Class({
 	this.keyboardEvents = new Keyboard({
 	    defaultEventType: 'keyup',
 	    events: {
+		'esc' : function(event) {
+		    if ($$('.selectedTile')[0]){
+			$$('.selectedTile').removeClass('selectedTile');
+			$$('.M_mapTable').setStyles({
+			    cursor : 'pointer'
+			});
+		    }
+		},
 		'alt+n': function(event) {
 		    if (this.currentUniverse) {
 			this.newMapWindow();
@@ -898,29 +908,37 @@ RPG.MapEditor = new Class({
 
     getMapTreeEvents : function() {
 	return {
-	    'click:relay(a.treeTile)' : function(event) {
+	    'dblclick:relay(a.treeTile)' : function(event) {
 		if (!event || !event.target) return;
-
-		if (event.target.hasClass('treeNewTile') || event.target.hasClass('selectedTile')) {
+		if (event.target.retrieve('tilePath')) {
 		    this.tileWindow({
 			path : event.target.retrieve('tilePath'),
 			cache : event.target.retrieve('cache')
 		    });
-		} else {
-		    ($$('.selectedTile')||[]).each(function(elm){
-			elm && elm.removeClass('selectedTile');
+		}
+		event.preventDefault();
+		event.stopPropagation();
+	    }.bind(this),
+	    'click:relay(a.treeTile)' : function(event) {
+		if (!event || !event.target) return;
+
+		if (event.target.hasClass('treeNewTile')) {
+		    this.tileWindow({
+			path : event.target.retrieve('tilePath'),
+			cache : event.target.retrieve('cache')
 		    });
-		    event.target.addClass('selectedTile');
+		} else if (event.target.retrieve('tilePath')) {
+		    this.toggleSelectedTile('currentTileCache',event.target.retrieve('tilePath'));
 		}
 		event.stopPropagation();
 	    }.bind(this)
 	};
     },
 
-    refreshMapTree : function(addToExpand) {
-	var reexpand = [addToExpand];
+    refreshMapTree : function(expand) {
+	var reexpand = Array.from(expand);
 	$$('#mapEditorTree .f-open').each(function(elm){
-	    reexpand.push(elm.id);
+	    reexpand.push(elm.retrieve('tilePath'));
 	});
 
 	if (this.mapTreeEl && this.mapTreeEl.destroy) {
@@ -962,7 +980,7 @@ RPG.MapEditor = new Class({
 	    var ul = null;
 	    var li = new Element('li',{
 		'class' : 'folder',
-		id : 'tilesets__'+key
+		id : 'p'+key.toMD5()
 	    }).adopt(new Element('span',{
 		html : key//category
 	    }));
@@ -973,7 +991,7 @@ RPG.MapEditor = new Class({
 		ul.adopt(
 		    new Element('li',{
 			'class' : 'doc',
-			id : 'tilesets__'+key+'__'+k
+			id : 'p'+(key+k).toMD5()
 		    }).adopt(new Element('span').adopt(a = new Element('a',{
 			'class' : (c.cache == this.currentTileCache?'selectedTileset':''),
 			html : k,
@@ -1043,7 +1061,7 @@ RPG.MapEditor = new Class({
 		var map = null;
 		var li = new Element('li',{
 		    'class' : 'doc',
-		    id : 'currentUniverse__maps__'+key
+		    id : 'p'+('_maps_'+key).toMD5()
 		}).adopt(new Element('span').adopt(map = new Element('a',{
 		    'class' : 'selectMap'+(content.cache == this.currentTileCache?' selectedMap':''),
 		    html : '[Map] <b>'+key + '</b> <small>(' + this.getTileCount(content.tiles) + ' <small>tiles</small></small>)',
@@ -1080,7 +1098,7 @@ RPG.MapEditor = new Class({
 	    var ul = null;
 	    var li = new Element('li',{
 		'class' : 'folder',
-		id : 'currentTileCache__'+key
+		id : 'p'+key.toMD5()
 	    }).adopt(new Element('span',{
 		html : key.capitalize()
 	    }));
@@ -1105,8 +1123,8 @@ RPG.MapEditor = new Class({
 	    if (key == 'options') return;
 	    var ul = null;
 	    var li = new Element('li',{
-		'class' : 'folder',
-		id :  'mapCache__'+key
+		'class' : 'folder ',
+		id : 'p'+key.toMD5()
 	    }).adopt(new Element('span',{
 		html : key.capitalize()
 	    }));
@@ -1128,7 +1146,7 @@ RPG.MapEditor = new Class({
 	    onContentLoaded : function() {
 		if (buildTree) {
 		    buildTree('mapEditorTree');
-		    this.expandTree(reexpand);
+
 		}
 		reexpand = null;
 	    }.bind(this)
@@ -1141,7 +1159,7 @@ RPG.MapEditor = new Class({
 	var span = null;
 	path.push(key);
 	parentUl.adopt(li = new Element('li',{
-	    id : (cache == RPG.Tiles?'mapCache':(cache == this.favoritesCache?'favoritesCache':'currentTileCache')) +'__'+ path.join('__')
+	    id : 'p'+(path.toMD5())
 	}).adopt(span = new Element('span').set('html',key.capitalize())));
 	if (content && Object.getLength(content) > (content.options || content.images?(content.images && content.options?2:1):0)) {
 	    var subUl = new Element('ul');
@@ -1159,7 +1177,7 @@ RPG.MapEditor = new Class({
 	    span.empty().adopt(
 		(content && content.options &&  content.options.property && content.options.property.image && typeOf(content.options.property.image.name) == 'string'?
 		    new Element('img',{
-			id : 'imageCache__'+path.join('__'),
+			id : 'imageCache__'+path.toMD5(),
 			src : '/common/Map/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+content.options.property.image.name,
 			styles : {
 			    width : '16px',
@@ -1186,19 +1204,18 @@ RPG.MapEditor = new Class({
 	span = null;
 	path.pop();
     },
-    expandTree : function(expandOptions) {
-	if (!expandOptions) return;
-	expandOptions.each(function(expand){
-	    var path = expand.split('__');
-	    var cPath = '';
-	    path.each(function(p){
-		cPath = (cPath?cPath+'__':'')+p;
-		var elm = $(cPath);
-		if (elm && elm.retrieve && elm.retrieve('toggleFunc') && !elm.hasClass('f-open')) {
-		    elm.retrieve('toggleFunc')();
-		}
-		elm = null;
-	    })
+    expandTree : function(root,path) {
+	path = Array.from(path)
+	var cPath = '';
+	var r = $$('#'+root)[0];
+	if (r && r.retrieve('toggleFunc') && !r.hasClass('f-open')) r.retrieve('toggleFunc')();
+	path.each(function(p){
+	    cPath += p;
+	    var elm = $('p'+cPath.toMD5());
+	    if (elm && elm.retrieve && elm.retrieve('toggleFunc') && !elm.hasClass('f-open')) {
+		elm.retrieve('toggleFunc')();
+	    }
+	    elm = null;
 	});
     },
 
@@ -1334,7 +1351,7 @@ RPG.MapEditor = new Class({
 
 		MUI.closeWindow($('newUniverseWindow'));
 
-		this.refreshMapTree('currentUniverse__maps__'+map.options.property.mapName);
+		this.refreshMapTree(('currentUniverse_maps'+map.options.property.mapName).toMD5());
 		this.changeMap(map.options.property.mapName);
 
 		MUI.notification('Universe Created Successfully.');
@@ -1449,7 +1466,7 @@ RPG.MapEditor = new Class({
 	    }.bind(this),
 	    onSuccess : function(result) {
 		Object.merge(this.currentUniverse.options,options);
-		this.refreshMapTree('');
+		this.refreshMapTree();
 		if ($('editUniverseWindow')) {
 		    MUI.closeWindow($('editUniverseWindow'));
 		}
@@ -1464,7 +1481,7 @@ RPG.MapEditor = new Class({
 	this.rows = 1;
 	this.cols = 1;
 
-	this.refreshMapTree('');
+	this.refreshMapTree();
 	this.refreshMap();
     },
 
@@ -1550,7 +1567,7 @@ RPG.MapEditor = new Class({
 
 	    this.currentTiles = this.currentUniverse.maps[mapName].tiles;
 	    this.currentTileCache = this.currentUniverse.maps[mapName].cache;
-	    this.refreshMapTree('currentUniverse__maps__'+mapName);
+	    this.refreshMapTree(('currentUniverse_maps'+mapName).toMD5());
 	    this.refreshMap();
 	}
     },
@@ -1627,7 +1644,7 @@ RPG.MapEditor = new Class({
 
 	//merge options
 	Object.merge(this.currentUniverse.maps[this.currentUniverse.options.settings.activeMap].options,options);
-	this.refreshMapTree('');
+	this.refreshMapTree();
 	if ($('editMapWindow')) {
 	    MUI.closeWindow($('editMapWindow'));
 	}
@@ -1700,7 +1717,7 @@ RPG.MapEditor = new Class({
 					Object.merge(map.tiles,generated.tiles);
 					Object.merge(map.cache,generated.cache);
 					Object.merge(map.options.generator[generator].options,options);
-					this.refreshMapTree('');
+					this.refreshMapTree();
 					this.refreshMap();
 
 				    } else if (typeOf(generated) == 'string') {
@@ -1907,7 +1924,7 @@ RPG.MapEditor = new Class({
 	    RPG.Error.show(errors);
 	} else {
 	    RPG.createTile(Array.clone(path),this.currentTileCache,tileOptions);
-	    this.refreshMapTree('currentTileCache__'+tileOptions.property.folderName+'__'+path.join('__'));
+	    this.refreshMapTree(('currentTileCache'+path.join('')).toMD5());
 	    MUI.notification('Tile Added Successfully.');
 	}
 	errors = path = null;
@@ -2279,9 +2296,7 @@ RPG.MapEditor = new Class({
 
     placeSelectedTile : function(options,onBottom) {
 	options.selectedTile = null;
-	$$('.selectedTile').each(function(elm){
-	    options.selectedTile = elm;
-	});
+	options.selectedTile = $$('.selectedTile')[0];
 	if (!options.selectedTile) {
 	    return;
 	}
@@ -2295,6 +2310,22 @@ RPG.MapEditor = new Class({
 
 	Object.erase(options,'tileArr');
 	Object.erase(options,'selectedTile');
+    },
+
+    toggleSelectedTile : function(root,path) {
+	var selected = $$('.selectedTile')[0];
+	var toSelect = $$('#p'+path.toMD5()+' a')[0];
+	if (selected && selected.retrieve('tilePath').join('') == path.join('')) {
+	    selected.removeClass('selectedTile');
+	    $$('.M_mapTable').setStyles({
+		cursor : 'pointer'
+	    });
+	} else if(toSelect) {
+	    $$('.M_mapTable').setStyles(RPG.getMapTileCursor(path,Object.getFromPath(toSelect.retrieve('cache'),path)));
+	    $$('.selectedTile').removeClass('selectedTile');
+	    this.expandTree('currentTileCache',path);
+	    toSelect.addClass('selectedTile');
+	}
     },
 
     deleteSelectedTile : function(options) {
@@ -3092,7 +3123,7 @@ RPG.MapEditor = new Class({
 	this.currentTiles = this.tilesets[category][name].tiles;
 	this.activeTileset = this.tilesets[category][name];
 
-	this.refreshMapTree('tilesets__'+category+'__'+name);
+	this.refreshMapTree(('tilesets'+category+name).toMD5());
 	this.refreshMap();
     },
 
@@ -3331,7 +3362,7 @@ RPG.MapEditor = new Class({
 		rOffset++;
 	    }
 	    row = col = minRow = maxRow = rOffset = cOffset = null;
-	    this.refreshMapTree('');
+	    this.refreshMapTree();
 	}
 	tileholder = null;
 	tileset = null;
