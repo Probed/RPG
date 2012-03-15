@@ -18,6 +18,9 @@ RPG.Map = new Class({
 	this.setOptions(options);
 	this.mapDiv = new Element('div',{
 	    id : 'GameMap',
+	    styles : {
+		overflow : 'none'
+	    },
 	    events : {
 		'mousewheel:relay(td.M_tileHolder)' : function(event) {
 		    this.paintingRows = false;
@@ -31,6 +34,29 @@ RPG.Map = new Class({
 			this.refreshMap();
 		    }
 		    event.preventDefault();
+		}.bind(this)
+	    }
+	});
+
+	this.mapCanvas = new Element('canvas',{
+	    styles : {
+		position : 'absolute'
+	    },
+	    events : {
+		click : function(event) {
+		    if (event && event.event.layerX > 0 && event.event.layerY && !this.miniMapDragging) {
+			this.rowOffset = Math.floor((event.event.layerY / this.mapZoom)  - (this.rows/2));
+			this.colOffset = Math.floor((event.event.layerX / this.mapZoom) - (this.cols/2));
+			this.refreshMap();
+		    }
+		}.bind(this),
+		mousewheel : function(event) {
+		    if (event.wheel > 0) {
+			this.mapZoom += 1;
+		    } else {
+			this.mapZoom -= 1;
+		    }
+		    this.refreshMap();
 		}.bind(this)
 	    }
 	});
@@ -87,7 +113,63 @@ RPG.Map = new Class({
     calcRows : function() {
 	return Math.floor(($('pnlMainContent').getSize().y-20) / this.mapZoom);
     },
+
+    refreshCanvas : function() {
+	if (this.refreshingMap) return;
+	this.refreshingMap = true;
+
+	var map = this.options.universe.maps[this.options.character.location.mapName];
+
+	var bounds = RPG.getMapBounds(map.tiles);
+	var cols = bounds.maxCol - bounds.minCol;
+	var rows = bounds.maxRow - bounds.minRow;
+
+
+	this.mapCanvas.setStyles({
+	    width : cols*this.mapZoom,
+	    height : rows*this.mapZoom
+	});
+	this.mapCanvas.set('width',cols*this.mapZoom);
+	this.mapCanvas.set('height',rows*this.mapZoom);
+
+	this.mapCanvas.setPosition({
+	    x : ($('pnlMainContent').getSize().x/2) - (this.mapCanvas.getSize().x/2),
+	    y : ($('pnlMainContent').getSize().y/2) - (this.mapCanvas.getSize().y/2)
+	});
+
+	var context = this.mapCanvas.getContext('2d');
+
+	RPG.EachTile(map.tiles,true,function(tileLoc) {
+	    if (!tileLoc.tilePaths) return;//empty tile loc
+
+	    tileLoc.tilePaths.each(function(tilePath){
+		var tile = Object.getFromPath(map.cache,tilePath);
+		if (!tile) return;
+
+		var img = new Image();
+		img.onload = function(){
+		    context.drawImage(img,tileLoc.colIndex*this.mapZoom,tileLoc.rowIndex*this.mapZoom,this.mapZoom,this.mapZoom);
+		    img = null;
+		}.bind(this);
+		img.src = RPG.getMapTileImage(tilePath,tile);
+
+		if (tileLoc.row == this.options.character.location.point[0] && tileLoc.col == this.options.character.location.point[1]) {
+		    var ch = new Image();
+		    ch.onload = function(){
+			context.drawImage(ch,tileLoc.colIndex*this.mapZoom,tileLoc.rowIndex*this.mapZoom,this.mapZoom,this.mapZoom);
+			ch = null;
+		    }.bind(this);
+		    ch.src = RPG.getCharacterImage(this.options.character);
+		}
+	    }.bind(this));
+	}.bind(this));
+
+	this.mapDiv.adopt(this.mapCanvas);
+	this.refreshingMap = false;
+    },
+
     refreshMap : function() {
+	//return this.refreshCanvas();
 
 	if (this.refreshingMap) return;
 	this.refreshingMap = true;

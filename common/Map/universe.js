@@ -56,6 +56,6 @@ RPG.tileset_options = {
     property : {
 	category : ['/^[a-zA-Z0-9]+$/',3,15],
 	name :  ['/^[a-zA-Z0-9]+$/',3,15],
-	description : ['/^[a-zA-Z0-9 _.-]+$/',0,255]
+	description : ['/^[a-zA-Z0-9 _.-]+$/',1,255]
     }
 };

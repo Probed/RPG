@@ -142,6 +142,9 @@ RPG.MapEditor = new Class({
 	    'click:relay(a.SaveTileset)' : function(event) {
 		this.saveTileset();
 	    }.bind(this),
+	    'click:relay(a.OpenTileset)' : function(event) {
+		this.listTilesetsWindow();
+	    }.bind(this),
 
 	    'click:relay(a.mnuNewTile)' : function(event) {
 		if (event && event.target && event.target.retrieve('path')) {
@@ -631,7 +634,7 @@ RPG.MapEditor = new Class({
 	this.showMapTreePanel();
 	this.populateNavbar();
 
-	this.refreshMapTree('');
+	this.refreshMapTree();
 	this.refreshMap();
 
 	return this;
@@ -718,6 +721,12 @@ RPG.MapEditor = new Class({
 				    new Element('a').set('html','New').addClass('NewTileset').adopt(new Element('span',{
 					'class' : 'kbShortcut',
 					html : 'Alt+T+N'
+				    }))
+				    ),
+				new Element('li').adopt(
+				    new Element('a').set('html','Open').addClass('OpenTileset').adopt(new Element('span',{
+					'class' : 'kbShortcut',
+					html : 'Alt+T+O'
 				    }))
 				    ),
 				new Element('li',{
@@ -936,7 +945,7 @@ RPG.MapEditor = new Class({
     },
 
     refreshMapTree : function(expand) {
-	var reexpand = Array.from(expand);
+	var reexpand = [Array.from(expand)];
 	$$('#mapEditorTree .f-open').each(function(elm){
 	    reexpand.push(elm.retrieve('tilePath'));
 	});
@@ -967,8 +976,119 @@ RPG.MapEditor = new Class({
 	var pUl = null;//holds the subtree ul
 	this.mapTreeEl.addEvents(this.getMapTreeEvents());
 
+	if (!this.currentUniverse) {
+	    this.mapTreeEl.adopt(new Element('li',{
+		'class' : 'treeRoot folder',
+		id : 'currentUniverse'
+	    }).adopt(new Element('span',{
+		html : '[Universe] '
+	    }).adopt(new Element('a',{
+		'class' : 'NewUniverse textCenter',
+		html : 'Start New',
+		events : {
+		    click : function(event) {
+			this.newUniverseWindow();
+		    }.bind(this)
+		}
+	    }))));
+	} else {
+	    this.mapTreeEl.adopt(new Element('li',{
+		'class' : 'treeRoot folder',
+		id : 'currentUniverse'
+	    }).adopt(new Element('span',{
+		html : '[Universe] '
+	    }).adopt(new Element('a',{
+		'class' : 'editUniverse',
+		html : '<b>' + this.currentUniverse.options.property.universeName.capitalize() +'</b>'
+	    })),pUl = new Element('ul')
+		));
+
+	    Object.each(this.currentUniverse.maps,function(content, key) {
+		if (!content || key == 'options') return;
+		var ul = null;
+		var map = null;
+		var li = new Element('li',{
+		    'class' : 'doc',
+		    id : 'p'+('maps'+key).toMD5()
+		}).adopt(new Element('span').adopt(map = new Element('a',{
+		    'class' : 'selectMap'+(content.cache == this.currentTileCache?' selectedMap':''),
+		    html : '[Map] <b>'+key + '</b> <small>(' + this.getTileCount(content.tiles) + ' <small>tiles</small></small>)',
+		    events : {
+			'click' : function(event) {
+			    if (map.hasClass('selectedMap')) {
+				this.editMapWindow();
+			    } else {
+				this.changeMap(key);
+			    }
+			}.bind(this)
+		    }
+		}).store('tilePath',['maps',key]))).store('tilePath',['maps',key]);
+		//	    li.adopt(ul = new Element('ul'));
+		pUl.adopt(li);
+	    //	    Object.each(content, function(c,k) {
+	    //		this.objToTree(ul,c,k,[key],this.currentTileCache);
+	    //	    }.bind(this));
+	    //	    li = null;
+	    //	    ul = null;
+	    }.bind(this));
+	}
+
 	this.mapTreeEl.adopt(new Element('li',{
-	    'class' : 'folder',
+	    'class' : 'treeRoot folder',
+	    id : 'currentTileCache'
+	}).adopt(new Element('span',{
+	    html : 'Current Cache'
+	}),pUl = new Element('ul')
+	    ));
+
+	Object.each(this.currentTileCache,function(content, key) {
+	    if (key == 'options') return;
+	    var ul = null;
+	    var li = new Element('li',{
+		'class' : 'folder',
+		id : 'p'+key.toMD5()
+	    }).adopt(new Element('span',{
+		html : key.capitalize()
+	    })).store('tilePath',key);
+	    li.adopt(ul = new Element('ul'));
+	    pUl.adopt(li);
+	    Object.each(content, function(c,k) {
+		this.objToTree(ul,c,k,[key],this.currentTileCache);
+	    }.bind(this));
+	    li = null;
+	    ul = null;
+	}.bind(this));
+
+	this.mapTreeEl.adopt(new Element('li',{
+	    'class' : 'treeRoot folder',
+	    id : 'mapCache'
+	}).adopt(new Element('span',{
+	    html : 'Create Tile'
+	}),
+	pUl = new Element('ul')
+	    ));
+	Object.each(RPG.Tiles,function(content, key) {
+	    if (key == 'options') return;
+	    var ul = null;
+	    var li = new Element('li',{
+		'class' : 'folder ',
+		id : 'p'+key.toMD5()
+	    }).adopt(new Element('span',{
+		html : key.capitalize()
+	    })).store('tilePath',key);
+	    li.adopt(ul = new Element('ul'));
+	    pUl.adopt(li);
+	    Object.each(content, function(c,k) {
+		this.objToTree(ul,c,k,[key],RPG.Tiles);
+	    }.bind(this));
+	    li = null;
+	    ul = null;
+	}.bind(this));
+
+	pUl = null;
+
+	this.mapTreeEl.adopt(new Element('li',{
+	    'class' : 'treeRoot folder',
 	    id : 'tilesets'
 	}).adopt(new Element('span',{
 	    html : 'Tilesets <a class="BrowseTilesets">Browse</a>'
@@ -983,7 +1103,7 @@ RPG.MapEditor = new Class({
 		id : 'p'+key.toMD5()
 	    }).adopt(new Element('span',{
 		html : key//category
-	    }));
+	    })).store('tilePath',key);
 	    li.adopt(ul = new Element('ul'));
 	    pUl.adopt(li);
 	    Object.each(content,function(c,k){
@@ -1023,121 +1143,10 @@ RPG.MapEditor = new Class({
 				event.preventDefault();
 			    }.bind(this)
 			}
-		    }).store('category',key).store('name',k)))
+		    }).store('category',key).store('name',k).store('tilePath',[key,k])))
 		    );
 	    }.bind(this));
 	}.bind(this));
-
-	if (!this.currentUniverse) {
-	    this.mapTreeEl.adopt(new Element('li',{
-		'class' : 'folder',
-		id : 'currentUniverse'
-	    }).adopt(new Element('span',{
-		html : '[Universe] '
-	    }).adopt(new Element('a',{
-		'class' : 'NewUniverse textCenter',
-		html : 'Start New',
-		events : {
-		    click : function(event) {
-			this.newUniverseWindow();
-		    }.bind(this)
-		}
-	    }))));
-	} else {
-	    this.mapTreeEl.adopt(new Element('li',{
-		'class' : 'folder',
-		id : 'currentUniverse'
-	    }).adopt(new Element('span',{
-		html : '[Universe] '
-	    }).adopt(new Element('a',{
-		'class' : 'editUniverse',
-		html : '<b>' + this.currentUniverse.options.property.universeName.capitalize() +'</b>'
-	    })),pUl = new Element('ul')
-		));
-
-	    Object.each(this.currentUniverse.maps,function(content, key) {
-		if (!content || key == 'options') return;
-		var ul = null;
-		var map = null;
-		var li = new Element('li',{
-		    'class' : 'doc',
-		    id : 'p'+('_maps_'+key).toMD5()
-		}).adopt(new Element('span').adopt(map = new Element('a',{
-		    'class' : 'selectMap'+(content.cache == this.currentTileCache?' selectedMap':''),
-		    html : '[Map] <b>'+key + '</b> <small>(' + this.getTileCount(content.tiles) + ' <small>tiles</small></small>)',
-		    events : {
-			'click' : function(event) {
-			    if (map.hasClass('selectedMap')) {
-				this.editMapWindow();
-			    } else {
-				this.changeMap(key);
-			    }
-			}.bind(this)
-		    }
-		})));
-		//	    li.adopt(ul = new Element('ul'));
-		pUl.adopt(li);
-	    //	    Object.each(content, function(c,k) {
-	    //		this.objToTree(ul,c,k,[key],this.currentTileCache);
-	    //	    }.bind(this));
-	    //	    li = null;
-	    //	    ul = null;
-	    }.bind(this));
-	}
-
-	this.mapTreeEl.adopt(new Element('li',{
-	    'class' : 'folder',
-	    id : 'currentTileCache'
-	}).adopt(new Element('span',{
-	    html : 'Current Map'
-	}),pUl = new Element('ul')
-	    ));
-
-	Object.each(this.currentTileCache,function(content, key) {
-	    if (key == 'options') return;
-	    var ul = null;
-	    var li = new Element('li',{
-		'class' : 'folder',
-		id : 'p'+key.toMD5()
-	    }).adopt(new Element('span',{
-		html : key.capitalize()
-	    }));
-	    li.adopt(ul = new Element('ul'));
-	    pUl.adopt(li);
-	    Object.each(content, function(c,k) {
-		this.objToTree(ul,c,k,[key],this.currentTileCache);
-	    }.bind(this));
-	    li = null;
-	    ul = null;
-	}.bind(this));
-
-	this.mapTreeEl.adopt(new Element('li',{
-	    'class' : 'folder',
-	    id : 'mapCache'
-	}).adopt(new Element('span',{
-	    html : 'Create Tile'
-	}),
-	pUl = new Element('ul')
-	    ));
-	Object.each(RPG.Tiles,function(content, key) {
-	    if (key == 'options') return;
-	    var ul = null;
-	    var li = new Element('li',{
-		'class' : 'folder ',
-		id : 'p'+key.toMD5()
-	    }).adopt(new Element('span',{
-		html : key.capitalize()
-	    }));
-	    li.adopt(ul = new Element('ul'));
-	    pUl.adopt(li);
-	    Object.each(content, function(c,k) {
-		this.objToTree(ul,c,k,[key],RPG.Tiles);
-	    }.bind(this));
-	    li = null;
-	    ul = null;
-	}.bind(this));
-
-	pUl = null;
 
 	MUI.updateContent({
 	    element : $('pnlMapEditor'),
@@ -1146,7 +1155,13 @@ RPG.MapEditor = new Class({
 	    onContentLoaded : function() {
 		if (buildTree) {
 		    buildTree('mapEditorTree');
-
+		    if (reexpand && reexpand.length > 0) {
+			$$('.treeRoot').each(function(elm){
+			    reexpand.each(function(path){
+				this.expandTree(elm.id,path);
+			    }.bind(this));
+			}.bind(this));
+		    }
 		}
 		reexpand = null;
 	    }.bind(this)
@@ -1160,7 +1175,7 @@ RPG.MapEditor = new Class({
 	path.push(key);
 	parentUl.adopt(li = new Element('li',{
 	    id : 'p'+(path.toMD5())
-	}).adopt(span = new Element('span').set('html',key.capitalize())));
+	}).store('tilePath',Array.clone(path)).adopt(span = new Element('span').set('html',key.capitalize())));
 	if (content && Object.getLength(content) > (content.options || content.images?(content.images && content.options?2:1):0)) {
 	    var subUl = new Element('ul');
 	    Object.each(content,function(c,k){
@@ -1208,15 +1223,19 @@ RPG.MapEditor = new Class({
 	path = Array.from(path)
 	var cPath = '';
 	var r = $$('#'+root)[0];
-	if (r && r.retrieve('toggleFunc') && !r.hasClass('f-open')) r.retrieve('toggleFunc')();
+	var toggled = 0;
 	path.each(function(p){
 	    cPath += p;
-	    var elm = $('p'+cPath.toMD5());
+	    var elm = $$('#'+root+ ' #p'+cPath.toMD5())[0];
 	    if (elm && elm.retrieve && elm.retrieve('toggleFunc') && !elm.hasClass('f-open')) {
 		elm.retrieve('toggleFunc')();
+		toggled++;
 	    }
 	    elm = null;
 	});
+	if (toggled) {
+	    if (r && r.retrieve('toggleFunc') && !r.hasClass('f-open')) r.retrieve('toggleFunc')();
+	}
     },
 
     getTileCount : function(mapTiles) {
@@ -1351,7 +1370,7 @@ RPG.MapEditor = new Class({
 
 		MUI.closeWindow($('newUniverseWindow'));
 
-		this.refreshMapTree(('currentUniverse_maps'+map.options.property.mapName).toMD5());
+		this.refreshMapTree(['maps',map.options.property.mapName]);
 		this.changeMap(map.options.property.mapName);
 
 		MUI.notification('Universe Created Successfully.');
@@ -1366,25 +1385,24 @@ RPG.MapEditor = new Class({
 
 	var options = {
 	    universeID : universe.options.database.universeID,
-	    cols :  this.calcCols(),
-	    rows :  this.calcRows()
+	    start :  [this.rowOffset,this.colOffset],
+	    end :  [this.rowOffset+this.calcRows(),this.colOffset+this.calcCols()]
 	};
 	/**
 	 * Retrieve universe from server
 	 */
 	new Request.JSON({
-	    url : '/index.njs?xhr=true&a=MapEditor&m=openUserUniverse&'+Object.toQueryString(options),
+	    url : '/index.njs?xhr=true&a=MapEditor&m=openUniverse',
 	    onFailure : function(error) {
 		RPG.Error.show(error);
 	    }.bind(this),
 	    onSuccess : function(results) {
-		universe.maps = results;
-		this.loadUniverse(universe);
+		this.loadUniverse(results.universe);
 		if ($('listUniverseWindow')) {
 		    MUI.closeWindow($('listUniverseWindow'));
 		}
 	    }.bind(this)
-	}).get();
+	}).post(JSON.encode(options));
     },
 
     loadUniverse : function(universe) {
@@ -1565,9 +1583,15 @@ RPG.MapEditor = new Class({
 	    this.currentUniverse.options.settings.activeMap = mapName;
 	    this.activeTileset = null;
 
+	    if (!this.currentUniverse.maps[mapName].tiles) this.currentUniverse.maps[mapName].tiles = {};
+	    if (!this.currentUniverse.maps[mapName].cache) this.currentUniverse.maps[mapName].cache = {};
+	    
 	    this.currentTiles = this.currentUniverse.maps[mapName].tiles;
 	    this.currentTileCache = this.currentUniverse.maps[mapName].cache;
-	    this.refreshMapTree(('currentUniverse_maps'+mapName).toMD5());
+	    this.refreshMapTree(['maps',mapName]);
+	    var bounds = RPG.getMapBounds(this.currentTiles);
+	    this.rowOffset = bounds.minRow==Infinity?0:bounds.minRow;
+	    this.colOffset = bounds.minCol==Infinity?0:bounds.minCol;
 	    this.refreshMap();
 	}
     },
@@ -1924,7 +1948,7 @@ RPG.MapEditor = new Class({
 	    RPG.Error.show(errors);
 	} else {
 	    RPG.createTile(Array.clone(path),this.currentTileCache,tileOptions);
-	    this.refreshMapTree(('currentTileCache'+path.join('')).toMD5());
+	    this.refreshMapTree(path);
 	    MUI.notification('Tile Added Successfully.');
 	}
 	errors = path = null;
@@ -2364,17 +2388,24 @@ RPG.MapEditor = new Class({
     },
 
     loadTiles : function() {
-	if (this.currentUniverse && this.currentUniverse.options.database && this.currentUniverse.options.database.universeID && this.currentUniverse.options.settings.activeMap) {
+	if (!this.loadingTiles && this.currentUniverse && this.currentUniverse.options.database && this.currentUniverse.options.database.universeID && this.currentUniverse.options.settings.activeMap) {
+	    this.loadingTiles = true;
 	    /**
 	     * Loop through all the tile holder cells that are empty
 	     */
 	    var getTiles = [];
 	    var currenMapDatabaseOpts = this.currentUniverse.maps[this.currentUniverse.options.settings.activeMap].options.database;
 
-	    if (!currenMapDatabaseOpts || currenMapDatabaseOpts.minRow == null || currenMapDatabaseOpts.maxRow  == null || currenMapDatabaseOpts.minCol == null || currenMapDatabaseOpts.maxCol == null) return;
+	    if (!currenMapDatabaseOpts || currenMapDatabaseOpts.minRow == null || currenMapDatabaseOpts.maxRow  == null || currenMapDatabaseOpts.minCol == null || currenMapDatabaseOpts.maxCol == null) {
+		this.loadingTiles = false;
+		return;
+	    }
 
 	    $$('.M_tileHolder').each(function(tileHolder){
-		if (!tileHolder || tileHolder.style.backgroundImage != 'none') return;
+		if (!tileHolder || tileHolder.style.backgroundImage != 'none') {
+		    this.loadingTiles = false;
+		    return;
+		}
 		var rowcol = tileHolder.id.replace('mR','').split('mC');
 		//exclude tiles outside the range of the saved database tiles
 		if (rowcol[0] >= currenMapDatabaseOpts.minRow && rowcol[0] <= currenMapDatabaseOpts.maxRow && rowcol[1] >= currenMapDatabaseOpts.minCol && rowcol[1] <= currenMapDatabaseOpts.maxCol) {
@@ -2384,26 +2415,25 @@ RPG.MapEditor = new Class({
 		    }
 		}
 	    });
-	    if (getTiles.length < 1) return;
+	    if (getTiles.length < 1) {
+		this.loadingTiles = false;
+		return;
+	    }
 
 	    new Request.JSON({
 		url : '/index.njs?xhr=true&a=MapEditor&m=loadTiles&mapID='+currenMapDatabaseOpts.mapID+'&minRow='+currenMapDatabaseOpts.minRow+'&maxRow='+currenMapDatabaseOpts.maxRow+'&minCol='+currenMapDatabaseOpts.minCol+'&maxCol='+currenMapDatabaseOpts.maxCol,
 		onFailure : function(error) {
-		//ignore errors
-		//RPG.Error.notify(error);
+		    //ignore errors
+		    //RPG.Error.notify(error);
+		    this.loadingTiles = false;
 		}.bind(this),
-		onSuccess : function(tiles) {
-		    Object.each(tiles,function(row,rowNum){
-			Object.each(row,function(col,colNum){
-			    if (!this.currentTiles[rowNum]) {
-				this.currentTiles[rowNum] ={};
-			    }
-			    this.currentTiles[rowNum][colNum] = col;
-			    $('mR'+rowNum+'mC'+colNum).removeClass('M_tileHolder-empty').setStyles(this.getMapTileStyles({
-				tileArr : col
-			    }));
-			}.bind(this));
-		    }.bind(this));
+		onSuccess : function(results) {
+		    Object.merge(this.currentUniverse,results.universe);
+		    var mapName = this.currentUniverse.options.settings.activeMap;
+		    this.currentTiles = this.currentUniverse.maps[mapName].tiles;
+		    this.currentTileCache = this.currentUniverse.maps[mapName].cache;
+		    this.refreshMap();
+		    this.loadingTiles = false;
 		}.bind(this)
 	    }).post(JSON.encode(getTiles));
 	}
@@ -3122,8 +3152,11 @@ RPG.MapEditor = new Class({
 	this.currentTileCache = this.tilesets[category][name].cache;
 	this.currentTiles = this.tilesets[category][name].tiles;
 	this.activeTileset = this.tilesets[category][name];
+	this.refreshMapTree([category,name]);
 
-	this.refreshMapTree(('tilesets'+category+name).toMD5());
+	var bounds = RPG.getMapBounds(this.currentTiles);
+	this.rowOffset = bounds.minRow==Infinity?0:bounds.minRow;
+	this.colOffset = bounds.minCol==Infinity?0:bounds.minCol;
 	this.refreshMap();
     },
 

@@ -22,31 +22,46 @@ RPG.Map = new (RPG.MapClass = new Class({
      *
      * optional:
      * tilePoints
+     * mapOrTileset
      *
      * Returns :
      * callback(map) 'map' object mergable with a universe eg: {maps:{mapName:{...}}
      */
     load : function(options,callback) {
-
-	//@todo cache
-
-	require('../Database/mysql.njs').mysql.query(
-	    'SELECT mapID, mapName, m.options '+
+	options.mapOrTileset = options.mapOrTileset || 'map';
+	var sql = '';
+	var args = [];
+	if (options.mapOrTileset == 'map'){
+	    sql = 'SELECT mapID, mapName, m.options, '+
+	    ' (SELECT min(X(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as minRow, ' +
+	    ' (SELECT min(Y(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as minCol, ' +
+	    ' (SELECT max(X(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as maxRow, ' +
+	    ' (SELECT max(Y(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as maxCol ' +
 	    'FROM maps m, universes un ' +
 	    'WHERE m.universeID = ? '+
 	    'AND m.map'+(options.mapID?'ID':'Name')+' = ? ' +
 	    'AND un.userID = ?'
-	    ,[
+	    args = [
 	    options.universeID || options.universe.options.database.universeID,
 	    options['map'+(options.mapID?'ID':'Name')],
 	    options.user.options.userID
-	    ],
+	    ];
+	} else {
+	    sql = 'SELECT tilesetID, name, category, options, '+
+	    ' (SELECT min(X(point)) FROM tilesettiles tt WHERE tt.tilesetID = t.tilesetID) as minRow, ' +
+	    ' (SELECT min(Y(point)) FROM tilesettiles tt WHERE tt.tilesetID = t.tilesetID) as minCol, ' +
+	    ' (SELECT max(X(point)) FROM tilesettiles tt WHERE tt.tilesetID = t.tilesetID) as maxRow, ' +
+	    ' (SELECT max(Y(point)) FROM tilesettiles tt WHERE tt.tilesetID = t.tilesetID) as maxCol ' +
+	    'FROM tilesets t ' +
+	    'WHERE t.userID = ? '+
+	    'AND t.tilesetID = ? '
+	    args = [
+	    options.user.options.userID,
+	    options.tilesetID
+	    ];
+	}
+	require('../Database/mysql.njs').mysql.query(sql,args,
 	    function(err,mapResults) {
-		RPG.Log('database hit','Loaded Map: '+ (options.mapID || options.mapName));
-		Object.erase(options,'universeID');
-		Object.erase(options,'mapName');
-		Object.erase(options,'mapID');
-
 		if (err) {
 		    callback({
 			error : err
@@ -56,25 +71,27 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    var universe = {
 			maps : {}
 		    };
-		    universe.maps[mapResult['mapName']] = {
+		    var map;
+		    RPG.Log('database hit','Loaded '+options.mapOrTileset+': '+ (options.mapID || options.mapName || mapResult['name']));
+		    universe.maps[mapResult['mapName'] || mapResult['name']] = map = {
 			tiles : {},
 			cache : {},
-			options : Object.merge({
-			    database : {
-				mapID : mapResult['mapID']
-			    }
-			},
-			JSON.decode(mapResult['options'],true)
-			    )
+			options : JSON.decode(mapResult['options'],true)
 		    };
+		    map.options.database = {
+			minRow : mapResult['minRow'],
+			minCol : mapResult['minCol'],
+			maxRow : mapResult['maxRow'],
+			maxCol : mapResult['maxCol']
+		    };
+		    map.options.database[options.mapOrTileset+'ID'] = mapResult[options.mapOrTileset+'ID'];
 		    if (options.tilePoints) {
-			RPG.Tile.load(options,function(tiles){
-			    if (tiles.error) {
-				callback(tiles);
+			RPG.Tile.load(options,function(tileUni){
+			    if (tileUni.error) {
+				callback(tileUni);
 				return;
 			    }
-			    callback(universe,tiles);
-
+			    callback(Object.merge(universe,tileUni));
 			});
 		    } else {
 			callback(universe);
@@ -187,7 +204,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			(options.mapOrTileset=='map'?'mapName':'name = ?, category')+' = ?,' +
 			'options = ?',
 			[
-			(options.mapOrTileset=='map'?options.universe.options.database.universeID:options.user.options.userID),,
+			(options.mapOrTileset=='map'?options.universe.options.database.universeID:options.user.options.userID),
 			mapName,
 			(options.mapOrTileset=='map'?null:options.category),
 			JSON.encode(map.options)
@@ -198,9 +215,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 				options.errors.push(err);
 			    } else {
 				if (info.insertId) {
-				    map.options.database = {
-					mapID : info.insertId
-				    };
+				    map.options.database = {};
+				    map.options.database[options.mapOrTileset+'ID'] = info.insertId;
 				} else {
 				    options.errors.push('Failed to get newly inserted '+options.mapOrTileset+' ID for "'+ mapName +'" :( ');
 				}
@@ -225,13 +241,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 	//this will get called at the end of the mapChain.callChain();
 	mapChain.chain(function(){
-	    Object.erase(options,'mapID');
-	    Object.erase(options,'mapName');
-	    Object.erase(options,'mapOrTileset');
-	    Object.erase(options,'category');
-	    Object.erase(options,'map');
 	    var err = options.errors;
-	    Object.erase(options,'errors');
 	    if (err.length > 0) {
 		callback({
 		    error : err
@@ -304,7 +314,6 @@ RPG.Map = new (RPG.MapClass = new Class({
 		Object.erase(options,'map');
 		Object.erase(options,'mapsChain');
 		Object.erase(options,'cacheChainStarted');
-		Object.erase(options,'mapOrTileset');
 		if (err.legnth > 0) {
 		    callback({
 			error : err
@@ -323,7 +332,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 	}
 
 	var path = Array.clone(options.path);
-	var ID = options.map.options.database.mapID;
+	var ID = options.map.options.database[options.mapOrTileset+'ID'];
 	var tile = options.tile;
 
 	if (options.tile && options.tile.options) {
@@ -433,6 +442,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    function(err,info) {
 				RPG.Log('database update','"'+options.map.options.property.mapName+'" cache "'+ path +'" #'+db[options.mapOrTileset+'CacheID']+' updated.');
 				if (err) {
+				    RPG.Log('error',err)
 				    options.errors.push(err);
 				} else {
 				    if (info.affectedRows) {
@@ -468,7 +478,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			JSON.encode(tile.options)
 			],
 			function(err,info) {
-			    RPG.Log('database insert','"'+options.map.options.property.mapName+'" cache "'+ path +'" id:'+info.insertId+'');
+			    RPG.Log('database insert','"'+(options.map.options.property.mapName || 'tileset')+'" cache "'+ path +'" id:'+(info && info.insertId)+'');
 			    if (err) {
 				options.errors.push(err);
 			    } else {
@@ -505,5 +515,207 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    options.cacheChain.callChain();
 	    options.cacheChainStarted = true;
 	}
+    },
+
+
+
+    /**
+     * Checks for Duplicate Tileset Name
+     * required options:
+     * name
+     * category
+     *
+     * optional options:
+     * tilesetID  //ignore for updates
+     *
+     * return
+     * callback(dupeName || null if ok)
+     */
+    checkDupeTilesetName : function(options,callback) {
+
+	require('../Database/mysql.njs').mysql.query(
+	    'SELECT name ' +
+	    'FROM tilesets ' +
+	    'WHERE name = ? ' +
+	    'AND category = ? ' +
+	    'AND tilesetID <> ? ',
+	    [
+	    options.name,
+	    options.category,
+	    Number.from(options.tilesetID) // exclude current tilesetid in dupe name search if update is being performed.
+	    ],
+	    function(err,results) {
+		if (err) {
+		    callback({
+			error : err
+		    });
+		} else {
+		    if (results && results[0] && results[0]['name']) {
+			callback({
+			    error : 'You have a Tileset named <b>"'+results[0]['name']+'"</b> already.<br>Please choose another name.'
+			});
+		    } else {
+			callback(null);
+		    }
+		}
+	    }
+	    );
+    },
+
+    /**
+     * Store Tileset data
+     * user
+     * tilesetMap
+     *
+     * returns
+     * callback(fake universe || error)
+     */
+    storeTileset : function(options,callback) {
+
+	this.checkDupeTilesetName({
+	    name : options.tilesetMap.options.property.name,
+	    category : options.tilesetMap.options.property.category,
+	    tileseID : (options.tilesetMap.options.database && options.tilesetMap.options.database.tilesetID?options.tilesetMap.options.database.tilesetID:0)
+	},function(dupeName) {
+	    if (dupeName) {
+		callback({
+		    error : dupeName
+		});
+		return;
+	    }
+
+	    //fake universe since tilesets do no belong to a universe
+	    options.universe = {
+		maps : {}
+	    };
+	    options.universe.maps[options.tilesetMap.options.property.name] = options.tilesetMap;
+	    options.category = options.tilesetMap.options.property.category;
+
+	    this.store(options,callback);
+
+	}.bind(this));
+    },
+
+    /**
+     * List available tilesets
+     * required options:
+     * none for now
+     *
+     *
+     * returns:
+     * callback(tilesets || error)
+     */
+    listTilesets : function(options,callback) {
+	require('../Database/mysql.njs').mysql.query(
+	    'SELECT tilesetID, category, ts.name, options, u.name as userName, '+
+	    '   (SELECT count(1) FROM tilesettiles WHERE tilesetID = ts.tilesetID) as totalArea, ' +
+	    '   (SELECT count(1) FROM tilesetscache WHERE tilesetID = ts.tilesetID) as totalObjects ' +
+	    'FROM tilesets ts, user u ' +
+	    'WHERE ts.userID = u.userID  '+
+	    'ORDER BY category ASC, ts.name ASC'
+	    ,
+	    [
+
+	    ],
+	    function(err,results) {
+		if (err) {
+		    callback({
+			error : err
+		    });
+		} else {
+		    if (results && results[0]) {
+			var tilesets = {};
+
+			results.each(function(result){
+			    if (!tilesets[result['category']]) {
+				tilesets[result['category']] = {};
+			    }
+			    tilesets[result['category']][result['name']] = {
+				options : Object.merge({
+				    database : {
+					tilesetID : result['tilesetID'],
+					userName : result['userName'],
+					totalArea : result['totalArea'],
+					totalObjects : result['totalObjects']
+				    }
+				},
+				JSON.decode(result['options'],true)
+				    )
+			    };
+			});
+
+			callback(tilesets);
+
+		    } else {
+			callback({
+			    error : 'No Tilesets found.'
+			});
+		    }
+		}
+	    }
+	    );
+    },
+
+    /**
+     * List available tilesets
+     * required options:
+     * user
+     * universe || universeID
+     *
+     * returns:
+     * callback(maplist || error)  (mergabe with a universe.maps object)
+     */
+    listMaps : function(options,callback) {
+	require('../Database/mysql.njs').mysql.query(
+	    'SELECT mapID, mapName, m.options, '+
+	    ' (SELECT min(X(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as minRow, ' +
+	    ' (SELECT min(Y(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as minCol, ' +
+	    ' (SELECT max(X(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as maxRow, ' +
+	    ' (SELECT max(Y(point)) FROM maptiles mt WHERE mt.mapID = m.mapID) as maxCol ' +
+	    'FROM maps m, universes un ' +
+	    'WHERE m.universeID = un.universeID AND un.universeID = ? AND un.userID = ? '+
+	    'ORDER BY m.mapName ASC'
+	    ,
+	    [
+	    options.universeID || options.universe.options.database.universeID,
+	    options.user.options.userID
+	    ],
+	    function(err,results) {
+		if (err) {
+		    callback({
+			error : err
+		    });
+		} else {
+		    if (results && results[0]) {
+			var maps = {};
+
+			results.each(function(result){
+			    if (!maps[result['mapName']]) {
+				maps[result['mapName']] = {};
+			    }
+			    maps[result['mapName']] = {
+				options : Object.merge({
+				    database : {
+					mapID : result['mapID'],
+					minRow : result['minRow'],
+					minCol : result['minCol'],
+					maxRow : result['maxRow'],
+					maxCol : result['maxCol']
+				    }
+				},
+				JSON.decode(result['options'],true)
+				    )
+			    };
+			});
+			callback(maps);
+		    } else {
+			callback({
+			    error : 'No Maps found.'
+			});
+		    }
+		}
+	    }
+	    );
     }
+
 }))();

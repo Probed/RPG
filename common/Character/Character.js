@@ -143,8 +143,12 @@ RPG.character_options = {
  */
 RPG.getCharacterStyles = function(character) {
     var styles = {};
-    styles['background-image'] = 'url("/client/images/Character/portrait/'+escape(character.Gender)+'/'+escape(character.portrait)+'/'+escape((character.location && character.location.dir) || 'e')+'.png")';
+    styles['background-image'] = 'url("'+RPG.getCharacterImage(character)+'")';
     styles['background-size'] = '100% 100%';
     styles['background-repeat'] = 'no-repeat';
     return styles;
+}
+
+RPG.getCharacterImage = function(character) {
+    return '/client/images/Character/portrait/'+escape(character.Gender)+'/'+escape(character.portrait)+'/'+escape((character.location && character.location.dir) || 'e')+'.png';
 }

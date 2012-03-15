@@ -67,7 +67,7 @@ RPG.getMapTileCursor = function(path,tile) {
 	'cursor' : 'url("'+RPG.getMapTileImage(path,tile)+'"), pointer'
     };
 }
-
+    
 RPG.getMapTileImage = function(path,tile) {
     return '/common/Map/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+escape(tile.options.property.image.name)+'';
 }
@@ -743,6 +743,68 @@ RPG.paintRoomArea = function(tiles,rooms,options) {
 		if (!area) continue;
 		RPG.paintArea(tiles,area,options[k[i]],toPaint[x].split('.'));
 	    }
+	}
+    }
+}
+
+RPG.getMapBounds = function(tiles) {
+    var maxCol = -Infinity;
+    var minCol = Infinity;
+    var maxRow = -Infinity;
+    var minRow = Infinity;
+    Object.each(tiles,function(row,rowNum){
+	if (!row || row && Object.keys(row).length == 0) return;
+	rowNum = Number.from(rowNum);
+	if (rowNum > maxRow) {
+	    maxRow = rowNum;
+	}
+	if (rowNum < minRow) {
+	    minRow = rowNum;
+	}
+	Object.each(row,function(col,colNum){
+	    if (!col) return;
+	    colNum = Number.from(colNum);
+	    if (colNum > maxCol) {
+		maxCol = colNum;
+	    }
+	    if (colNum < minCol) {
+		minCol = colNum;
+	    }
+	});
+    });
+    return {
+	minRow : minRow,
+	maxRow : maxRow,
+	minCol : minCol,
+	maxCol : maxCol
+    };
+
+}
+
+RPG.EachTile = function(tiles,allPoints,fn) {
+    var bounds = RPG.getMapBounds(tiles);
+    var cols = bounds.maxCol - bounds.minCol;
+    var rows = bounds.maxRow - bounds.minRow;
+    var row = 0;
+    var col = 0;
+    var rowIndex = 0;
+    var colIndex = 0;
+    for (row = bounds.minRow; row<=bounds.maxRow; row++) {
+	rowIndex++;
+	colIndex = 0;
+	for (col = bounds.minCol; col<=bounds.maxCol; col++) {
+	    colIndex++;
+	    if (!allPoints && (!tiles[row] || !tiles[row][col] || !tiles[row][col].length)) continue;
+	    fn({
+		bounds : bounds,
+		rows : rows,
+		cols : cols,
+		rowIndex : rowIndex,
+		colIndex : colIndex,
+		row : row,
+		col : col,
+		tilePaths : tiles[row] && tiles[row][col]
+	    });
 	}
     }
 }

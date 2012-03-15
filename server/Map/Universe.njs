@@ -25,6 +25,8 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * callback(universe)
      */
     load : function(options,callback) {
+
+	//check to see if we should attempt to load the universe specified by the characters current location
 	if (!options.bypassCache && options.character) {
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
@@ -53,7 +55,6 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	    options.user.options.userID
 	    ],
 	    function(err,universeResults) {
-		RPG.Log('database hit','Loaded Universe: '+options.universeID);
 		if (err) {
 		    callback({
 			error : err
@@ -61,6 +62,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		} else if (universeResults && universeResults[0]) {
 		    var universe = {};
 		    var universeResult = universeResults[0];
+		    RPG.Log('database hit','Loaded Universe: '+universeResult['universeName']+' (#'+universeResult['universeID']+')');
 
 		    universe.options = Object.merge({
 			database : {
@@ -71,14 +73,16 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    if (!options.bypassCache) {
 			require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+universeResult['universeID'],universe);
 		    }
-
+		    if (!options.mapID && !options.mapName && options.tilePoints) {
+			options.mapName = universe.options.settings.activeMap;
+		    }
 		    if (options.mapID || options.mapName) {
-			RPG.Map.load(options,function(map){
-			    if (map.error) {
-				callback(map);
+			RPG.Map.load(options,function(mapUni){
+			    if (mapUni.error) {
+				callback(mapUni);
 				return;
 			    }
-			    callback(Object.merge(universe,map));
+			    callback(Object.merge(universe,mapUni));
 			});
 		    } else {
 			callback(universe);
@@ -106,112 +110,234 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      */
     store : function(options,callback) {
 
-	var db =  options.universe.options.database;
-	Object.erase(options.universe.options,'database');//remove the database stuff from the incoming universe
-
-	if (db && db.universeID) {
-	    if (!Number.from(db.universeID)) {
-		callback({
-		    error : 'The universe ID must be numeric.'
-		});
-		db = null;
+	//check dupe name:
+	if (this.checkDupeName(options,function(dupeName){
+	    if (dupeName) {
+		callback(dupeName);
 		return;
 	    }
-	    /**
-	     * Update
-	     */
-	    require('../Database/mysql.njs').mysql.query(
-		'UPDATE universes ' +
-		'SET universeName = ?, ' +
-		'options = ? ' +
-		'WHERE universeID = ? ' +
-		'AND userID = ? ',
-		[
-		options.universe.options.property.universeName,
-		JSON.encode(options.universe.options),
-		db.universeID,
-		options.user.options.userID
-		],
-		function(err,info) {
-		    RPG.Log('database hit','Updated Universe: #'+db.universeID);
-		    if (err) {
-			callback({
-			    error : err
-			});
-		    } else {
-			if (info.affectedRows) {
-			    options.universe.options.database = db;
-			    if (!options.bypassCache) {
-				require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+db.universeID,options.universe);
-			    }
-			    if (options.universe.maps) {
-				RPG.Map.store(options, function(universe) {
-				    callback(universe);
-				});
-			    } else {
-				callback(options.universe);
-			    }
-			    db = null;
-			} else {
-			    callback({
-				error : 'Could not locate the universe specified'
-			    });
-			}
-		    }
-		}
-		);
 
-	} else {
-	    /**
-	     * Insert
-	     */
-	    require('../Database/mysql.njs').mysql.query(
-		'INSERT INTO universes ' +
-		'SET universeName = ?, ' +
-		'options = ?,' +
-		'created = NOW(),' +
-		'userID = ?',
-		[
-		options.universe.options.property.universeName,
-		JSON.encode(options.universe.options),
-		options.user.options.userID
-		],
-		function(err,info) {
-		    RPG.Log('database hit','Inserted Universe: '+info.insertId);
-		    if (err) {
-			callback({
-			    error : err
-			});
-		    } else {
-			if (info.insertId) {
-			    options.universe.options = Object.merge({
-				database : {
-				    universeID : info.insertId
-				}
-			    },options.universe.options);
-			    if (!options.bypassCache) {
-				require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+info.insertId,options.universe);
-			    }
-			    if (options.universe.maps) {
-				RPG.Map.store(options, function(universe) {
-				    if (universe.error) {
-				    //@todo delete failed universeF
-				    }
-				    callback(universe);
-				});
-			    } else {
-				callback(options.universe);
-			    }
-			} else {
+	    //Check for update or insert
+	    var db =  options.universe.options.database;
+	    Object.erase(options.universe.options,'database');//remove the database stuff from the incoming universe
+
+	    if (db && db.universeID) {
+		if (!Number.from(db.universeID)) {
+		    callback({
+			error : 'The universe ID must be numeric.'
+		    });
+		    db = null;
+		    return;
+		}
+		/**
+		 * Update
+		 */
+		require('../Database/mysql.njs').mysql.query(
+		    'UPDATE universes ' +
+		    'SET universeName = ?, ' +
+		    'options = ? ' +
+		    'WHERE universeID = ? ' +
+		    'AND userID = ? ',
+		    [
+		    options.universe.options.property.universeName,
+		    JSON.encode(options.universe.options),
+		    db.universeID,
+		    options.user.options.userID
+		    ],
+		    function(err,info) {
+			RPG.Log('database hit','Updated Universe: '+options.universe.options.property.universeName+' (#' +db.universeID+')');
+			if (err) {
 			    callback({
-				error : 'Failed to get newly inserted universe ID :( '
+				error : err
 			    });
+			} else {
+			    if (info.affectedRows) {
+				options.universe.options.database = db;
+				if (!options.bypassCache) {
+				    require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+db.universeID,options.universe);
+				}
+				if (options.universe.maps) {
+				    RPG.Map.store(options, function(universe) {
+					callback(universe);
+				    });
+				} else {
+				    callback(options.universe);
+				}
+				db = null;
+			    } else {
+				callback({
+				    error : 'Could not locate the universe specified'
+				});
+			    }
 			}
 		    }
-		}
-		);
+		    );
+
+	    } else {
+		/**
+		 * Insert
+		 */
+		require('../Database/mysql.njs').mysql.query(
+		    'INSERT INTO universes ' +
+		    'SET universeName = ?, ' +
+		    'options = ?,' +
+		    'created = NOW(),' +
+		    'userID = ?',
+		    [
+		    options.universe.options.property.universeName,
+		    JSON.encode(options.universe.options),
+		    options.user.options.userID
+		    ],
+		    function(err,info) {
+			RPG.Log('database hit','Inserted Universe: '+options.universe.options.property.universeName+' (#'+info.insertId+')');
+			if (err) {
+			    callback({
+				error : err
+			    });
+			} else {
+			    if (info.insertId) {
+				options.universe.options = Object.merge({
+				    database : {
+					universeID : info.insertId
+				    }
+				},options.universe.options);
+				if (!options.bypassCache) {
+				    require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+info.insertId,options.universe);
+				}
+				if (options.universe.maps) {
+				    RPG.Map.store(options, function(universe) {
+					if (universe.error) {
+					//@todo delete failed universeF
+					}
+					callback(universe);
+				    });
+				} else {
+				    callback(options.universe);
+				}
+			    } else {
+				callback({
+				    error : 'Failed to get newly inserted universe ID :( '
+				});
+			    }
+			}
+		    }
+		    );
+	    }
+	}));
+    },
+
+    /*
+     * Check to see if there is a universe by that name already. Ignores universeID if provided so an update can be performed
+     * required options:
+     * user
+     * universe || universeName
+     *
+     * optional options
+     * universe || universeID
+     * tilePoints
+     *
+     * return
+     * callback(dupeName || null if ok)
+     */
+    checkDupeName : function(options,callback) {
+	var uID = options.universeID || 0;
+	var uName = options.universeName || '';
+	if (options.universe) {
+	    uID = options.universe.options.database && options.universe.options.database.universeID || 0;
+	    uName = options.universe.options.property.universeName;
 	}
 
-    }
+	require('../Database/mysql.njs').mysql.query(
+	    'SELECT un.universeName ' +
+	    'FROM universes un ' +
+	    'WHERE un.universeName = ? ' +
+	    'AND un.userID = ? ' +
+	    'AND un.universeID <> ? '
+	    ,
+	    [
+	    uName,
+	    options.user.options.userID,
+	    Number.from(uID)//ignore universeID for updates
+	    ],
+	    function(err,results) {
+		RPG.Log('database hit','Universe.checkDupeName '+uName);
+		if (err) {
+		    callback({
+			error : err
+		    });
+		} else {
+		    if (results && results[0] && results[0]['universeName']) {
+			callback({
+			    error : 'You have a Universe named <b>"'+results[0]['universeName']+'"</b> already.<br>Please choose another name.'
+			});
+		    } else {
+			//name is available
+			callback(null);
+		    }
+		}
+	    }
+	    );
+    },
+
+    /**
+     * List available user universes
+     * requied options:
+     * user
+     *
+     * retuns
+     * callback(universes || error)
+     *
+     */
+    list : function(options, callback) {
+	require('../Database/mysql.njs').mysql.query(
+	    'SELECT universeID, universeName, options, created, updated, '+
+	    '   (SELECT count(1) FROM maptiles WHERE mapID in (SELECT mapID FROM maps WHERE universeID = un.universeID)) as totalArea, ' +
+	    '   (SELECT count(1) FROM mapscache WHERE mapID in (SELECT mapID FROM maps WHERE universeID = un.universeID)) as totalObjects, ' +
+	    '   (SELECT count(1) FROM maps WHERE universeID = un.universeID) as totalMaps ' +
+	    'FROM universes un ' +
+	    'WHERE un.userID = ? '+
+	    'ORDER BY un.updated DESC'
+	    ,
+	    [
+	    options.user.options.userID
+	    ],
+	    function(err,results) {
+		if (err) {
+		    callback({
+			error : err
+		    });
+		} else {
+		    if (results && results[0]) {
+			var universes = {};
+
+			results.each(function(result){
+			    universes[result['universeName']] = {
+				options : Object.merge({
+				    database : {
+					universeID : result['universeID'],
+					created : result['created'],
+					updated : result['updated'],
+					userName : options.user.options.name,
+					totalArea : result['totalArea'],
+					totalObjects : result['totalObjects'],
+					totalMaps : result['totalMaps']
+				    }
+				},
+				JSON.decode(result['options'],true)
+				    )
+			    };
+			});
+
+			callback(universes);
+
+		    } else {
+			callback({
+			    error : 'No universes found.'
+			});
+		    }
+		}
+	    }
+	    );
+    },
 
 }))();

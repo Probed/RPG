@@ -16,11 +16,11 @@ RPG.Tile = new (RPG.TileClass = new Class({
      * required options:
      *
      * user
-     * character || universeID
      * character || mapID || mapName
      * tilePoints = array of points [point,point,point] (point=[x,y])
      *
      * optional options :
+     * mapOrTileset
      * @todo includeCached
      *
      * Returns:
@@ -35,73 +35,92 @@ RPG.Tile = new (RPG.TileClass = new Class({
      * }
      */
     load : function(options,callback) {
-
+	options.mapOrTileset = options.mapOrTileset || 'map';
 	var universe = {};
 	var cachedUni = {};
 	var cachedTiles = null;
 
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
-	    options.universeID = options.character.location.universeID;
 	    cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID);
 	    if (cachedUni && cachedUni.maps && cachedUni.maps[options.character.location.mapName]) {
 		cachedTiles = cachedUni.maps[options.character.location.mapName].tiles;
 	    }
 	}
 
-	var sql = '(';
-	var cnt = 0;
-	options.tilePoints.each(function(point){
-	    if (cachedTiles && cachedTiles[point[0]] && cachedTiles[point[0]][point[1]]) {
-
-
-	    //ignore cached tiles since they should already exist in on the client
-	    } else {
-		sql += RPG.getPointSQL(point);
-		sql += ',';
-		cnt++;
-	    }
-	});
-
-	if (sql.length > 1) {
-	    sql = sql.substr(0,sql.length-1);
-	    sql += ')';
+	var pointSql = '';
+	if  (options.tilePoints == 'all') {
+	//allow 'all' to go through
 	} else {
-	    //RPG.Log('cache','Tiles: none to load.');
-	    callback({});
-	    return;
+	    pointSql = 'AND point in (';
+	    var cnt = 0;
+	    options.tilePoints.each(function(point){
+		if (cachedTiles && cachedTiles[point[0]] && cachedTiles[point[0]][point[1]]) {
+
+
+		//ignore cached tiles since they should already exist in on the client
+		} else {
+		    pointSql += RPG.getPointSQL(point);
+		    pointSql += ',';
+		    cnt++;
+		}
+	    });
+
+	    if (pointSql.length > 14) {
+		pointSql = pointSql.substr(0,pointSql.length-1);
+		pointSql += ') ';
+	    } else {
+		//RPG.Log('cache','Tiles: none to load.');
+		callback({});
+		return;
+	    }
 	}
-	var sql2 = '';
-	require('../Database/mysql.njs').mysql.query(
-	    sql2 = 'SELECT X(point) as x, Y(point) as y, tiles, m.mapName '+
+	var sql = '';
+	var args = [];
+	if (options.mapOrTileset == 'map') {
+	    sql = 'SELECT X(point) as x, Y(point) as y, tiles, m.mapName '+
 	    'FROM maptiles mt, maps m, universes un ' +
 	    'WHERE mt.mapID = m.mapID '+
 	    'AND m.map'+(options.mapID?'ID':'Name')+' = ? ' +
+	    'AND m.universeID = un.universeID '+
 	    'AND un.userID = ? '+
-	    'AND m.universeID = ? '+
-	    'AND point in '+ sql + ' ' +
-	    'ORDER BY point ASC'
-	    ,sql = [
+	    pointSql +
+	    'ORDER BY point ASC';
+	    args = [
 	    options['map'+(options.mapID?'ID':'Name')],
-	    options.user.options.userID,
-	    options.universeID
-	    ],
+	    options.user.options.userID
+	    ];
+	} else {
+	    sql = 'SELECT X(point) as x, Y(point) as y, tiles, t.name '+
+	    'FROM tilesettiles tt, tilesets t ' +
+	    'WHERE t.tilesetID = ? '+
+	    'AND t.userID = ? '+
+	    'AND tt.tilesetID = t.tilesetID '+
+	    pointSql +
+	    'ORDER BY point ASC';
+	    args = [
+	    options.tilesetID,
+	    options.user.options.userID
+	    ];
+	}
 
+	require('../Database/mysql.njs').mysql.query(sql,args,
 	    function(err,mtResults) {
 		Object.erase(options,'tilePoints');
 		if (err) {
+		    RPG.Log('error',err);
 		    callback({
 			error: err
 		    });
-
+		    return;
 		} else if (mtResults && mtResults[0]) {
-		    universe.maps = {};
+		    if (!universe.maps) universe.maps = {};
 
 		    var tiles = {};
 		    var tCache = [];
 		    var mapName = null;
 		    mtResults.each(function(mtResult){
-			mapName = mtResult['mapName'];
+			mapName = mtResult['mapName'] || mtResult['name'];
 
 			if (!tiles[mtResult['x']]) {
 			    tiles[mtResult['x']] = {};
@@ -130,7 +149,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 			universe = null;
 		    });
 		} else {
-		    //RPG.Log('database hit','No Tiles Found. ' + sql + ' '+sql2);
+		    RPG.Log('database hit','No Tiles Found.');
 		    callback({});
 		}
 	    }
@@ -140,7 +159,6 @@ RPG.Tile = new (RPG.TileClass = new Class({
     /**
      * Required options:
      * user
-     * character || universeID
      * character || mapID || mapName
      * paths = array of json encoded paths ['["p1","p2"]','["p3","p4"]']
      *
@@ -155,7 +173,6 @@ RPG.Tile = new (RPG.TileClass = new Class({
 
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
-	    options.universeID = options.character.location.universeID;
 	    var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID) || {};
 	    if (cachedUni.maps && cachedUni.maps[options.character.location.mapName]) {
 		cachedTileCache = cachedUni.maps[options.character.location.mapName].cache;
@@ -181,27 +198,41 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    callback({});
 	    return;
 	}
-
-
-	require('../Database/mysql.njs').mysql.query(
-	    pathSql = 'SELECT mapCacheID, mc.mapID, path, mc.options '+
+	var sql = '';
+	var args = [];
+	if (options.mapOrTileset == 'map') {
+	    sql = 'SELECT mapCacheID, mc.mapID, path, mc.options '+
 	    'FROM mapscache mc, maps m, universes un ' +
 	    'WHERE mc.mapID = m.mapID '+
 	    'AND m.map'+(options.mapID?'ID':'Name')+' = ? ' +
 	    'AND m.universeID = un.universeID ' +
-	    'AND un.universeID = ? ' +
 	    'AND un.userID = ? ' +
 	    'AND path in '+pathSql+' ' +
-	    'ORDER BY folderName ASC'
-	    ,[
+	    'ORDER BY folderName ASC';
+	    args = [
 	    options['map'+(options.mapID?'ID':'Name')],
-	    options.universeID,
 	    options.user.options.userID,
-	    ].append(paths),
+	    ].append(paths)
+	} else {
+	    sql = 'SELECT tilesetCacheID, t.tilesetID, path, tc.options '+
+	    'FROM tilesetscache tc, tilesets t ' +
+	    'WHERE tc.tilesetID = t.tilesetID '+
+	    'AND t.tilesetID = ? ' +
+	    'AND t.userID = ? ' +
+	    'AND path in '+pathSql+' ' +
+	    'ORDER BY folderName ASC';
+	    args = [
+	    options.tilesetID,
+	    options.user.options.userID,
+	    ].append(paths)
+	}
+
+	require('../Database/mysql.njs').mysql.query(sql,args,
 	    function(err,mcResults) {
 		Object.erase(options,'paths');
 		Object.erase(options,'tilePoints');
 		if (err) {
+		    RPG.Log('error',err);
 		    callback({
 			error : err
 		    });
@@ -251,9 +282,9 @@ RPG.Tile = new (RPG.TileClass = new Class({
     storeTiles : function(options,callback) {
 	options.mapOrTileset = options.mapOrTileset || 'map'
 	options.errors = options.errors || [];
-
+	var sql = '';
+	var args = '';
 	var db = options.map && options.map.options.database;
-
 	if (db && db[options.mapOrTileset+'ID']  && !options.existingTilesDeleted) {
 
 	    var del = '';
@@ -270,17 +301,31 @@ RPG.Tile = new (RPG.TileClass = new Class({
 		    del += RPG.getPointSQL(point.split(',')) + ',';
 		});
 		if (del.length > 1) {
-		    del = del.substr(0,del.length-3) + ')';
-		    require('../Database/mysql.njs').mysql.query(
-			'DELETE FROM '+options.mapOrTileset+'tiles '+
-			'WHERE '+options.mapOrTileset+'ID = ? '+
+		    del = del.substr(0,del.length-1) + ')';
+		    Object.erase(db,'tileDelete');//erasing this will make sure this code is not executed again for this map
+
+		    //create the sql for either a map delete or a tileset delete
+		    if (options.mapOrTileset == 'map') {
+			sql = 'DELETE FROM maptiles ' +
+			'WHERE mapID = ? ' +
 			'AND point in '+del+' '+
-			'AND '+options.mapOrTileset+'ID in (SELECT '+options.mapOrTileset+'ID FROM maps m, universes un WHERE m.universeID = un.universeID AND un.universeID = ? AND un.userID = ?)',
-			[
+			'AND mapID in (SELECT mapID FROM maps m, universes un WHERE m.universeID = un.universeID AND un.universeID = ? AND un.userID = ?)';
+			args = [
 			db[options.mapOrTileset+'ID'],
 			options.universe.options.database.universeID,
 			options.user.options.userID
-			],
+			];
+		    } else {
+			sql = 'DELETE FROM tilesettiles ' +
+			'WHERE tilesetID = ? ' +
+			'AND point in '+del+' '+
+			'AND tilesetID in (SELECT tilesetID FROM tilesets WHERE userID = ?)';
+			args = [
+			db[options.mapOrTileset+'ID'],
+			options.user.options.userID
+			];
+		    }
+		    require('../Database/mysql.njs').mysql.query(sql,args,
 			function(err,info) {
 			    if (err) {
 				options.errors.push(err);
@@ -291,7 +336,6 @@ RPG.Tile = new (RPG.TileClass = new Class({
 		} else {
 		    RPG.Tile.storeTiles(options,callback);//exit the function and wait for db operation to complete.
 		}
-		Object.erase(db,'tileDelete');//erasing this will make sure this code is not executed again.
 		return;
 	    }
 
@@ -299,34 +343,47 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	     * Existing Map, delete incoming tiles from database to be replaced by the new ones being sent in
 	     * once the delete is complete, this function gets called again to do the insert
 	     */
-	    del = 'DELETE FROM '+options.mapOrTileset+'tiles '+
-	    'WHERE mapID = ? '+
-	    'AND point in (';
+	    del = '(';
 	    Object.each(options.col, function(tiles,colNum) {
 		del += RPG.getPointSQL([options.rowNum,colNum]) + ','
 	    });
-	    del = del.substr(0,del.length-1) + ') ';
-	    del += 'AND '+options.mapOrTileset+'ID in (SELECT '+options.mapOrTileset+'ID FROM maps m, universes un WHERE m.universeID = un.universeID AND un.universeID = ? AND un.userID = ?)';
+	    if (del.length > 1) {
+		del = del.substr(0,del.length-1) + ')';
 
-	    if (Object.keys(options.col).length > 0) {
-		require('../Database/mysql.njs').mysql.query(
-		    del,
-		    [
+		//create the sql for either a map delete or a tileset delete
+		if (options.mapOrTileset == 'map') {
+		    sql = 'DELETE FROM maptiles ' +
+		    'WHERE mapID = ? ' +
+		    'AND point in '+del+' '+
+		    'AND mapID in (SELECT mapID FROM maps m, universes un WHERE m.universeID = un.universeID AND un.universeID = ? AND un.userID = ?)';
+		    args = [
 		    db[options.mapOrTileset+'ID'],
 		    options.universe.options.database.universeID,
 		    options.user.options.userID
-		    ],
+		    ];
+		} else {
+		    sql = 'DELETE FROM tilesettiles ' +
+		    'WHERE tilesetID = ? ' +
+		    'AND point in '+del+' '+
+		    'AND tilesetID in (SELECT tilesetID FROM tilesets WHERE userID = ?)';
+		    args = [
+		    db[options.mapOrTileset+'ID'],
+		    options.user.options.userID
+		    ];
+		}
+		require('../Database/mysql.njs').mysql.query(sql,args,
 		    function(err,info) {
 			if (err) {
 			    options.errors.push(err);
 			}
-			options.existingTilesDeleted = true;
+			options.existingTilesDeleted = true;//setting this ensures this code will not get executed again for this map
 			RPG.Tile.storeTiles(options,callback);
 		    });
 	    } else {
+		options.existingTilesDeleted = true;//setting this ensures this code will not get executed again for this map
 		RPG.Tile.storeTiles(options,callback);
 	    }
-	    return;//exit the function and wait for db operation to complete.
+	    return;//exit the function and wait for db operation to complete. which then calls this function again to do inserts
 	}
 
 	/**
@@ -371,26 +428,27 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	}
 
 
-	var sql = 'INSERT INTO '+options.mapOrTileset+'tiles ('+options.mapOrTileset+'ID,point,tiles) VALUES ';
-	var arr = [];
+	sql = 'INSERT INTO '+options.mapOrTileset+'tiles ('+options.mapOrTileset+'ID,point,tiles) VALUES ';
+	args = [];
 	Object.each(options.col, function(tiles,colNum) {
 	    if (tiles && tiles != 'null') {
 		sql += '(?,GeomFromText(\'POINT('+Number.from(options.rowNum) + ' ' + Number.from(colNum)+')\'),?),'
-		arr.push(db[options.mapOrTileset+'ID'],JSON.encode(tiles));
+		args.push(db[options.mapOrTileset+'ID'],JSON.encode(tiles));
 	    }
 	});
 	sql = sql.substr(0,sql.length-1);
-	if (arr && arr.length < 1) options.tilesChain.callChain();
+	if (args && args.length < 1) options.tilesChain.callChain();
 
-	require('../Database/mysql.njs').mysql.query(sql,arr,
+	require('../Database/mysql.njs').mysql.query(sql,args,
 	    function(err,info) {
-		RPG.Log('database insert','"'+options.map.options.property.mapName + '" tile row '+options.rowNum+' inserted: '+Object.keys(options.col).length);
 		if (err) {
+		    RPG.Log('error',err);
 		    options.errors.push(err);
 		} else {
 		    if (info.insertId) {
-
+			RPG.Log('database insert','"'+ (options.map.options.property.mapName || 'tileset') + '" tile row '+options.rowNum+' inserted: '+Object.keys(options.col).length);
 		    } else {
+			RPG.Log('error','no insert id..');
 			options.errors.push('Failed to get newly inserted '+options.mapOrTileset+' Tiles :( ');
 		    }
 		}
@@ -398,7 +456,6 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    }
 	    );
     },
-
 
     /**
      * required options:
