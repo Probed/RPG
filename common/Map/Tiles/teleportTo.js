@@ -31,8 +31,23 @@ RPG.Tiles.teleportTo = function(options,callback) {
     switch (options.event) {
 	case 'onBeforeEnter' :
 	    if (options.contents.warn && typeof exports == 'undefined') {
-		console.log('warning about to be teleported');
-		callback();
+		//client side
+		RPG.yesORno.show({
+		    title : 'Teleport to <b>' + (options.contents.mapName || options.merged.property.tileName)+'</b>',
+		    content : new Element('div',{
+			html : 'Would you like to teleport to <b>'+(options.contents.mapName || options.merged.property.tileName)+'</b>?'
+		    }),
+		    height : 60,
+		    width : 200,
+		    yes : function() {
+			callback();
+		    },
+		    no : function() {
+			callback({
+			    error:'teleportTo canceled.'
+			});
+		    }
+		})
 	    } else {
 		callback();
 	    }
@@ -83,7 +98,6 @@ RPG.Tiles.teleportTo = function(options,callback) {
 			    });
 			    //no teleport tile fouond.. generate one
 			    if (!found) {
-				var obj = null;
 				RPG.pushTile(m.tiles,loc,
 				    RPG.createTile('world.earth.teleport',m.cache,{
 					property : {

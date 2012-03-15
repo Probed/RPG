@@ -67,7 +67,7 @@ RPG.getMapTileCursor = function(path,tile) {
 	'cursor' : 'url("'+RPG.getMapTileImage(path,tile)+'"), pointer'
     };
 }
-    
+
 RPG.getMapTileImage = function(path,tile) {
     return '/common/Map/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+escape(tile.options.property.image.name)+'';
 }
@@ -256,6 +256,8 @@ RPG.getTileDefaults = function(options,defaults,defPath) {
 		} else if (typeOf(defObj[0]) == 'string' && typeOf(defObj[1]) == 'number' && typeOf(defObj[2]) == 'number' && defObj[3]) {
 		    Object.pathToObject(options,defPath).child[key] = defObj[3];
 		} else if (typeOf(defObj[0]) == 'string') {
+		    Object.pathToObject(options,defPath).child[key] = defObj[0];
+		} else if (typeOf(defObj[0]) == 'boolean') {
 		    Object.pathToObject(options,defPath).child[key] = defObj[0];
 		}
 	    } else {

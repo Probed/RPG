@@ -440,6 +440,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    if ((terrain.city && terrain.city[rowNum] && terrain.city[rowNum][colNum]) ||
 			(terrain.roads && terrain.roads[rowNum] && terrain.roads[rowNum][colNum]) ||
 			(terrain.cave && terrain.cave[rowNum] && terrain.cave[rowNum][colNum]) ||
+			(terrain.barn && terrain.barn[rowNum] && terrain.barn[rowNum][colNum]) ||
 			(terrain.tipi && terrain.tipi[rowNum] && terrain.tipi[rowNum][colNum])){
 
 		    //ignore roads and cities

@@ -321,5 +321,4 @@ RPG.Map = new Class({
 	    }.bind(this));
 	}
     }
-
 });
