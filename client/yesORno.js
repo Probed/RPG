@@ -1,7 +1,7 @@
 /*
- * Error.js
+ * yesORno.js
  *
- * Error display stuff
+ * yesORno display stuff
  *
  *
  */
@@ -33,9 +33,12 @@ RPG.yesORno = new (RPG.yesORnoClass = new Class({
 	    resizable : true,
 	    maximizable : false,
 	    minimizable : false,
-	    closable : false,
+	    closable : true,
 	    width : options.width || 400,
 	    height : options.height || 400,
+	    onClose : function() {
+		options.no && options.no();
+	    },
 	    onContentLoaded : function() {
 		$('questionWindow').adopt(
 		    RPG.elementFactory.buttons.actionButton({
@@ -44,6 +47,7 @@ RPG.yesORno = new (RPG.yesORnoClass = new Class({
 			events : {
 			    click : function(event) {
 				options.yes();
+				options.no = null;
 				MUI.closeWindow($('questionWindow'));
 			    }.bind(this)
 			}
@@ -54,6 +58,7 @@ RPG.yesORno = new (RPG.yesORnoClass = new Class({
 			events : {
 			    click : function(event) {
 				options.no();
+				options.no = null;
 				MUI.closeWindow($('questionWindow'));
 			    }
 			}

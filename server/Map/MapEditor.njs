@@ -23,6 +23,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		'css' : ['/client/mochaui/themes/charcoal/css/Map/MapEditor.css','/client/mochaui/themes/charcoal/css/Map/Tile.css'],
 		'js' : [
 		'/client/Map/MapEditor.js',
+		'/common/Character/Character.js',
 		'/common/Map/Tiles/Tiles.js',
 		'/common/Map/universe.js',
 		'/common/Map/Generators/Generators.js',

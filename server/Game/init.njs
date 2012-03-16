@@ -73,7 +73,12 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	var rand = Object.clone(RPG.Random);
 	rand.seed =(Math.random() * (99999999999 - 1) + 1);
 
-	RPG.Generator.Terrain.random(mapName,rand,function(random){
+	RPG.Generator.Terrain.random(mapName,{
+	    properties : {
+		Difficulty : options.character.Difficulty,
+		level : options.character.level
+	    }
+	},rand,function(random){
 	    Object.merge(universe,random.universe);
 	    var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 

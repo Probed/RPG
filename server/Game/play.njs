@@ -23,14 +23,15 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 	    requires : {
 		css : ['/client/mochaui/themes/charcoal/css/Character/Character.css'],
 		js : [
+		'/common/Character/Character.js',
 		'/common/Map/Generators/Generators.js',
 		'/client/Game/play.js',
 		'/common/optionConfig.js',
-		'/common/Character/Character.js',
 
 		'/common/Map/Tiles/property.js',//@todo dynamicize this
 		'/common/Map/Tiles/traverse.js',//@todo dynamicize this
 		'/common/Map/Tiles/teleportTo.js',//@todo dynamicize this
+		'/common/Map/Tiles/lockable.js',//@todo dynamicize this
 
 		'/common/Random.js',
 		'/common/Map/Generators/Words.js',
@@ -46,9 +47,9 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		}
 	    }
 	};
-	var portraits = require('fs').readdirSync('./client/images/Character/Portrait');
+	var portraits = require('fs').readdirSync('./client/images/Character/portrait');
 	portraits.each(function(gender){
-	    this.page.options.portraits.Gender[gender] = require('fs').readdirSync('./client/images/Character/Portrait/'+gender);
+	    this.page.options.portraits.Gender[gender] = require('fs').readdirSync('./client/images/Character/portrait/'+gender);
 	}.bind(this));
     },
 
@@ -58,6 +59,17 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		error : 'Must be <b>logged in</b> to play.<br><br>Signup or Login and try again.'
 	    });
 	}
+
+	//Check for incoming data and wait for it if necessary
+	if (request.method == 'POST') {
+	    if (!request.dataReceived) {
+		request.on('end',function(){
+		    this.onRequest(request,response);
+		}.bind(this));
+		return;//exit for now and call onRequest again once all the data has been received
+	    }
+	}
+
 	switch (true) {
 	    case request.url.query.m == 'CreateCharacter' :
 		if (!request.dataReceived) {

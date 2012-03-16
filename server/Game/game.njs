@@ -33,7 +33,10 @@ RPG.Game = new (RPG.GameClass = new Class({
      */
     onRequest : function(request,response) {
 	if (!request.user.isLoggedIn) {
-
+	    response.onRequestComplete(response,{
+		error : 'Must be logged in to play.'
+	    });
+	    return;
 	}
 
 	RPG.InitGame.startGame({
@@ -57,7 +60,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    //process game commands:
 		    case request.url.query.m == 'MoveCharacter' :
 			game.dir = request.url.query.dir;
-
+			game.clientEvents = request.data;
 			this.moveCharacter(game, function(changes){
 			    if (changes.error) {
 				response.onRequestComplete(response,changes);

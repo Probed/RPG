@@ -35,6 +35,8 @@ RPG.Error = new (new Class({
 	    });
 	}else if (typeOf(error) == 'object') {
 	    message = JSON.stringify(error);
+	} else {
+	    message = error;
 	}
 	MUI.notification(message);
     },

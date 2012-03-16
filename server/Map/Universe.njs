@@ -109,10 +109,17 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * callsback(universe || error)
      */
     store : function(options,callback) {
-
+	if (options.user.storingUniverse) {
+	    callback({
+		error : 'Please allow the current Universe to finish saving.'
+	    });
+	    return;
+	}
+	options.user.storingUniverse = true;
 	//check dupe name:
 	if (this.checkDupeName(options,function(dupeName){
 	    if (dupeName) {
+		options.user.storingUniverse = false;
 		callback(dupeName);
 		return;
 	    }
@@ -127,6 +134,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 			error : 'The universe ID must be numeric.'
 		    });
 		    db = null;
+		    options.user.storingUniverse = false;
 		    return;
 		}
 		/**
@@ -147,6 +155,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    function(err,info) {
 			RPG.Log('database hit','Updated Universe: '+options.universe.options.property.universeName+' (#' +db.universeID+')');
 			if (err) {
+			    options.user.storingUniverse = false;
 			    callback({
 				error : err
 			    });
@@ -158,13 +167,16 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 				}
 				if (options.universe.maps) {
 				    RPG.Map.store(options, function(universe) {
+					options.user.storingUniverse = false;
 					callback(universe);
 				    });
 				} else {
+				    options.user.storingUniverse = false;
 				    callback(options.universe);
 				}
 				db = null;
 			    } else {
+				options.user.storingUniverse = false;
 				callback({
 				    error : 'Could not locate the universe specified'
 				});
@@ -191,6 +203,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    function(err,info) {
 			RPG.Log('database hit','Inserted Universe: '+options.universe.options.property.universeName+' (#'+info.insertId+')');
 			if (err) {
+			    options.user.storingUniverse = false;
 			    callback({
 				error : err
 			    });
@@ -206,15 +219,15 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 				}
 				if (options.universe.maps) {
 				    RPG.Map.store(options, function(universe) {
-					if (universe.error) {
-					//@todo delete failed universeF
-					}
+					options.user.storingUniverse = false;
 					callback(universe);
 				    });
 				} else {
+				    options.user.storingUniverse = false;
 				    callback(options.universe);
 				}
 			    } else {
+				options.user.storingUniverse = false;
 				callback({
 				    error : 'Failed to get newly inserted universe ID :( '
 				});
@@ -338,6 +351,5 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		}
 	    }
 	    );
-    },
-
+    }
 }))();

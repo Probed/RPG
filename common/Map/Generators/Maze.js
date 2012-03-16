@@ -15,10 +15,13 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 
     name : 'Maze',
     constraints : {
-	maze : {
+	properties : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
-	    randomSeed : false,
+	    Difficulty : Object.keys(RPG.Difficulty),
+	    level : [1,100,1]
+	},
+	maze : {
 	    tile :  RPG.tileFolderList(RPG.Tiles,'world.earth.road'),
 	    height : [8,32,16],
 	    width : [8,32,16],
@@ -40,10 +43,10 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 	};
 
 	if (options.maze.randomSeed) {
-	    options.maze.seed = (Math.random() * (99999999999 - 1) + 1);
+	    options.properties.seed = (Math.random() * (99999999999 - 1) + 1);
 	}
 	rand = rand || RPG.Random;
-	rand.seed = options.maze.seed;
+	rand.seed = options.properties.seed;
 
 	options.maze.height = Number.from(options.maze.height) ||  10;
 	options.maze.width = Number.from(options.maze.height) ||  10;
@@ -105,7 +108,7 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 			    RPG.createTile('terrain.earth.solid.grass',maze.cache,{
 				property : {
 				    tileName : '1',
-				    folderName : options.maze.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : '1.png'
 				    }
@@ -119,7 +122,7 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 				RPG.createTile('terrain.earth.solid.grass',maze.cache,{
 				    property : {
 					tileName : '1',
-					folderName : options.maze.name,
+					folderName : options.properties.name,
 					image : {
 					    name : '1.png'
 					}
@@ -130,7 +133,7 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 				RPG.createTile(options.maze.tile,maze.cache,{
 				    property : {
 					tileName : orientation,
-					folderName : options.maze.name,
+					folderName : options.properties.name,
 					image : {
 					    name : orientation+'.png',
 					    size : 150,
@@ -147,7 +150,7 @@ RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
 			    RPG.createTile('terrain.earth.solid.grass',maze.cache,{
 				property : {
 				    tileName : '1',
-				    folderName : options.maze.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : '1.png'
 				    }

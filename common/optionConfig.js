@@ -319,7 +319,7 @@ RPG.optionCreator = {
 		    elm = new Element('input',{
 			type : 'checkbox',
 			id : optionsPath.join('__'),
-			checked : (value?value:constraint_options),
+			checked : (value?value:typeOf(constraint_options)=='array'?constraint_options[0]:constraint_options),
 			'class' : className
 		    });
 		    break;
@@ -629,7 +629,7 @@ RPG.optionValidator = {
 		/**
 		 * Boolean Values
 		 */
-		case typeOf(con0) == 'boolean' :
+		case (typeOf(constraint) == 'array' && typeOf(constraint[0]) == 'boolean') || constraint === 'true' || constraint === 'false' :
 		    if (typeOf(content) != 'boolean') {
 			errors.push(('<b>'+path.join(' > ').capitalize().hyphenate().split('-').join(' ').capitalize()+'</b>')+' is invalid:<br>Must be <b>true</b> or <b>false</b>.'+'<br>');
 		    }

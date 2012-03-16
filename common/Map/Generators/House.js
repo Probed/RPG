@@ -14,9 +14,13 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
     Extends : RPG.GeneratorBaseClass,
     Implements : [Options],
     constraints : {
-	house : {
+	properties : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    Difficulty : Object.keys(RPG.Difficulty),
+	    level : [1,100,1]
+	},
+	house : {
 	    type : RPG.tileFolderList(RPG.Tiles,'world.earth.room'),
 	    rows : [2,4,2],
 	    cols : [2,4,2]
@@ -34,7 +38,8 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	    'decor%' : [0,100,25],
 	    'perim%' : [0,100,25],
 	    'center%' : [0,100,25],
-	    door : RPG.tileFolderList(RPG.Tiles,'world.earth.door')
+	    door : RPG.tileFolderList(RPG.Tiles,'world.earth.door'),
+	    doorsLocked : [false]
 	},
 	upStairs : {
 	    allow : [true],
@@ -61,7 +66,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 
     generate : function(options,rand,callback) {
 	rand = rand || RPG.Random;
-	rand.seed = options.house.seed || rand.seed;
+	rand.seed = options.properties.seed || rand.seed;
 
 
 	options.house.rows = Math.floor(Number.from(options.house.rows));
@@ -233,7 +238,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    'perimeter.bottoms' : RPG.createTile(options.house.type+'.b.wall',house.cache,{
 			property : {
 			    tileName : bottom.name,
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : bottom.image
 			    }
@@ -243,7 +248,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    'perimeter.tops' : RPG.createTile(options.house.type+'.t',house.cache,{
 			property : {
 			    tileName : top.name,
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : top.image
 			    }
@@ -252,7 +257,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    'interior.all,path,openings' : RPG.createTile(['world','earth','floor'],house.cache,{
 			property : {
 			    tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : options.mainFloor.floor
 			    }
@@ -269,7 +274,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    RPG.createTile(options.property.lawn,house.cache,{
 					property : {
 					    tileName : lawn.name,
-					    folderName : options.house.name,
+					    folderName : options.properties.name,
 					    image : {
 						name : lawn.image
 					    }
@@ -280,10 +285,15 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    return RPG.createTile(options.mainFloor.door,house.cache,{
 				property : {
 				    tileName : dir.charAt(0),
-				    folderName : options.house.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : dir.charAt(0)+'.png'
 				    }
+				},
+				lockable : {
+				    locked : options.mainFloor.doorsLocked,
+				    Difficulty : options.properties.Difficulty,
+				    level : options.properties.level
 				}
 			    });
 			}
@@ -295,7 +305,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    return RPG.createTile(options.house.type+'.b.decor',house.cache,{
 				property : {
 				    tileName : decor.name,
-				    folderName : options.house.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : decor.image,
 					size : 50,
@@ -313,7 +323,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    return RPG.createTile(options.house.type+'.i.'+randInterName+'.'+paintPath[paintPath.length-1],house.cache,{
 				property : {
 				    tileName : perim.name,
-				    folderName : options.house.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : perim.image
 				    }
@@ -328,7 +338,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    return RPG.createTile(options.house.type+'.i.'+randInterName+'.o',house.cache,{
 				property : {
 				    tileName : center.name,
-				    folderName : options.house.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : center.image
 				    }
@@ -338,7 +348,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    return RPG.createTile(['world','earth','stair'],house.cache,{
 				property : {
 				    tileName : 'u',
-				    folderName : options.house.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'u.png'
 				    }
@@ -359,7 +369,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	    'area,openings' : RPG.createTile(options.property.lawn,house.cache,{
 		property : {
 		    tileName : lawn.name,
-		    folderName : options.house.name,
+		    folderName : options.properties.name,
 		    image : {
 			name : lawn.image
 		    }
@@ -372,7 +382,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    RPG.createTile(options.property.gate,house.cache,{
 			property : {
 			    tileName : gate.name,
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : gate.image
 			    }
@@ -390,7 +400,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    return RPG.createTile(options.property.tree,house.cache,{
 			property : {
 			    tileName :  tree.name,
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : tree.image
 			    }
@@ -417,7 +427,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    RPG.createTile(options.property.fence,house.cache,{
 			property : {
 			    tileName : orientation,
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : orientation+'.png'
 			    }
@@ -433,7 +443,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 		    RPG.createTile(options.property.sidewalk,house.cache,{
 			property : {
 			    tileName : orientation,
-			    folderName : options.house.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : orientation+'.png'
 			    }

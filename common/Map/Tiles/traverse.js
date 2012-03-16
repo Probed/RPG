@@ -65,7 +65,7 @@ RPG.Tiles.traverse = function(options,callback) {
 				traverse : results.events
 			    });
 			}
-		    }).get();
+		    }).post(options.events);//send the results of the clientside events to the server for validation
 		}
 	    } else {
 		callback();

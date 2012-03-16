@@ -310,7 +310,7 @@ RPG.Map = new Class({
 	    this.characterMoving = true;
 	    RPG.moveCharacterToTile(options, function(moveEvents){
 		if (moveEvents.error) {
-		    RPG.Error.notify(moveEvents);
+		    RPG.Error.notify(moveEvents.error);
 		    this.characterMoving = false;
 		    return;
 		} else {

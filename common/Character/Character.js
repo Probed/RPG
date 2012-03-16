@@ -13,6 +13,14 @@ RPG.Difficulty = {
 	    Stats : {
 		start : 5
 	    }
+	},
+	//override generator options
+	Generator : {
+	    Terrain : {
+		terrain : {
+		    size : 32
+		}
+	    }
 	}
     },
     Medium : {
@@ -20,6 +28,14 @@ RPG.Difficulty = {
 	Character : {
 	    Stats : {
 		start : 4
+	    }
+	},
+	//override generator options
+	Generator : {
+	    Terrain : {
+		terrain : {
+		    size : 64
+		}
 	    }
 	}
     },
@@ -29,6 +45,14 @@ RPG.Difficulty = {
 	    Stats : {
 		start : 2
 	    }
+	},
+	//override generator options
+	Generator : {
+	    Terrain : {
+		terrain : {
+		    size : 128
+		}
+	    }
 	}
     },
     Impossible : {
@@ -37,11 +61,19 @@ RPG.Difficulty = {
 	    Stats : {
 		start : 0
 	    }
+	},
+	//override generator options
+	Generator : {
+	    Terrain : {
+		terrain : {
+		    size : 512
+		}
+	    }
 	}
     }
 };
-RPG.difficultyVal = function(diff,path) {
-    return Object.getFromPath(RPG.Difficulty[diff],path);
+RPG.difficultyVal = function(difficulty,path) {
+    return Object.getFromPath(RPG.Difficulty[difficulty],path);
 }
 
 /**

@@ -83,6 +83,7 @@ CREATE TABLE `maptiles` (
   `point` point NOT NULL,
   PRIMARY KEY (`tileID`),
   KEY `mapTiles_mapIDIndex` (`mapID`),
+  KEY `MapTiles_point_index` (point),
   SPATIAL INDEX `MapTiles_point` (point),
   FULLTEXT INDEX `mapTiles_tiles` (`tiles`),
   CONSTRAINT `MapTiles_mapID` FOREIGN KEY (`mapID`) REFERENCES `maps` (`mapID`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -123,6 +124,7 @@ CREATE TABLE `tilesettiles` (
   `point` point NOT NULL,
   PRIMARY KEY (`tileID`),
   KEY `TilesetTiles_tilesetID` (`tilesetID`),
+  KEY `TilesetTiles_point_index` (point),
   SPATIAL INDEX `TilesetTiles_point` (point),
   FULLTEXT INDEX `TilesetTiles_tiles` (`tiles`),
   CONSTRAINT `TilesetTiles_tilesetID` FOREIGN KEY (`tilesetID`) REFERENCES `tilesets` (`tilesetID`) ON DELETE CASCADE ON UPDATE CASCADE

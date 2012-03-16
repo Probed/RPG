@@ -70,7 +70,12 @@ RPG.Tiles.teleportTo = function(options,callback) {
 		    rand.seed =(Math.random() * (99999999999 - 1) + 1);
 		    var mapName = options.merged.property.tileName;
 
-		    RPG.Generator[options.contents.generator].random(mapName,rand,function(random){
+		    RPG.Generator[options.contents.generator].random(mapName,{
+			properties : {
+			    Difficulty : options.game.character.Difficulty,
+			    level : options.game.character.level
+			}
+		    },rand,function(random){
 			Object.merge(newUniverse,random.universe);
 			var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 			newUniverse.options.settings.activeMap = mapName;
@@ -102,7 +107,7 @@ RPG.Tiles.teleportTo = function(options,callback) {
 				    RPG.createTile('world.earth.teleport',m.cache,{
 					property : {
 					    tileName : 'GT',
-					    folderName : random.options[options.contents.generator.toLowerCase()].name
+					    folderName : random.options.properties.name
 					},
 					teleportTo : {
 					    mapName : options.game.character.location.mapName,

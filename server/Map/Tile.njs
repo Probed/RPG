@@ -103,7 +103,6 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    options.user.options.userID
 	    ];
 	}
-
 	require('../Database/mysql.njs').mysql.query(sql,args,
 	    function(err,mtResults) {
 		Object.erase(options,'tilePoints');

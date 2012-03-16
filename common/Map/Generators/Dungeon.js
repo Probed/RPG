@@ -18,9 +18,13 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
     Implements : [Options],
     name : 'Dungeon',
     constraints : {
-	dungeon : {
+	properties : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    Difficulty : Object.keys(RPG.Difficulty),
+	    level : [1,100,1]
+	},
+	dungeon : {
 	    height : [3,7,5],
 	    width : [3,7,5],
 	    type : RPG.tileFolderList(RPG.Tiles,'world.earth.room')
@@ -40,7 +44,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 
     generate : function(options,rand,callback){
 	rand = rand || RPG.Random;
-	rand.seed = options.dungeon.seed || rand.seed;
+	rand.seed = options.properties.seed || rand.seed;
 
 	var dungeon = {
 	    tiles : {},
@@ -72,7 +76,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 	var cleaned = [];
 	var str = RPG.Generator.Maze.mazeToStr(RPG.Generator.Maze.createMaze({
 	    maze : {
-		name : options.dungeon.name,
+		name : options.properties.name,
 		height : options.dungeon.height * 2,
 		width : options.dungeon.width * 2,
 		sparse : 0,
@@ -197,7 +201,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 		    'perimeter.bottoms' : RPG.createTile(options.dungeon.type+'.b.wall',dungeon.cache,{
 			property : {
 			    tileName : bottom.name,
-			    folderName : options.dungeon.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : bottom.image
 			    }
@@ -207,7 +211,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 		    'perimeter.tops' : RPG.createTile(options.dungeon.type+'.t',dungeon.cache,{
 			property : {
 			    tileName : top.name,
-			    folderName : options.dungeon.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : top.image
 			    }
@@ -216,7 +220,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 		    'interior.all,path,openings' : RPG.createTile(['world','earth','floor'],dungeon.cache,{
 			property : {
 			    tileName : options.rooms.floor.substr(0,options.rooms.floor.lastIndexOf('.')),
-			    folderName : options.dungeon.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : options.rooms.floor
 			    }
@@ -231,7 +235,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 			    return RPG.createTile(options.room.door,dungeon.cache,{
 				property : {
 				    tileName : dir.charAt(0),
-				    folderName : options.dungeon.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : dir.charAt(0)+'.png'
 				    }
@@ -246,7 +250,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 			    return RPG.createTile(options.dungeon.type+'.b.decor',dungeon.cache,{
 				property : {
 				    tileName : decor.name,
-				    folderName : options.dungeon.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : decor.image,
 					size : 50,
@@ -265,7 +269,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 			    return RPG.createTile(options.dungeon.type+'.i.'+randInterName+'.'+paintPath[paintPath.length-1],dungeon.cache,{
 				property : {
 				    tileName : perim.name,
-				    folderName : options.dungeon.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : perim.image
 				    }
@@ -280,7 +284,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 			    return RPG.createTile(options.dungeon.type+'.i.'+randInterName+'.o',dungeon.cache,{
 				property : {
 				    tileName : center.name,
-				    folderName : options.dungeon.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : center.image
 				    }
@@ -291,7 +295,7 @@ RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
 			    return RPG.createTile(['world','earth','stair'],dungeon.cache,{
 				property : {
 				    tileName : 'u',
-				    folderName : options.dungeon.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'u.png'
 				    }

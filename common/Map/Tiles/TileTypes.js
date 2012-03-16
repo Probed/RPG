@@ -38,6 +38,7 @@
 if (!RPG) var RPG = {};
 if (!RPG.TileType) RPG.TileType = {};
 if (typeof exports != 'undefined') {
+    Object.merge(RPG,require('../../Character/Character.js'));
     module.exports = RPG;
 }
 
@@ -69,7 +70,7 @@ RPG.TileType.Property = function(options) {
 RPG.TileType.Teleport = function(options) {
     return {
 	teleportTo : Object.merge({
-	    warn : [true],
+	    warn : [false],
 	    mapName : [],
 	    generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators)),
 	    point : []
@@ -104,6 +105,27 @@ RPG.TileType.Traversable = function(options) {
 	    spaceship : {
 		cost : [-100,100,100]
 	    }
+	},options||{})
+    };
+}
+
+/**
+ * lockable Tile:
+ *
+ * These are tiles that can locked/unlocked
+ * locked tiles prevent a character from entering them unil unlocked.
+ *
+ * options :
+ *	locked : true/false
+ *	level : how difficult it is to unlock the tile
+ */
+RPG.TileType.Lockable = function(options) {
+    return {
+	lockable : Object.merge({
+	    locked : [false],
+	    type : ['tumbler'],
+	    level : [1,100,1],
+	    Difficulty : Object.keys(RPG.Difficulty)
 	},options||{})
     };
 }

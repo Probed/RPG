@@ -15,10 +15,14 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
     Implements : [Options],
     name : 'Terrain',
     constraints : {
-	terrain : {
-	    name : ['/^[a-zA-Z0-9_.]+$/',1,20,'g'],
-	    size : ['32','64','128','64','64'],
+	properties : {
+	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    Difficulty : Object.keys(RPG.Difficulty),
+	    level : [1,100,1]
+	},
+	terrain : {
+	    size : ['32','64','128','256','512'],
 	    choas : [0.1,0.9,0.5],
 	    smoothTerrain : [0,5,5],
 	    seaLevel : [-1,1,0],
@@ -55,9 +59,9 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 	};
 
 	rand = rand || RPG.Random;
-	rand.seed = options.terrain.seed || rand.seed;
+	rand.seed = options.properties.seed || rand.seed;
 
-	RPG.fill2DFractArray(heightMap1D,Number.from(options.terrain.size),Number.from(options.terrain.seed),-7,Number.from(options.terrain.choas),rand);
+	RPG.fill2DFractArray(heightMap1D,Number.from(options.terrain.size),Number.from(options.properties.seed),-7,Number.from(options.terrain.choas),rand);
 	if (options.terrain.smoothTerrain) {
 	    for(x = 0; x<options.terrain.smoothTerrain; x++) {
 		heightMap1D = RPG.boxFilterHeightMap(Number.from(options.terrain.size), Number.from(options.terrain.size), heightMap1D, true);
@@ -83,7 +87,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    terrain.liquid[x][y] = terrain.deep[x][y] = [RPG.createTile(['terrain','earth','liquid','deep'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -96,7 +100,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    terrain.liquid[x][y] = terrain.shallow[x][y] = [RPG.createTile(['terrain','earth','liquid','shallow'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -109,7 +113,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    terrain.solid[x][y] = terrain.sand[x][y] = [RPG.createTile(['terrain','earth','solid','sand'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -122,7 +126,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    terrain.solid[x][y] = terrain.swamp[x][y] = [RPG.createTile(['terrain','earth','solid','swamp'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -135,7 +139,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    terrain.solid[x][y] = terrain.grass[x][y] = [RPG.createTile(['terrain','earth','solid','grass'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -150,7 +154,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			terrain.solid[x][y] = terrain.grass[x][y] = [RPG.createTile(['terrain','earth','solid','grass'],terrain.cache,{
 			    property : {
 				tileName : '2',
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : '2.png'
 				}
@@ -160,7 +164,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			terrain.solid[x][y] = terrain.grass[x][y] = [RPG.createTile(['terrain','earth','solid','grass'],terrain.cache,{
 			    property : {
 				tileName : '3',
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : '3.png'
 				}
@@ -176,7 +180,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			terrain.solid[x][y] = terrain.dirt[x][y] = [RPG.createTile(['terrain','earth','solid','dirt'],terrain.cache,{
 			    property : {
 				tileName : '1',
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : '1.png'
 				}
@@ -186,7 +190,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			terrain.solid[x][y] = terrain.dirt[x][y] = [RPG.createTile(['terrain','earth','solid','dirt'],terrain.cache,{
 			    property : {
 				tileName : '2',
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : '2.png'
 				}
@@ -200,7 +204,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    terrain.solid[x][y] = terrain.rock[x][y] = [RPG.createTile(['terrain','earth','solid','rock'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -214,7 +218,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    RPG.createTile(['terrain','earth','solid','rock'],terrain.cache,{
 			property : {
 			    tileName : '2',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '2.png'
 			    }
@@ -223,7 +227,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 		    RPG.createTile(['world','earth','mountian'],terrain.cache,{
 			property : {
 			    tileName : '1',
-			    folderName : options.terrain.name,
+			    folderName : options.properties.name,
 			    image : {
 				name : '1.png'
 			    }
@@ -284,7 +288,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			    seed : rand.seed
 			}
 		    },rand),
-		    folderName : options.terrain.name,
+		    folderName : options.properties.name,
 		    image : {
 			name : 'modernCity.png'
 		    }
@@ -373,7 +377,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			RPG.createTile(options.terrain.road,terrain.cache,{
 			    property : {
 				tileName : orientation,
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : orientation+'.png'
 				}
@@ -451,7 +455,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			    terrain.trees[rowNum][colNum] = [RPG.createTile(['world','earth','tree','conifer'],terrain.cache,{
 				property : {
 				    tileName : '1',
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : '1.png'
 				    }
@@ -462,7 +466,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 				terrain.trees[rowNum][colNum] = [RPG.createTile(['world','earth','shrub'],terrain.cache,{
 				    property : {
 					tileName : '1',
-					folderName : options.terrain.name,
+					folderName : options.properties.name,
 					image : {
 					    name : '1.png'
 					}
@@ -475,7 +479,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 				terrain.trees[rowNum][colNum] = [RPG.createTile(['world','earth','tree','palm'],terrain.cache,{
 				    property : {
 					tileName : '2',
-					folderName : options.terrain.name,
+					folderName : options.properties.name,
 					image : {
 					    name : '2.png'
 					}
@@ -485,7 +489,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 				terrain.trees[rowNum][colNum] = [RPG.createTile(['world','earth','shrub'],terrain.cache,{
 				    property : {
 					tileName : '3',
-					folderName : options.terrain.name,
+					folderName : options.properties.name,
 					image : {
 					    name : '3.png'
 					}
@@ -497,7 +501,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 			    terrain.trees[rowNum][colNum] = [RPG.createTile(['world','earth','tree','pine'],terrain.cache,{
 				property : {
 				    tileName : '1',
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : '1.png'
 				    }
@@ -539,7 +543,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					seed : rand.seed
 				    }
 				},rand) + "'s Swamp Hut",
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : 'h1.png'
 				}
@@ -578,7 +582,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + "'s Barn",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'h3.png'
 				    }
@@ -593,7 +597,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + "'s Farm",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'h2.png'
 				    }
@@ -625,7 +629,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					seed : rand.seed
 				    }
 				},rand) + " Tribe",
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : 'h4.png'
 				}
@@ -665,7 +669,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + " opening",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'c1.png'
 				    }
@@ -680,7 +684,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + " cave",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'c3.png'
 				    }
@@ -711,7 +715,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					seed : rand.seed
 				    }
 				},rand) + " cavern",
-				folderName : options.terrain.name,
+				folderName : options.properties.name,
 				image : {
 				    name : 'c2.png'
 				}
@@ -741,7 +745,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + " whirlpool",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'w1.png'
 				    }
@@ -756,7 +760,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + "'s pirate ship",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'p1.png'
 				    }
@@ -787,7 +791,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + " whirlpool",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'w2.png'
 				    }
@@ -802,7 +806,7 @@ RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
 					    seed : rand.seed
 					}
 				    },rand) + "'s pirate ship",
-				    folderName : options.terrain.name,
+				    folderName : options.properties.name,
 				    image : {
 					name : 'p1.png'
 				    }
