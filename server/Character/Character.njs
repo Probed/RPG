@@ -371,6 +371,20 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * character
      */
     calcSightRadius : function(options, callback) {
-	callback(5);
+	callback(2);
+    },
+
+    /**
+     * baseXP the amount to modify
+     *
+     * required options
+     * game
+     *
+     * callback(xp || 0)
+     */
+    calcXP : function(baseXP, options,callback) {
+	callback(baseXP * (RPG.difficultyVal(options.game.character.Difficulty,'Character.xp.modifier')));
     }
+
+
 }))();

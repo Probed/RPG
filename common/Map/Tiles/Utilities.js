@@ -306,15 +306,15 @@ RPG.createTile = function(path, cache, options) {
     return newPath;
 }
 
-RPG.cloneTile = function(tiles, clonePath, point, cache,options) {
-    var toClone = RPG.tilesContainsPartialPath(tiles,clonePath,point);
-    if (!toClone) return null;
-    if (!toClone[0]) return null;
-    if (!clonePath) return null;
-    var clone = Object.clone(Object.getFromPath(cache, toClone[0]));
-    Object.merge(clone.options,options);
-    toClone = null;
-    return RPG.createTile(clonePath,cache,clone.options);
+RPG.cloneTile = function(original_cache, clonePath, new_cache, options) {
+    if (!clonePath || !original_cache || !new_cache) return null;
+    var orig = Object.getFromPath(original_cache,clonePath);
+
+    //merge together the options from the original cache, and the incoming options
+    options = Object.merge(Object.clone(orig.options),options);
+
+    //create the tile in the new_cache
+    return RPG.createTile(RPG.trimPathOfNameAndFolder(clonePath),new_cache,options);
 }
 
 RPG.removeAllTiles = function(tiles,point) {
@@ -331,6 +331,27 @@ RPG.removeTile = function(tiles,path,point) {
 	tiles[point[0]][point[1]].erase(tile);
     });
     return rem;
+}
+
+RPG.removeCacheTiles = function(cache,paths) {
+    if (!cache || !paths) return null;
+    var removed = [];
+    paths.each(function(path){
+	var rem = RPG.removeCacheTile(cache,path);
+	if (rem) removed.push(rem);
+    });
+    if (removed.length == 0) {
+	return null;
+    } else {
+	return removed;
+    }
+}
+
+RPG.removeCacheTile = function(cache,path) {
+    var tileName = path.pop();
+    var rem = Object.getFromPath(cache,path);
+    if (!rem) return null;
+    return Object.erase(rem,tileName);
 }
 
 RPG.pushTile = function(tiles,point,path) {

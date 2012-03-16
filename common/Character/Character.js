@@ -10,6 +10,9 @@ RPG.Difficulty = {
     Easy : {
 	description : '',
 	Character : {
+	    xp : {
+		modifier : 1.5
+	    },
 	    Stats : {
 		start : 5
 	    }
@@ -26,6 +29,9 @@ RPG.Difficulty = {
     Medium : {
 	description : '',
 	Character : {
+	    xp : {
+		modifier : 1
+	    },
 	    Stats : {
 		start : 4
 	    }
@@ -42,6 +48,9 @@ RPG.Difficulty = {
     Hard : {
 	description : '',
 	Character : {
+	    xp : {
+		modifier : 0.85
+	    },
 	    Stats : {
 		start : 2
 	    }
@@ -58,6 +67,9 @@ RPG.Difficulty = {
     Impossible : {
 	description : '',
 	Character : {
+	    xp : {
+		modifier : 0.5
+	    },
 	    Stats : {
 		start : 0
 	    }
@@ -66,7 +78,7 @@ RPG.Difficulty = {
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 512
+		    size : 256
 		}
 	    }
 	}
