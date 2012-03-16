@@ -38,6 +38,7 @@
 if (!RPG) var RPG = {};
 if (!RPG.TileType) RPG.TileType = {};
 if (typeof exports != 'undefined') {
+    Object.merge(RPG,require('../../Random.js'));
     Object.merge(RPG,require('../../Character/Character.js'));
     module.exports = RPG;
 }
@@ -125,7 +126,8 @@ RPG.TileType.Lockable = function(options) {
 	    locked : [false],
 	    type : ['tumbler'],
 	    level : [1,100,1],
-	    Difficulty : Object.keys(RPG.Difficulty)
+	    Difficulty : Object.keys(RPG.Difficulty),
+	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))]
 	},options||{})
     };
 }

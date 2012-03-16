@@ -60,7 +60,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    //process game commands:
 		    case request.url.query.m == 'MoveCharacter' :
 			game.dir = request.url.query.dir;
-			game.clientEvents = request.data;
+			game.clientEvents = JSON.decode(request.data,true);
 			this.moveCharacter(game, function(changes){
 			    if (changes.error) {
 				response.onRequestComplete(response,changes);

@@ -261,7 +261,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	 * Throw error to cause node to restart
 	 */
 	if (error) {
-	   //throw output;
+	   throw output;
 	}
     }
 }))().start();

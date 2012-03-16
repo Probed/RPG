@@ -47,7 +47,7 @@ RPG.Tiles.lockable = function(options,callback) {
 		    //server
 
 		    //@todo check solution:
-		    if (options.game.clientEvents.onBeforeEnter.solution) {
+		    if (RPG.Unlock.checkSolution(options)) {
 			//@todo update tile
 			callback({
 			    lockable : 'Unlock attempt Successful.'
@@ -101,6 +101,8 @@ RPG.Unlock = new (new Class({
 	    maximizable : false,
 	    minimizable : false,
 	    closable : true,
+	    height : 180,
+	    width : 330,
 	    onClose : function() {
 		callbacks.fail && callbacks.fail();
 	    },
@@ -108,7 +110,7 @@ RPG.Unlock = new (new Class({
 		css : ['/client/Game/Puzzles/lockable/'+options.contents.type+'.css'],
 		js : ['/client/Game/Puzzles/lockable/'+options.contents.type+'.js'],
 		onloaded : function() {
-		    this.puzzle = new RPG.Puzzles.lockable[options.contents.type](options);
+		    this.puzzle = new RPG.Puzzles.lockable[options.contents.type](options,callbacks);
 		    this.contentDiv.adopt(this.puzzle.toElement());
 		}.bind(this)
 	    },
@@ -124,13 +126,12 @@ RPG.Unlock = new (new Class({
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();
-				this.puzzle.destroy();
 				$('unlockWindow').retrieve('instance').close();
 
 			    } else {
 				MUI.notification('Attempt Failed. Try again.');
 			    }
-			}
+			}.bind(this)
 		    }
 		}));
 
@@ -146,5 +147,22 @@ RPG.Unlock = new (new Class({
 		}));
 	    }.bind(this)
 	});
+    },
+
+    //serverside solution checking
+    checkSolution : function(options) {
+	var rand = Object.clone(RPG.Random);
+	rand.seed = Number.from(options.contents.seed);
+	switch (options.contents.type) {
+	    case  'tumbler' :
+		var code = Math.floor(rand.random(100,999));
+		if (Number.from(options.game.clientEvents.onBeforeEnter.solution) == code) {
+		    return true;
+		} else {
+		    return false;
+		}
+		break;
+	}
+	return false;
     }
 }));

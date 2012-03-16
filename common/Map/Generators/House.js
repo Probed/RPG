@@ -293,7 +293,8 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				lockable : {
 				    locked : options.mainFloor.doorsLocked,
 				    Difficulty : options.properties.Difficulty,
-				    level : options.properties.level
+				    level : options.properties.level,
+				    seed : options.properties.seed
 				}
 			    });
 			}
