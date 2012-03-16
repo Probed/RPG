@@ -63,14 +63,17 @@ RPG.Tiles.lockable = function(options,callback) {
 
 			options.tiles.each(function(tilePath){
 			    //clone each tile at the moveTo point
-
-			    RPG.pushTile(map.tiles,options.game.moveTo,
-				RPG.cloneTile(currentMap.cache,tilePath,map.cache,{
+			    var c = Object.getFromPath(currentMap.cache,tilePath);
+			    if (!c) return;
+			    var newOptions = {};
+			    if (c.options.lockable) {
+				newOptions = {
 				    lockable : {
 					locked : false
 				    }
-				})
-				);
+				};
+			    }
+			    RPG.pushTile(map.tiles, options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
 			});
 
 			//save our newUniverse tile changes
@@ -104,13 +107,13 @@ RPG.Tiles.lockable = function(options,callback) {
 				    }
 
 				    //remove the tile from the current Universe so it will get reloaded from the database
-				    //and the client should receive the the new tile created above.
-				    RPG.removeAllTiles(currentMap.tiles,options.game.moveTo);
-				    RPG.removeCacheTiles(currentMap.cache,options.tiles);
+				    //and the client should receive the the cloned tile created above.
+				    RPG.removeAllTiles(currentMap.tiles, options.game.moveTo);
+				    RPG.removeCacheTiles(currentMap.cache, options.tiles);
 
 				    //finally callback
 				    callback({
-					lockable : 'Unlock attempt Successful.'
+					lockable : 'Unlock attempt Successful. xp: '+xp
 				    });
 
 				});//end store character

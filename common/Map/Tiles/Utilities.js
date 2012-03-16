@@ -334,24 +334,17 @@ RPG.removeTile = function(tiles,path,point) {
 }
 
 RPG.removeCacheTiles = function(cache,paths) {
-    if (!cache || !paths) return null;
-    var removed = [];
+    if (!cache || !paths) return;
     paths.each(function(path){
-	var rem = RPG.removeCacheTile(cache,path);
-	if (rem) removed.push(rem);
+	RPG.removeCacheTile(cache,path);
     });
-    if (removed.length == 0) {
-	return null;
-    } else {
-	return removed;
-    }
 }
 
 RPG.removeCacheTile = function(cache,path) {
     var tileName = path.pop();
     var rem = Object.getFromPath(cache,path);
-    if (!rem) return null;
-    return Object.erase(rem,tileName);
+    if (!rem) return;
+    Object.erase(rem,tileName);
 }
 
 RPG.pushTile = function(tiles,point,path) {

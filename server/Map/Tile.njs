@@ -52,22 +52,27 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	if  (options.tilePoints == 'all') {
 	//allow 'all' to go through
 	} else {
-	    pointSql = 'AND point in (';
 	    var cnt = 0;
+	    var points = '';
 	    options.tilePoints.each(function(point){
 		if (cachedTiles && cachedTiles[point[0]] && cachedTiles[point[0]][point[1]]) {
 
 
 		//ignore cached tiles since they should already exist in on the client
 		} else {
-		    pointSql += RPG.getPointSQL(point);
-		    pointSql += ',';
+		    points += RPG.getPointSQL(point);
+		    points += ',';
 		    cnt++;
 		}
 	    });
 
-	    if (pointSql.length > 14) {
-		pointSql = pointSql.substr(0,pointSql.length-1);
+	    if (points.length > 0) {
+		if (cnt == 1) {
+		    //for some reason using 'in' does not work with a single point. so double up the point
+		    points += points;
+		}
+		pointSql = 'AND point in (';
+		pointSql += points.substr(0,points.length-1);
 		pointSql += ') ';
 	    } else {
 		//RPG.Log('cache','Tiles: none to load.');
