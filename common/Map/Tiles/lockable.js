@@ -72,7 +72,6 @@ RPG.Tiles.lockable = function(options,callback) {
 				})
 				);
 			});
-			RPG.Log('debug',newUniverse);
 
 			//save our newUniverse tile changes
 			RPG.Universe.store({
@@ -239,87 +238,3 @@ RPG.Unlock = new (new Class({
 	return 0;
     }
 }));
-
-l={
-    "options":{
-	"database":{
-	    "universeID":10
-	},
-	"property":{
-	    "universeName":"Loiwhifpy's Universe",
-	    "author":"Generated",
-	    "startMap":"StartMap"
-	},
-	"settings":{
-	    "activeMap":"Tiigkar's Barn"
-	}
-    },
-"maps":{
-    "Tiigkar's Barn":{
-	"options":{
-	    "property":{
-		"mapName":"Tiigkar's Barn",
-		"author":"Generated"
-	    },
-	    "generator":{
-		"":{
-		    "options":{
-			"properties":{
-			    "name":"Fersa",
-			    "seed":90861320494.69685,
-			    "Difficulty":"Easy",
-			    "level":1
-			},
-			"house":{
-			    "type":"world.earth.room.house",
-			    "rows":3,
-			    "cols":2
-			},
-			"property":{
-			    "lawn":"terrain.earth.solid.sand",
-			    "fence":"world.earth.fence.iron",
-			    "sidewalk":"world.earth.sidewalk.brick2",
-			    "gate":"world.earth.gate.iron",
-			    "tree":"world.earth.tree.pine",
-			    "tree%":69.14937496185303
-			},
-			"mainFloor":{
-			    "floor":"24.png",
-			    "decor%":5.9363603591918945,
-			    "perim%":96.80905351415277,
-			    "center%":96.26843929290771,
-			    "door":"world.earth.door.brick2",
-			    "doorsLocked":true
-			},
-			"upStairs":{
-			    "allow":false,
-			    "floor":"3.png",
-			    "decor%":46.408653259277344,
-			    "perim%":76.39219760894775,
-			    "center%":42.740583419799805,
-			    "door":"world.earth.door.brick2"
-			},
-			"downStairs":{
-			    "allow":false,
-			    "floor":"29.png",
-			    "decor%":36.327219009399414,
-			    "perim%":79.1588544845581,
-			    "center%":72.44300842285156,
-			    "door":"world.earth.door.brick2"
-			}
-		    }
-		}
-	},
-"database":{
-    "minRow":0,
-    "minCol":0,
-    "maxRow":40,
-    "maxCol":29,
-    "mapID":26
-}
-},
-"tiles":{},
-"cache":{}
-}
-}
-}
