@@ -1,4 +1,4 @@
-Universe
+Universe.njs
 ---
 
 This object holds methods for interacting with a `universe` object.
@@ -13,6 +13,9 @@ This object holds methods for interacting with a `universe` object.
 <a name="store"></a>
 
 ## [store](#store) : function(`options`, `callback`)
+
+If any `maps` exist within the universe they will be stored as well. [Map](https://github.com/Probed/RPG/blob/master/server/Map/Map.md#store)
+If any `tiles` exist within the maps they will be stored also.
 
 * `options` *required*
     * `user` **:** the [User](#) making the request

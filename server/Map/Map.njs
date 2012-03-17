@@ -25,7 +25,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * mapOrTileset
      *
      * Returns :
-     * callback(map) 'map' object mergable with a universe eg: {maps:{mapName:{...}}
+     * callback(universe || error) 'universe' object mergable with a universe  or error object
      */
     load : function(options,callback) {
 	options.mapOrTileset = options.mapOrTileset || 'map';
