@@ -3,25 +3,25 @@ Universe
 
 This object holds methods for interacting with a `universe` object.
 
-* [store](#store) : store all the contents of a universe into the database
-* [load](#load) : load a universe's contents from the database
-* [list](#list) : list universes for a user
-* [checkDupeName](#checkDupeName) - check for existing universe name
+* [store](#store) **:** store all the contents of a `universe` into the database
+* [load](#load) **:** load a `universe`s contents from the database
+* [list](#list) **:** list `universe`s for a user
+* [checkDupeName](#checkDupeName) **:** check for existing universe name
 
 ---
 
 <a name="store"></a>
 
-## store *function*(`options`, `callback`)
+## [store](#store) : function(`options`, `callback`)
 
-* `options` *requied*
-    * `user` : the [User](#) making the request
-    * `universe` : the `universe` object to be stored
+* `options` *required*
+    * `user` **:** the [User](#) making the request
+    * `universe` **:** the `universe` object to be stored
 * `options` *optional*
-    * `bypassCache` : does not attempt to load from, or store in, the game cache
+    * `bypassCache` **:** does not attempt to load from, or store in, the game cache
 
 * *Returns*
-    * `callback`(`universe` *or* `error`) : a universe object or a `{error:'message'}` object
+    * `callback`(`universe` *or* `error`) **:** a universe object or a `{error:'message'}` object
 
 *Example*
 
@@ -42,19 +42,19 @@ RPG.Universe.store({
 
 <a name="load"></a>
 
-## load *function*(`options`, `callback`)
+## [load](#load) : *function*(`options`, `callback`)
 
-* `options` *requied*
-    * `user` : the [User](#) making the request
-    * `character` *or* `universeID` *or* `universeName` : what universe to load
+* `options` *required*
+    * `user` **:** the [User](#) making the request
+    * `character` *or* `universeID` *or* `universeName` **:** what universe to load
 
 * `options` *optional*
-    * `mapID` *or* `mapName` : load the specified map into the universe
-    * `tilePoints` : load the specified tiles into the map
-    * `bypassCache` : does not attempt to load from, or store in, the game cache
+    * `mapID` *or* `mapName` **:** load the specified map into the universe
+    * `tilePoints` **:** load the specified tiles into the map
+    * `bypassCache` **:** does not attempt to load from, or store in, the game cache
 
 * *Returns*
-    * `callback`(`universe` *or* `error`) : a universe object or a `{error:'message'}` object
+    * `callback`(`universe` *or* `error`) **:** a universe object or a `{error:'message'}` object
 
 *Example* Load universe #1 with map #1 and tile [0,0]
 
@@ -77,13 +77,13 @@ RPG.Universe.load({
 
 <a name="list"></a>
 
-## list *function*(`options`, `callback`)
+## [list](#list) : *function*(`options`, `callback`)
 
-* `options` *requied*
-    * `user` : the [User](#) making the request
+* `options` *required*
+    * `user` **:** the [User](#) making the request
 
 * *Returns*
-    * `callback`(`universe` *or* `error`) : a universe object or a `{error:'message'}` object
+    * `callback`(`universe` *or* `error`) **:** a universe object or a `{error:'message'}` object
 
 *Example*
 
@@ -103,17 +103,17 @@ RPG.Universe.list({
 
 <a name="checkDupeName"></a>
 
-## checkDupeName *function*(`options`, `callback`)
+## [checkDupeName](#checkDupeName) : *function*(`options`, `callback`)
 
-* `options` *requied*
-    * `user` : the [User](#) making the request
-    * `universeName` : what universe name to check
+* `options` *required*
+    * `user` **:** the [User](#) making the request
+    * `universeName` **:** what universe name to check
 
 * `options` *optional*
-    * `universe` *or* `universeID` : ignore this universe in the check
+    * `universe` *or* `universeID` **:** ignore this universe in the check
 
 * *Returns*
-    * `callback`(`dupeName` *or* `null`) : `dupeName` if a dupe was found, or `null` if all good.
+    * `callback`(`dupeName` *or* `null`) **:** `dupeName` if a dupe was found, or `null` if all good.
 
 *Example*
 
