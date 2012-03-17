@@ -110,7 +110,7 @@ RPG.Map.storeTileset({
 
 <a name="load"></a>
 
-## [load](#load) : *function*(`options`, `callback`)
+## [load](#load) : function(`options`, `callback`)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request
@@ -146,7 +146,7 @@ RPG.Map.load({
 
 <a name="listMaps"></a>
 
-## [listMaps](#listMaps) : *function*(`options`, `callback`)
+## [listMaps](#listMaps) : function(`options`, `callback`)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request
@@ -174,9 +174,10 @@ RPG.Map.listMaps({
 
 <a name="listTilesets"></a>
 
-## [listTilesets](#listTilesets) : *function*(`options`, `callback`)
+## [listTilesets](#listTilesets) : function(`options`, `callback`)
 
 * `options` *required*
+    * `none`
 
 * *Returns*
     * `callback`(`tilesetlist` *or* `error`) **:** a tilesetlist object or a `{error:'message'}` object
@@ -184,7 +185,7 @@ RPG.Map.listMaps({
 *Example*
 
 ```javascript
-RPG.Map.listMaps({
+RPG.Map.listTilesets({
     user : request.user,
 }, function(tilesetlist) {
     if (tilesetlist.error) {
@@ -199,7 +200,7 @@ RPG.Map.listMaps({
 
 <a name="checkDupeTilesetName"></a>
 
-## [checkDupeTilesetName](#checkDupeTilesetName) : *function*(`options`, `callback`)
+## [checkDupeTilesetName](#checkDupeTilesetName) : function(`options`, `callback`)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request

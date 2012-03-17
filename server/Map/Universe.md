@@ -14,8 +14,9 @@ This object holds methods for interacting with a `universe` object.
 
 ## [store](#store) : function(`options`, `callback`)
 
-If any `maps` exist within the universe they will be stored as well. [Map](https://github.com/Probed/RPG/blob/master/server/Map/Map.md#store)
-If any `tiles` exist within the maps they will be stored also.
+If any `maps` exist within the universe they will be stored as well. see [Map](https://github.com/Probed/RPG/blob/master/server/Map/Map.md#store)
+
+If any `tiles` exist within the maps they will be stored also. see [Tile](https://github.com/Probed/RPG/blob/master/server/Map/Tile.md#store)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request
@@ -45,7 +46,7 @@ RPG.Universe.store({
 
 <a name="load"></a>
 
-## [load](#load) : *function*(`options`, `callback`)
+## [load](#load) : function(`options`, `callback`)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request
@@ -80,7 +81,7 @@ RPG.Universe.load({
 
 <a name="list"></a>
 
-## [list](#list) : *function*(`options`, `callback`)
+## [list](#list) : function(`options`, `callback`)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request
@@ -106,7 +107,7 @@ RPG.Universe.list({
 
 <a name="checkDupeName"></a>
 
-## [checkDupeName](#checkDupeName) : *function*(`options`, `callback`)
+## [checkDupeName](#checkDupeName) : function(`options`, `callback`)
 
 * `options` *required*
     * `user` **:** the [User](#) making the request
