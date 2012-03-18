@@ -254,15 +254,30 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    }
 			}
 		    }),
-		    'interior.all,path,openings' : RPG.createTile(['world','earth','floor'],house.cache,{
-			property : {
-			    tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
-			    folderName : options.properties.name,
-			    image : {
-				name : options.mainFloor.floor
+		    'interior.all,path,openings' : function(paintPath,area,point,index) {
+			var tiles = [];
+			tiles.push(RPG.createTile(['world','earth','floor'],house.cache,{
+			    property : {
+				tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
+				folderName : options.properties.name,
+				image : {
+				    name : options.mainFloor.floor
+				}
 			    }
+			}));
+			if (rand.random() <= 0.01) {
+			    tiles.push(RPG.createTile(['world','earth','trap'],house.cache,{
+				property : {
+				    tileName : point.join(),
+				    folderName : options.properties.name
+				},
+				trap : {
+				    seed : rand.random(0,99999999999)
+				}
+			    }));
 			}
-		    }),
+			return tiles;
+		    },
 		    'openings' : function(paintPath,area,point,index) {
 			var dir = paintPath[paintPath.length-1];
 			if ((((dir == 'n') && index == 1) ||

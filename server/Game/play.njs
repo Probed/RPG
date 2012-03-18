@@ -32,6 +32,7 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		'/common/Map/Tiles/traverse.js',//@todo dynamicize this
 		'/common/Map/Tiles/teleportTo.js',//@todo dynamicize this
 		'/common/Map/Tiles/lockable.js',//@todo dynamicize this
+		'/common/Map/Tiles/trap.js',//@todo dynamicize this
 
 		'/common/Random.js',
 		'/common/Map/Generators/Words.js',
