@@ -65,7 +65,7 @@ RPG.pageHome =  new Class({
 	    populates : 'pnlMainContent',
 	    requires : {
 		//'css' : ['home.css'],
-		'js' : ['/client/pages/Home/home.js'],
+		'js' : ['/client/pages/Home/Home.js'],
 		exports :'pageHome'
 	    },
 	    pageContents : clone

@@ -21,11 +21,9 @@ RPG.pageForum =  new Class({
 	 * Instead, clone the object for the current user and modify the clone.
 	 */
 	this.pageContents = {
-	    heading : {
-		'h1#homeHeader' : {
-		    html : 'Forum'
-		}
-	    }
+            'h1#homeHeader' : {
+                html : 'Forum'
+            }
 	};
     },
     /**

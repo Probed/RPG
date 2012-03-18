@@ -20,15 +20,8 @@ RPG.pageGameWiki = new Class({
     },
     populate : function(page) {
 	this.element.empty();
-	if (page && page.pageContents && page.pageContents.heading) {
-	    Object.each(page.pageContents.heading, function(content,key) {
-		this.element.adopt(RPG.elementFactory.page.createElement(content,key));
-	    },this);
-	}
-	if (page && page.pageContents && page.pageContents.body) {
-	    Object.each(page.pageContents.body, function(content,key) {
-		this.element.adopt(RPG.elementFactory.page.createElement(content,key));
-	    },this);
+	if (page && page.pageContents) {
+	    RPG.elementFactory.page.createElementRecurse(this.element,page.pageContents);
 	}
 	return this;
     }

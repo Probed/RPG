@@ -136,22 +136,22 @@ RPG.GeneratorBaseClass = new Class({
 RPG.Generators = {
     Terrain : {
 	require :{
-	    js : ['/common/map/Generators/Terrain.js','/common/map/Generators/diamond-square.js','/common/map/Generators/Words.js']
+	    js : ['/common/Map/Generators/Terrain.js','/common/Map/Generators/diamond-square.js','/common/Map/Generators/Words.js']
 	}
     },
     Dungeon : {
 	require :{
-	    js : ['/common/map/Generators/Dungeon.js','/common/map/Generators/Maze.js','/common/map/Generators/Words.js']
+	    js : ['/common/Map/Generators/Dungeon.js','/common/Map/Generators/Maze.js','/common/Map/Generators/Words.js']
 	}
     },
     House : {
 	require :{
-	    js : ['/common/map/Generators/House.js','/common/map/Generators/Words.js']
+	    js : ['/common/Map/Generators/House.js','/common/Map/Generators/Words.js']
 	}
     },
     Maze : {
 	require :{
-	    js : ['/common/map/Generators/Maze.js','/common/map/Generators/Words.js']
+	    js : ['/common/Map/Generators/Maze.js','/common/Map/Generators/Words.js']
 	}
     }
 }

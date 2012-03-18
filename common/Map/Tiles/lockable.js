@@ -106,10 +106,7 @@ RPG.Tiles.lockable = function(options,callback) {
 					return;
 				    }
 
-				    //remove the tile from the current Universe so it will get reloaded from the database
-				    //and the client should receive the the cloned tile created above.
-				    RPG.removeAllTiles(currentMap.tiles, options.game.moveTo);
-				    RPG.removeCacheTiles(currentMap.cache, options.tiles);
+				    options.game.character = character;
 
 				    //finally callback
 				    callback({
@@ -131,6 +128,19 @@ RPG.Tiles.lockable = function(options,callback) {
 		callback();
 	    }
 	    break;
+
+	case 'onEnter' :
+	    //server
+	    if (typeof exports != undefined && options.events.onBeforeEnter.lockable) {
+
+		//remove the tile from the current Universe so it will get reloaded from the database
+		//and the client should receive the the cloned tile created above.
+		RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+		RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+	    }
+	    callback();
+	    break;
+
 	default :
 	    callback();
     }

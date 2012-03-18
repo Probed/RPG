@@ -128,7 +128,6 @@ RPG.Tiles.teleportTo = function(options,callback) {
 			var newCache = newUniverse.maps[options.game.character.location.mapName].cache = {};
 			var curCache = options.game.universe.maps[options.game.character.location.mapName].cache;
 
-			RPG.Log('debug',JSON.encode(newUniverse.maps[options.game.character.location.mapName]));
 
 			//loop through each of the tiles at the current location
 			Object.each(options.tiles,function(tilePath){

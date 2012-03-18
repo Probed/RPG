@@ -3,33 +3,27 @@
  * Receives and displays the Object retrieved from /server/pages/Players/Players.js
  *
  */
-var pagePlayers = new Class({
+if (!RPG) var RPG = {};
+RPG.pagePlayers = new Class({
     Implements : [Events,Options],
     options : {
 
     },
     initialize : function(options) {
-	this.setOptions(options);
-	this.element = new Element('div',{
-	    id : 'pagePlayers'
-	});
-	this.element.store('instance',this);
+        this.setOptions(options);
+        this.element = new Element('div',{
+            id : 'pagePlayers'
+        });
+        this.element.store('instance',this);
     },
     toElement : function() {
-	return this.element;
+        return this.element;
     },
     populate : function(page) {
-	this.element.empty();
-	if (page && page.pageContents && page.pageContents.heading) {
-	    Object.each(page.pageContents.heading, function(content,key) {
-		this.element.adopt(RPG.elementFactory.page.createElement(content,key));
-	    },this);
-	}
-	if (page && page.pageContents && page.pageContents.body) {
-	    Object.each(page.pageContents.body, function(content,key) {
-		this.element.adopt(RPG.elementFactory.page.createElement(content,key));
-	    },this);
-	}
-	return this;
+        this.element.empty();
+        if (page && page.pageContents) {
+            RPG.elementFactory.page.createElementRecurse(this.element,page.pageContents);
+        }
+        return this;
     }
 });
