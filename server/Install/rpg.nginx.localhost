@@ -16,7 +16,9 @@
 #
 # Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
 ##
-
+upstream app_cluster_1 {
+        server 127.0.0.1:50015;
+}
 server {
 	listen   0.0.0.0:50014; ## listen for ipv4; this line is default and implied
 	#listen   [::]:80 default ipv6only=on; ## listen for ipv6
@@ -28,9 +30,13 @@ server {
 	server_name rpg.nginx.localhost;
 
 	location / {
-		# First attempt to serve request as file, then
-		# as directory, then fall back to index.njs
-		try_files $uri $uri/ /index.njs;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $http_host;
+		proxy_set_header X-NginX-Proxy true;
+
+		proxy_pass http://app_cluster_1/;
+		proxy_redirect off;
 	}
 
         location ~* \.(js|gif|jpg|png|jpeg|css)$ {
