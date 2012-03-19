@@ -172,14 +172,16 @@ RPG.Tile = new (RPG.TileClass = new Class({
      *
      */
     loadTilesCache : function(options,callback) {
-
+	options.mapOrTileset = options.mapOrTileset || 'map';
 	var cachedTileCache = null;
 
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
-	    var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID) || {};
-	    if (cachedUni.maps && cachedUni.maps[options.character.location.mapName]) {
-		cachedTileCache = cachedUni.maps[options.character.location.mapName].cache;
+	    if (!options.bypassCache) {
+		var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID) || {};
+		if (cachedUni.maps && cachedUni.maps[options.character.location.mapName]) {
+		    cachedTileCache = cachedUni.maps[options.character.location.mapName].cache;
+		}
 	    }
 	}
 	var paths = [];
@@ -193,12 +195,17 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    }
 	});
 
-	if (pathSql.length > 1) {
+	if (paths.length > 0) {
+	    if (paths.length == 1) {
+		//for some reason using 'in' does not work with a single entry. so double up
+		pathSql += '?,';
+		paths.push(paths[0]);
+	    }
 	    pathSql = pathSql.substr(0,pathSql.length-1);
 	    pathSql += ')';
-	    RPG.Log('database hit','TileCache: Loading ' + pathSql.length + ' tile cache objects.');
+	    RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.' + paths);
 	} else {
-	    //RPG.Log('no tiles','TileCache: None or all in cache');
+	    //RPG.Log('no tiles',''+options.paths);
 	    callback({});
 	    return;
 	}

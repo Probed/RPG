@@ -186,16 +186,22 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	var currentMap = options.game.universe.maps[options.game.character.location.mapName];
 
-	options.tiles.each(function(tilePath){
-	    var c = Object.getFromPath(currentMap.cache,tilePath);
-	    if (!c) return;
-	    var newOptions = {};
-	    if (c.options[updateOptions.tileType]) {
-		newOptions = updateOptions.tileOptions;
-	    }
-	    //clone each tile at the moveTo point
-	    RPG.pushTile(map.tiles, updateOptions.point || options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
-	});
+	if (updateOptions.tileType && updateOptions.tileOptions) {
+	    options.tiles.each(function(tilePath){
+		var c = Object.getFromPath(currentMap.cache,tilePath);
+		if (!c) return;
+		var newOptions = {};
+		if (c.options[updateOptions.tileType]) {
+		    newOptions = updateOptions.tileOptions;
+		}
+		//clone each tile at the moveTo point
+		RPG.pushTile(map.tiles, updateOptions.point || options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
+	    });
+	}
+
+	if (updateOptions.cache) {
+	    map.cache = updateOptions.cache;
+	}
 
 	//save our newUniverse tile changes
 	RPG.Universe.store({

@@ -140,7 +140,7 @@ RPG.TileType.Lockable = function(options) {
  * Trap Tile:
  *
  * These are tiles that can cause nasty things to happen to a character if they are not disarmed
-  *
+ *
  * options :
  *	armed : true/false
  *	type : what puzzle to load to disarm the trap
@@ -158,6 +158,45 @@ RPG.TileType.Trap = function(options) {
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    attempts : [1,999,10],
 	    attempt : 0
+	},options||{})
+    };
+}
+
+
+
+/**
+ * Switch Tile:
+ *
+ * These tiles allow you to switch options of another tile
+ *
+ * options :
+ *	type : what type of switch is this
+ *	state : what is the current state of the switch eg : ['On','Off']
+ *
+ *	states : {
+ *	    'On'  : [] array of on changes
+ *	    'Off' : [] array of off changes
+ *	    //etc
+ *	}
+ *
+ *  @todo this will not display correctly in the Map Editor. need to fix optionsConfig to handle array of objects
+  */
+RPG.TileType.Switch = function(options) {
+    return {
+	'switch' : Object.merge({
+	    auto : [false],
+	    type : ['lever'],
+	    state : ['Open','Closed'],
+	    states : {
+		'Open' : [{
+		    path : '',
+		    options : ''
+		}],
+		'Closed' : [{
+		    path : '',
+		    options : ''
+		}]
+	    }
 	},options||{})
     };
 }

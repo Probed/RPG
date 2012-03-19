@@ -254,67 +254,6 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			    }
 			}
 		    }),
-		    'interior.all,path,openings' : function(paintPath,area,point,index) {
-			var tiles = [];
-			tiles.push(RPG.createTile(['world','earth','floor'],house.cache,{
-			    property : {
-				tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
-				folderName : options.properties.name,
-				image : {
-				    name : options.mainFloor.floor
-				}
-			    }
-			}));
-			if (rand.random() <= 0.01) {
-			    tiles.push(RPG.createTile(['world','earth','trap'],house.cache,{
-				property : {
-				    tileName : point.join(''),
-				    folderName : options.properties.name
-				},
-				trap : {
-				    seed : rand.random(0,99999999999)
-				}
-			    }));
-			}
-			return tiles;
-		    },
-		    'openings' : function(paintPath,area,point,index) {
-			var dir = paintPath[paintPath.length-1];
-			if ((((dir == 'n') && index == 1) ||
-			    ((dir == 'e' || dir == 'w' || dir == 's') && index == 0)) &&
-			!room.openings[dir+'_created']){
-			    if (dir == 'n') {
-				RPG.removeAreaPoint(room.area,RPG.n(point,1));
-				RPG.pushTiles(house.tiles,RPG.n(point,1),[
-				    RPG.createTile(options.property.lawn,house.cache,{
-					property : {
-					    tileName : lawn.name,
-					    folderName : options.properties.name,
-					    image : {
-						name : lawn.image
-					    }
-					}
-				    }),
-				    options.property.sidewalk]);
-			    }
-			    return RPG.createTile(options.mainFloor.door,house.cache,{
-				property : {
-				    tileName : dir.charAt(0),
-				    folderName : options.properties.name,
-				    image : {
-					name : dir.charAt(0)+'.png'
-				    }
-				},
-				lockable : {
-				    locked : options.mainFloor.doorsLocked,
-				    Difficulty : options.properties.Difficulty,
-				    level : options.properties.level,
-				    seed : options.properties.seed
-				}
-			    });
-			}
-			return null;
-		    },
 		    'perimeter.bottoms.n' : function() {
 			if (rand.random(0,100) < options.mainFloor['decor%']) {
 			    var decor = RPG.getRandomTileImage(options.house.type+'.b.decor',rand);
@@ -368,6 +307,109 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    image : {
 					name : 'u.png'
 				    }
+				}
+			    });
+			}
+			return null;
+		    },
+		    'interior.all,path,openings' : function(paintPath,area,point,index) {
+			var tiles = [];
+			tiles.push(RPG.createTile(['world','earth','floor'],house.cache,{
+			    property : {
+				tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
+				folderName : options.properties.name,
+				image : {
+				    name : options.mainFloor.floor
+				}
+			    }
+			}));
+			if (rand.random() <= 0.01) {
+			    tiles.push(RPG.createTile(['world','earth','lever'],house.cache,{
+				property : {
+				    tileName : point.join(''),
+				    folderName : options.properties.name,
+				    image : {
+					name : 'open.png'
+				    }
+				},
+				'switch' : {
+				    state : 'Open',
+				    states : {
+					'Open' : [{
+					    path : options.properties.name+'.world.earth.lever.'+point.join(''),
+					    options : JSON.encode({
+						property : {
+						    image : {
+							name : 'open.png'
+						    }
+						},
+						'switch' : {
+						    state : 'Open'
+						}
+					    })
+					}],
+					'Closed' : [{
+					    path : options.properties.name+'.world.earth.lever.'+point.join(''),
+					    options : JSON.encode({
+						property : {
+						    image : {
+							name : 'closed.png'
+						    }
+						},
+						'switch' : {
+						    state : 'Closed'
+						}
+					    })
+					}]
+				    }
+				}
+			    }));
+			}
+			if (rand.random() <= 0.01) {
+			    tiles.push(RPG.createTile(['world','earth','trap'],house.cache,{
+				property : {
+				    tileName : point.join(''),
+				    folderName : options.properties.name
+				},
+				trap : {
+				    seed : rand.random(0,99999999999)
+				}
+			    }));
+			}
+			return tiles;
+		    },
+		    'openings' : function(paintPath,area,point,index) {
+			var dir = paintPath[paintPath.length-1];
+			if ((((dir == 'n') && index == 1) ||
+			    ((dir == 'e' || dir == 'w' || dir == 's') && index == 0)) &&
+			!room.openings[dir+'_created']){
+			    if (dir == 'n') {
+				RPG.removeAreaPoint(room.area,RPG.n(point,1));
+				RPG.pushTiles(house.tiles,RPG.n(point,1),[
+				    RPG.createTile(options.property.lawn,house.cache,{
+					property : {
+					    tileName : lawn.name,
+					    folderName : options.properties.name,
+					    image : {
+						name : lawn.image
+					    }
+					}
+				    }),
+				    options.property.sidewalk]);
+			    }
+			    return RPG.createTile(options.mainFloor.door,house.cache,{
+				property : {
+				    tileName : dir.charAt(0),
+				    folderName : options.properties.name,
+				    image : {
+					name : dir.charAt(0)+'.png'
+				    }
+				},
+				lockable : {
+				    locked : options.mainFloor.doorsLocked,
+				    Difficulty : options.properties.Difficulty,
+				    level : options.properties.level,
+				    seed : options.properties.seed
 				}
 			    });
 			}
