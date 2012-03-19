@@ -108,8 +108,7 @@ RPG.Tiles.trap = function(options,callback) {
 			    tileType : 'trap',
 			    tileOptions : {
 				trap : newOpts
-			    },
-			    bypassCache : true
+			    }
 			},function(universe){
 			    if (universe.error) {
 				callback(universe);
@@ -119,7 +118,6 @@ RPG.Tiles.trap = function(options,callback) {
 				var out = Object.clone(universe);
 				Object.erase(out,'options');
 				Object.erase(out.maps[options.game.character.location.mapName],'options');
-				Object.merge(options.game.universe,out);//update the cache
 				callback({
 				    traverse : false,
 				    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
@@ -142,7 +140,7 @@ RPG.Tiles.trap = function(options,callback) {
 
 	case 'onEnter' :
 	    //server
-	    if (typeof exports != undefined && options.events.onBeforeEnter.trap) {
+	    if (typeof exports != 'undefined' && options.events.onBeforeEnter.trap) {
 
 		//remove the tile from the current Universe so it will get reloaded from the database
 		//and the client should receive the the cloned tile created above.
@@ -209,7 +207,9 @@ RPG.Disarm = new (new Class({
 			click : function() {
 			    if (this.puzzle && this.puzzle.isSolved()) {
 				callbacks.success({
-				    solution : this.puzzle.solution
+				    trap : {
+					solution : this.puzzle.solution
+				    }
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();
@@ -243,7 +243,7 @@ RPG.Disarm = new (new Class({
 	switch (options.contents.type) {
 	    case  'posion' :
 		var code = Math.floor(rand.random(100,999));
-		if (Number.from(options.game.clientEvents.onBeforeEnter.solution) == code) {
+		if (Number.from(options.game.clientEvents.onBeforeEnter.trap.solution) == code) {
 		    return true;
 		} else {
 		    return false;

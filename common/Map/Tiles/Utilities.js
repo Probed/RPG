@@ -122,6 +122,10 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
 		    events : events
 		},function(result){
 		    Object.merge(results,result);
+		    if (result && result.error) {
+			triggerChain.clearChain();
+			callback(results);
+		    }
 		    triggerChain.callChain();
 		});
 	    });

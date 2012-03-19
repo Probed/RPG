@@ -197,7 +197,8 @@ RPG.Tiles.teleportTo = function(options,callback) {
 			user : options.game.user,
 			mapName : options.contents.mapName,
 			universeID : options.game.character.location.universeID,
-			tilePoints : [options.contents.point]
+			tilePoints : [options.contents.point],
+			bypassCache : true
 		    }, function(universe){
 			if (universe.error) {
 			    callback(universe);

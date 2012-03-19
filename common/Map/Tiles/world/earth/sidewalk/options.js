@@ -1,4 +1,4 @@
-var options = {
+exports.options = {
     property : {
 	traversableBy : {
 
@@ -11,11 +11,7 @@ var options = {
 	    vehicle : {
 		cost : [-100,100,0.25]
 	    }
-	    
+
 	}
     }
 };
-
-if (typeof exports != 'undefined') {
-    exports.options = options;
-}

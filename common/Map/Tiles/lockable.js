@@ -8,6 +8,7 @@ if (!RPG.Tiles) RPG.Tiles = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
 }
@@ -46,41 +47,14 @@ RPG.Tiles.lockable = function(options,callback) {
 		} else {
 		    //server
 		    if (RPG.Unlock.checkSolution(options)) {
-			//create a empty universe with same options as current
-			//this universe is what gets saved since it only contains the updated tiles
-			var newUniverse = {
-			    options : options.game.universe.options,
-			    maps : {}
-			};
-			//create an empty map with current map options for updating
-			var map = newUniverse.maps[options.game.character.location.mapName] = {
-			    options : options.game.universe.maps[options.game.character.location.mapName].options,
-			    tiles : {},
-			    cache : {}
-			};
 
-			var currentMap = options.game.universe.maps[options.game.character.location.mapName];
-
-			options.tiles.each(function(tilePath){
-			    //clone each tile at the moveTo point
-			    var c = Object.getFromPath(currentMap.cache,tilePath);
-			    if (!c) return;
-			    var newOptions = {};
-			    if (c.options.lockable) {
-				newOptions = {
-				    lockable : {
-					locked : false
-				    }
-				};
+			RPG.Game.updateGameTile(options,{
+			    tileType : 'lockable',
+			    tileOptions : {
+				lockable : {
+				    locked : false
+				}
 			    }
-			    RPG.pushTile(map.tiles, options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
-			});
-
-			//save our newUniverse tile changes
-			RPG.Universe.store({
-			    user : options.game.user,
-			    universe : newUniverse,
-			    bypassCache : true
 			},function(universe){
 			    if (universe.error) {
 				callback(universe);
@@ -131,7 +105,7 @@ RPG.Tiles.lockable = function(options,callback) {
 
 	case 'onEnter' :
 	    //server
-	    if (typeof exports != undefined && options.events.onBeforeEnter.lockable) {
+	    if (typeof exports != 'undefined' && options.events.onBeforeEnter.lockable) {
 
 		//remove the tile from the current Universe so it will get reloaded from the database
 		//and the client should receive the the cloned tile created above.
@@ -198,7 +172,9 @@ RPG.Unlock = new (new Class({
 			click : function() {
 			    if (this.puzzle && this.puzzle.isSolved()) {
 				callbacks.success({
-				    solution : this.puzzle.solution
+				    tumbler : {
+					solution : this.puzzle.solution
+				    }
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();
@@ -232,7 +208,7 @@ RPG.Unlock = new (new Class({
 	switch (options.contents.type) {
 	    case  'tumbler' :
 		var code = Math.floor(rand.random(100,999));
-		if (Number.from(options.game.clientEvents.onBeforeEnter.solution) == code) {
+		if (Number.from(options.game.clientEvents.onBeforeEnter.tumbler.solution) == code) {
 		    return true;
 		} else {
 		    return false;

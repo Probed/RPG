@@ -371,7 +371,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * character
      */
     calcSightRadius : function(options, callback) {
-	callback(2);
+	callback(5);
     },
 
     /**

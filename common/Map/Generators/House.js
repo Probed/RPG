@@ -268,7 +268,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			if (rand.random() <= 0.01) {
 			    tiles.push(RPG.createTile(['world','earth','trap'],house.cache,{
 				property : {
-				    tileName : point.join(),
+				    tileName : point.join(''),
 				    folderName : options.properties.name
 				},
 				trap : {

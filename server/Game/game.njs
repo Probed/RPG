@@ -78,7 +78,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 				return;
 			    }
 			    Object.merge(game.universe,universe);
-
+			    Object.erase(game,'mapID');
+			    Object.erase(game,'mapOrTileset');
+			    Object.erase(game,'universeID');
+			    Object.erase(game,'user');
 			    //send out the loaded game
 			    game.require = this.require;
 			    response.onRequestComplete(response,game);
@@ -134,6 +137,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 		return;
 	    }
 	    RPG.Tile.getViewableTiles(options,function(universe){
+		Object.erase(options,'mapID');
+		Object.erase(options,'mapOrTileset');
+		Object.erase(options,'universeID');
+		Object.erase(options,'user');
 		Object.merge(options.universe,universe);
 		callback({
 		    game : {
@@ -158,10 +165,10 @@ RPG.Game = new (RPG.GameClass = new Class({
      *
      * optional updateOptions
      * point : the point on the current map to update. if no point, options.game.moveTo is used.
-     * bypassCache : defaults true. determine if we should update the game cache
+     * bypassCache : defaults false. determine if we should update the game cache
      */
     updateGameTile : function(options,updateOptions,callback) {
-	if (typeof updateOptions.bypassCache != 'boolean') updateOptions.bypassCache = true;
+	if (typeof updateOptions.bypassCache != 'boolean') updateOptions.bypassCache = false;
 
 	//create a empty universe with same options as current
 	//this universe is what gets saved since it only contains the updated tiles
