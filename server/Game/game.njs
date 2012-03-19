@@ -66,8 +66,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 				response.onRequestComplete(response,changes);
 				return;
 			    }
-
-			    Object.merge(require('../Cache.njs').Cache.retrieve(request.user.options.userID,'universe_'+changes.game.character.location.universeID),changes.game.universe);
+			    require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+changes.game.character.location.universeID,changes.game.universe);
 			    response.onRequestComplete(response,changes);
 			});
 			break;
@@ -145,6 +144,58 @@ RPG.Game = new (RPG.GameClass = new Class({
 		});
 	    });
 	});
+    },
+
+    /**
+     * This will update a tile on the current characters map
+     *
+     * options:
+     * (see the TileType eg: teleportTo for all options)
+     *
+     * updateOptions:
+     * tileType : the tileType to match
+     * tileOptions : the new options to merge with existing options
+     *
+     * optional updateOptions
+     * point : the point on the current map to update. if no point, options.game.moveTo is used.
+     * bypassCache : defaults true. determine if we should update the game cache
+     */
+    updateGameTile : function(options,updateOptions,callback) {
+	if (typeof updateOptions.bypassCache != 'boolean') updateOptions.bypassCache = true;
+
+	//create a empty universe with same options as current
+	//this universe is what gets saved since it only contains the updated tiles
+	var newUniverse = {
+	    options : options.game.universe.options,
+	    maps : {}
+	};
+
+	//create an empty map with current map options for updating
+	var map = newUniverse.maps[options.game.character.location.mapName] = {
+	    options : options.game.universe.maps[options.game.character.location.mapName].options,
+	    tiles : {},
+	    cache : {}
+	};
+
+	var currentMap = options.game.universe.maps[options.game.character.location.mapName];
+
+	options.tiles.each(function(tilePath){
+	    var c = Object.getFromPath(currentMap.cache,tilePath);
+	    if (!c) return;
+	    var newOptions = {};
+	    if (c.options[updateOptions.tileType]) {
+		newOptions = updateOptions.tileOptions;
+	    }
+	    //clone each tile at the moveTo point
+	    RPG.pushTile(map.tiles, updateOptions.point || options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
+	});
+
+	//save our newUniverse tile changes
+	RPG.Universe.store({
+	    user : options.game.user,
+	    universe : newUniverse,
+	    bypassCache : updateOptions.bypassCache
+	},callback);
     }
 
 }))();

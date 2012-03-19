@@ -251,7 +251,7 @@ RPG.getTileDefaults = function(options,defaults,defPath) {
 	if (defObj) {
 	    var key = defPath.pop();
 	    if (typeOf(defObj) == 'array') {
-		if (typeOf(defObj[0]) == 'number' && typeOf(defObj[0]) == 'number' && defObj[2]) {
+		if (typeOf(defObj[0]) == 'number' && typeOf(defObj[0]) == 'number' && (defObj[2] || Number.from(defObj[2]))) {
 		    Object.pathToObject(options,defPath).child[key] = defObj[2];
 		} else if (typeOf(defObj[0]) == 'string' && typeOf(defObj[1]) == 'number' && typeOf(defObj[2]) == 'number' && defObj[3]) {
 		    Object.pathToObject(options,defPath).child[key] = defObj[3];

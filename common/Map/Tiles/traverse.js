@@ -55,8 +55,14 @@ RPG.Tiles.traverse = function(options,callback) {
 		    //Client-Side
 		    new Request.JSON({
 			url : '/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+options.game.character.database.characterID+'&dir='+options.game.dir,
-			onFailure : function(error) {
-			    RPG.Error.notify(error);
+			onFailure : function(results) {
+			    RPG.Error.notify(results);
+			    if (results.responseText) {
+				var resp = JSON.decode(results.responseText);
+				if (resp.game) {
+				    Object.merge(options.game,resp.game);
+				}
+			    }
 			    callback();
 			},
 			onSuccess : function(results) {

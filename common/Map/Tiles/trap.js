@@ -8,6 +8,7 @@ if (!RPG.Tiles) RPG.Tiles = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
 }
@@ -38,7 +39,7 @@ RPG.Tiles.trap = function(options,callback) {
 			fail : function() {
 			    callback({
 				traverse : false,
-				error : 'Trap Armed'
+				error : 'Trap still Armed.'
 			    });
 			}
 		    });
@@ -46,41 +47,15 @@ RPG.Tiles.trap = function(options,callback) {
 		} else {
 		    //server
 		    if (RPG.Disarm.checkSolution(options)) {
-			//create a empty universe with same options as current
-			//this universe is what gets saved since it only contains the updated tiles
-			var newUniverse = {
-			    options : options.game.universe.options,
-			    maps : {}
-			};
-			//create an empty map with current map options for updating
-			var map = newUniverse.maps[options.game.character.location.mapName] = {
-			    options : options.game.universe.maps[options.game.character.location.mapName].options,
-			    tiles : {},
-			    cache : {}
-			};
 
-			var currentMap = options.game.universe.maps[options.game.character.location.mapName];
-
-			options.tiles.each(function(tilePath){
-			    //clone each tile at the moveTo point
-			    var c = Object.getFromPath(currentMap.cache,tilePath);
-			    if (!c) return;
-			    var newOptions = {};
-			    if (c.options.trap) {
-				newOptions = {
-				    trap : {
-					armed : false
-				    }
-				};
+			//update the tile to make it disarmed.
+			RPG.Game.updateGameTile(options,{
+			    tileType : 'trap',
+			    tileOptions : {
+				trap : {
+				    armed : false
+				}
 			    }
-			    RPG.pushTile(map.tiles, options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
-			});
-
-			//save our newUniverse tile changes
-			RPG.Universe.store({
-			    user : options.game.user,
-			    universe : newUniverse,
-			    bypassCache : true
 			},function(universe){
 			    if (universe.error) {
 				callback(universe);
@@ -117,10 +92,46 @@ RPG.Tiles.trap = function(options,callback) {
 			    });//end calcXP
 			});//end store universe
 		    } else {
+			//increment the attempt counter
+			options.contents.attempt = (Number.from(options.contents.attempt) || 0) + 1;
+			options.contents.attempts = Number.from(options.contents.attempts);
+			var newOpts = {
+			    armed : true,
+			    attempt : options.contents.attempt
+			};
+			if (newOpts.attempt >= options.contents.attempts) {
+			    //@todo damage them
+			    newOpts.armed = false;
+			}
 
-			callback({
-			    traverse : false,
-			    error : 'Trap Armed'
+			RPG.Game.updateGameTile(options,{
+			    tileType : 'trap',
+			    tileOptions : {
+				trap : newOpts
+			    },
+			    bypassCache : true
+			},function(universe){
+			    if (universe.error) {
+				callback(universe);
+				return;
+			    }
+			    if (newOpts.armed) {
+				var out = Object.clone(universe);
+				Object.erase(out,'options');
+				Object.erase(out.maps[options.game.character.location.mapName],'options');
+				Object.merge(options.game.universe,out);//update the cache
+				callback({
+				    traverse : false,
+				    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
+				    game : {
+					universe : out //send the updated tile info back to the client
+				    }
+				});
+			    } else {
+				callback({
+				    trap : 'Trap Sprung!'
+				});
+			    }
 			});
 		    }
 		}

@@ -163,7 +163,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 			    if (info.affectedRows) {
 				options.universe.options.database = db;
 				if (!options.bypassCache) {
-				    require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+db.universeID,options.universe);
+				    require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+db.universeID,options.universe);
 				}
 				if (options.universe.maps) {
 				    RPG.Map.store(options, function(universe) {

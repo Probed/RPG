@@ -14,7 +14,7 @@ RPG.Puzzles.lockable.tumbler = new Class({
     initialize : function(options) {
 	this.setOptions(options);
 	var rand = Object.clone(RPG.Random);
-	rand.seed = options.contents.seed || Math.floor((Math.random() * (99999999999 - 1) + 1));
+	rand.seed = Number.from(options.contents.seed) || Math.floor((Math.random() * (99999999999 - 1) + 1));
 	this.table = new HtmlTable({
 	    zebra : true,
 	    useKeyboard : false,
@@ -25,14 +25,25 @@ RPG.Puzzles.lockable.tumbler = new Class({
 	    rows : [
 	    [
 	    {
-		content : 'Status'
-	    },
-	    {
-		content : this.options.contents.locked?'<b>Locked</b>':'<b>Unlocked</b>'
+		properties : {
+		    colspan : 2,
+		    'class' : 'textCenter'
+		},
+		content : new Element('div',{
+		    html : '&nbsp;',
+		    styles : RPG.getMapTileStyles({
+			map :{
+			    tiles : options.tiles,
+			    cache : options.game.universe.maps[options.game.character.location.mapName].cache
+			},
+			zoom : 32
+		    })
+		}).setStyle('display','inline-block')
+
 	    },
 	    {
 		properties : {
-		    rowspan : 4
+		    rowspan : 5
 		},
 		content : new HtmlTable({
 		    zebra : true,
@@ -115,6 +126,14 @@ RPG.Puzzles.lockable.tumbler = new Class({
 		    ]
 		    ]
 		}).toElement()
+	    }
+	    ],
+	    [
+	    {
+		content : 'Status'
+	    },
+	    {
+		content : this.options.contents.locked?'<b>Locked</b>':'<b>Unlocked</b>'
 	    }
 	    ],
 	    [

@@ -21,6 +21,16 @@ RPG.Cache = new(RPG.CacheClass = new Class({
 	return value;
     },
 
+    merge : function(userID, to, value) {
+	if (!this.cache[userID]) this.cache[userID] = {};
+	if (!this.cache[userID][to]) {
+	    this.cache[userID][to] = value;
+	} else {
+	    Object.merge(this.cache[userID][to],value);
+	}
+	//RPG.Log('Cache merge','u:' + userID + ' k:'+ to + ' ->  '+JSON.stringify((this.cache[userID] && this.cache[userID][to]) || null));
+	return this.cache[userID][to];
+    },
     retrieve : function(userID,from) {
 	//RPG.Log('Cache Retrieve','u:' + userID + ' k:'+ from + ' ->  '+JSON.stringify((this.cache[userID] && this.cache[userID][from]) || null));
 	return this.cache[userID] && this.cache[userID][from];

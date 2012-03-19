@@ -25,14 +25,25 @@ RPG.Puzzles.trap.posion = new Class({
 	    rows : [
 	    [
 	    {
-		content : 'Status'
-	    },
-	    {
-		content : this.options.contents.armed?'<b>Armed</b>':'<b>Disarmed</b>'
+		properties : {
+		    colspan : 2,
+		    'class' : 'textCenter'
+		},
+		content : new Element('div',{
+		    html : '&nbsp;',
+		    styles : RPG.getMapTileStyles({
+			map :{
+			    tiles : options.tiles,
+			    cache : options.game.universe.maps[options.game.character.location.mapName].cache
+			},
+			zoom : 32
+		    })
+		}).setStyle('display','inline-block')
+
 	    },
 	    {
 		properties : {
-		    rowspan : 4
+		    rowspan : 7
 		},
 		content : new HtmlTable({
 		    zebra : true,
@@ -119,6 +130,14 @@ RPG.Puzzles.trap.posion = new Class({
 	    ],
 	    [
 	    {
+		content : 'Status'
+	    },
+	    {
+		content : this.options.contents.armed?'<b>Armed</b>':'<b>Disarmed</b>'
+	    }
+	    ],
+	    [
+	    {
 		content : 'Difficulty'
 	    },
 	    {
@@ -130,6 +149,9 @@ RPG.Puzzles.trap.posion = new Class({
 		content : 'Level'
 	    },
 	    {
+		properties : {
+		    'class' : 'textRight'
+		},
 		content : this.options.contents.level
 	    }
 	    ],
@@ -139,6 +161,28 @@ RPG.Puzzles.trap.posion = new Class({
 	    },
 	    {
 		content : this.options.contents.type
+	    }
+	    ],
+	    [
+	    {
+		content : 'Attempts'
+	    },
+	    {
+		properties : {
+		    'class' : 'textRight'
+		},
+		content : this.options.contents.attempts
+	    }
+	    ],
+	    [
+	    {
+		content : 'Attempt'
+	    },
+	    {
+		properties : {
+		    'class' : 'textRight'
+		},
+		content : '#'+((this.options.contents.attempt || 0)+1)
 	    }
 	    ]
 	    ]

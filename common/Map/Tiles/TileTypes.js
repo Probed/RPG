@@ -155,7 +155,9 @@ RPG.TileType.Trap = function(options) {
 	    type : ['posion'],
 	    level : [1,100,1],
 	    Difficulty : Object.keys(RPG.Difficulty),
-	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))]
+	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    attempts : [1,999,10],
+	    attempt : 0
 	},options||{})
     };
 }
