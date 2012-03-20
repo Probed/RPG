@@ -83,7 +83,6 @@ RPG.Tiles['switch'] = function(options,callback) {
 			if (!tile) return;
 			Object.merge(tile.options,JSON.decode(change.options,true));
 		    });
-		    RPG.Log('debug',cache);
 		    //now store updated tiles
 		    RPG.Game.updateGameTile(options,{
 			cache : cache

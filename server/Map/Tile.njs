@@ -203,7 +203,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    }
 	    pathSql = pathSql.substr(0,pathSql.length-1);
 	    pathSql += ')';
-	    RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.' + paths);
+	    RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.');
 	} else {
 	    //RPG.Log('no tiles',''+options.paths);
 	    callback({});

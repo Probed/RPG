@@ -65,9 +65,6 @@ RPG.Map = new Class({
 		    var newColOffset = (Math.floor(Math.abs(this.dragMapStart.x - event.event.pageX) / (this.mapZoom/1.25))*(this.dragMapStart.x < event.event.pageX?-1:1)) + this.colOffset;
 
 		    if (newRowOffset != this.rowOffset || newColOffset != this.colOffset) {
-			console.log(this.dragMapStart);
-			console.log('newRow: ' + newRowOffset);
-			console.log('newCol: ' + newColOffset);
 			this.rowOffset = newRowOffset;
 			this.colOffset = newColOffset;
 			this.refreshMap();
