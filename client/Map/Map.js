@@ -34,8 +34,51 @@ RPG.Map = new Class({
 			this.refreshMap();
 		    }
 		    event.preventDefault();
+		}.bind(this),
+		'mousedown:relay(td.M_tileHolder)' : function(event) {
+		    this.draggingMap = true;
+		    this.dragMapStart = {
+			x : event.event.pageX,
+			y : event.event.pageY
+		    };
+		    event.preventDefault();
+		}.bind(this),
+		'mouseup:relay(td.M_tileHolder)' : function(event) {
+		    event.preventDefault();
+		//drag mouse up handled below in document events
 		}.bind(this)
 	    }
+	});
+	$('pnlMainContent').setStyle('overflow-x','hidden');
+	$('pnlMainContent').setStyle('overflow-y','hidden');
+
+	document.body.addEvents({
+	    mouseup : function(event) {
+		if (this.draggingMap) {
+		    this.draggingMap = false;
+		    this.dragMapStart = null;
+		}
+	    }.bind(this),
+	    mousemove : function(event) {
+		if (this.draggingMap) {
+		    var newRowOffset = (Math.floor(Math.abs(this.dragMapStart.y - event.event.pageY) / (this.mapZoom/1.25))*(this.dragMapStart.y < event.event.pageY?-1:1)) + this.rowOffset;
+		    var newColOffset = (Math.floor(Math.abs(this.dragMapStart.x - event.event.pageX) / (this.mapZoom/1.25))*(this.dragMapStart.x < event.event.pageX?-1:1)) + this.colOffset;
+
+		    if (newRowOffset != this.rowOffset || newColOffset != this.colOffset) {
+			console.log(this.dragMapStart);
+			console.log('newRow: ' + newRowOffset);
+			console.log('newCol: ' + newColOffset);
+			this.rowOffset = newRowOffset;
+			this.colOffset = newColOffset;
+			this.refreshMap();
+			this.dragMapStart.x = event.event.pageX;
+			this.dragMapStart.y = event.event.pageY;
+		    }
+		    newRowOffset = null;
+		    newColOffset = null;
+
+		}
+	    }.bind(this)
 	});
 
 	this.mapCanvas = new Element('canvas',{
@@ -45,8 +88,8 @@ RPG.Map = new Class({
 	    events : {
 		click : function(event) {
 		    if (event && event.event.layerX > 0 && event.event.layerY && !this.miniMapDragging) {
-			this.rowOffset = Math.floor((event.event.layerY / this.mapZoom)  - (this.rows/2));
-			this.colOffset = Math.floor((event.event.layerX / this.mapZoom) - (this.cols/2));
+			this.rowOffset = Math.floor((event.event.layerX / this.mapZoom)  - (this.rows/2));
+			this.colOffset = Math.floor((event.event.layerY / this.mapZoom) - (this.cols/2));
 			this.refreshMap();
 		    }
 		}.bind(this),
@@ -188,11 +231,15 @@ RPG.Map = new Class({
 	this.options.Character.toElement().setStyle('width',this.mapZoom);
 
 	var map = this.options.universe.maps[this.options.character.location.mapName];
-
+	$$('#GameMap .teleportToLabel').each(function(elm) {
+	    elm.hide();
+	});
 	if (newCols == this.cols && newRows == this.rows) {
 
-	    this.rowOffset = this.options.character.location.point[0] - Math.ceil(this.rows/2);
-	    this.colOffset = this.options.character.location.point[1] - Math.ceil(this.cols/2);
+	    if (!this.draggingMap) {
+		this.rowOffset = this.options.character.location.point[0] - Math.ceil(this.rows/2);
+		this.colOffset = this.options.character.location.point[1] - Math.ceil(this.cols/2);
+	    }
 
 	    var tileHolders = $$('#GameMap td.M_tileHolder');
 	    tileHolders.each(function(elm){
@@ -205,8 +252,34 @@ RPG.Map = new Class({
 		    rowOffset :  this.rowOffset,
 		    colOffset :  this.colOffset,
 		    zoom : this.mapZoom
-
 		});
+
+		if (map.tiles[row+this.rowOffset] && map.tiles[row+this.rowOffset][col+this.colOffset]) {
+		    map.tiles[row+this.rowOffset][col+this.colOffset].each(function(path){
+			var tile = Object.getFromPath(map.cache,path);
+			if (!tile) return;
+			if (tile.options.teleportTo) {
+			    var div = $('teleportTo_'+path.toMD5());
+			    if (!div) {
+				div = new Element('div',{
+				    id : 'teleportTo_'+path.toMD5(),
+				    'class' : 'teleportToLabel noWrap Button CancelButton',
+				    html : tile.options.teleportTo.mapName || tile.options.property.tileName,
+				    styles : {
+					position : 'absolute'
+				    }
+				});
+				this.mapDiv.adopt(div);
+			    }
+			    div.show();
+			    div.setPosition({
+				x : elm.getPosition($(this.mapDiv)).x - ($(div).getSize().x/2) + (this.mapZoom/2),
+				y : elm.getPosition($(this.mapDiv)).y - $(div).getSize().y
+			    });
+			}
+		    }.bind(this));
+		}
+
 		if (styles['background-image'] != 'none') {
 		    elm.style.backgroundImage = styles['background-image'];
 		    elm.style.backgroundPosition = styles['background-position'];
@@ -217,6 +290,8 @@ RPG.Map = new Class({
 		}
 		if (this.options.character.location.point[0] == (row + this.rowOffset) && this.options.character.location.point[1] == (col + this.colOffset)) {
 		    elm.empty().adopt(this.options.Character.toElement());
+		} else {
+		    elm.empty();
 		}
 	    }.bind(this));
 
@@ -292,6 +367,33 @@ RPG.Map = new Class({
 	    content : this.options.character.location.point[0] == options.row + options.rowOffset && this.options.character.location.point[1] == options.col + options.colOffset ? this.options.Character.toElement() : '&nbsp;'
 	};
 	styles = null;
+
+	if (options.map.tiles[options.row+options.rowOffset] && options.map.tiles[options.row+options.rowOffset][options.col+options.colOffset]) {
+	    options.map.tiles[options.row+options.rowOffset][options.col+options.colOffset].each(function(path){
+		var tile = Object.getFromPath(options.map.cache,path);
+		if (!tile) return;
+		if (tile.options.teleportTo) {
+		    var div = $('teleportTo_'+path.toMD5());
+		    if (!div) {
+			div = new Element('div',{
+			    id : 'teleportTo_'+path.toMD5(),
+			    'class' : 'teleportToLabel noWrap Button CancelButton',
+			    html : tile.options.teleportTo.mapName || tile.options.property.tileName,
+			    styles : {
+				position : 'absolute'
+			    }
+			});
+			this.mapDiv.adopt(div);
+		    }
+		    div.show();
+		    div.setPosition({
+			x : (options.col*this.mapZoom) - ($(div).getSize().x/2) + (this.mapZoom/2),
+			y : (options.row*this.mapZoom) - $(div).getSize().y
+		    });
+		}
+	    }.bind(this));
+	}
+
 	return cell;
     },
 

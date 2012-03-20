@@ -497,8 +497,8 @@ RPG.MapEditor = new Class({
 	    }.bind(this),
 	    mousemove : function(event) {
 		if (this.draggingMap) {
-		    var newRowOffset = Math.floor((this.dragMapStart.y - event.event.pageY) / this.mapZoom) + this.rowOffset;
-		    var newColOffset = Math.floor((this.dragMapStart.x - event.event.pageX) / this.mapZoom) + this.colOffset;
+		    var newRowOffset = (Math.floor(Math.abs(this.dragMapStart.y - event.event.pageY) / this.mapZoom)*(this.dragMapStart.y < event.event.pageY?-1:1)) + this.rowOffset;
+		    var newColOffset = (Math.floor(Math.abs(this.dragMapStart.x - event.event.pageX) / this.mapZoom)*(this.dragMapStart.x < event.event.pageX?-1:1)) + this.colOffset;
 
 		    if (newRowOffset != this.rowOffset || newColOffset != this.colOffset) {
 			this.dragMapStart.x = event.event.pageX;
@@ -1585,7 +1585,7 @@ RPG.MapEditor = new Class({
 
 	    if (!this.currentUniverse.maps[mapName].tiles) this.currentUniverse.maps[mapName].tiles = {};
 	    if (!this.currentUniverse.maps[mapName].cache) this.currentUniverse.maps[mapName].cache = {};
-	    
+
 	    this.currentTiles = this.currentUniverse.maps[mapName].tiles;
 	    this.currentTileCache = this.currentUniverse.maps[mapName].cache;
 	    this.refreshMapTree(['maps',mapName]);
