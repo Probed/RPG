@@ -59,6 +59,20 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      */
     create : function(options,callback) {
 	options.character = typeOf(options.character) == 'string'?JSON.decode(options.character):typeOf(options.character) == 'object'?options.character:{};
+
+	//set stuff the user isn't allowed to set
+	options.character.hp = {
+	    max : RPG.calcMaxHP(options.character),
+	    cur : RPG.calcMaxHP(options.character)
+	};
+	options.character.mana = {
+	    max : RPG.calcMaxMana(options.character),
+	    cur : RPG.calcMaxMana(options.character)
+	};
+	options.character.level = 1;
+	options.character.xp = 0;
+
+	//validate the incoming character
 	var errors = [];
 	errors = RPG.optionValidator.validate(options.character,RPG.character_options);
 
@@ -66,9 +80,9 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	var base = 0;
 	var val = null;
 	var min = null;
-	options.character.Stats && Object.each(RPG.Stats, function(stat,name){
+	options.character.Stats && Object.each(RPG.Stats, function(stats,name){
 	    val = Number.from(options.character.Stats[name].value);
-	    min = RPG.getClassStat(options.character.Class,name,'start');
+	    min =RPG.applyModifiers(options.character,stats.value,'Character.Stats.start.'+name);
 	    base += min;
 	    total += val;
 	    if (!val) {
@@ -77,10 +91,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		errors.push(name + ' for a ' + options.character.Class + ' is a <b>minimum of ' + min+'</b>')
 	    }
 	}.bind(this));
-	if ((total - base) != RPG.difficultyVal(options.character.Difficulty,'Character.Stats.start')) {
-	    errors.push('Please distribute the <b>' + (RPG.difficultyVal(options.character.Difficulty,'Character.Stats.start') - (total - base)) +'</b> remainig stat(s)')
+	var distributable = RPG.applyModifiers(options.character,0,'Character.Stats.distribute');
+	if ((total - base) != distributable) {
+	    errors.push('Please distribute the <b>' + (distributable - (total - base)) +'</b> remainig stat(s)');
 	}
-	total = base = val = min = null;
+	min = null;
 
 	if (errors && errors.length > 0) {
 	    callback({
@@ -88,9 +103,6 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    });
 	    return;
 	}
-
-	options.character.level = options.character.level || 1;
-	options.character.xp = options.character.xp || 0;
 
 	this.checkDupeName(options,function(dupeName) {
 	    if (dupeName) {
@@ -383,7 +395,8 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(xp || 0)
      */
     calcXP : function(baseXP, options,callback) {
-	callback(baseXP * (RPG.difficultyVal(options.game.character.Difficulty,'Character.xp.modifier')));
+	var modifier = RPG.applyModifiers(options.game.character,1,'Character.xp.modifier');
+	callback(baseXP * (modifier || 1));
     }
 
 

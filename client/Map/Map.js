@@ -148,10 +148,10 @@ RPG.Map = new Class({
     },
 
     calcCols : function() {
-	return Math.floor(($('pnlMainContent').getSize().x) / this.mapZoom);
+	return Math.floor(($('pnlMainContent').getSize().x) / this.mapZoom)+2;
     },
     calcRows : function() {
-	return Math.floor(($('pnlMainContent').getSize().y-20) / this.mapZoom);
+	return Math.floor(($('pnlMainContent').getSize().y) / this.mapZoom)+2;
     },
 
     refreshCanvas : function() {
@@ -260,7 +260,7 @@ RPG.Map = new Class({
 			    if (!div) {
 				div = new Element('div',{
 				    id : 'teleportTo_'+path.toMD5(),
-				    'class' : 'teleportToLabel noWrap Button CancelButton',
+				    'class' : 'teleportToLabel NoWrap Button CancelButton',
 				    html : tile.options.teleportTo.mapName || tile.options.property.tileName,
 				    styles : {
 					position : 'absolute'
@@ -323,7 +323,11 @@ RPG.Map = new Class({
 	    properties : {
 		id : 'GameTable',
 		cellpadding : 0,
-		cellspacing : 0
+		cellspacing : 0,
+		styles : {
+		    width : (this.mapZoom * this.cols),
+		    height : (this.mapZoom * this.rows)
+		}
 	    },
 	    rows : [[]]
 	});
@@ -374,7 +378,7 @@ RPG.Map = new Class({
 		    if (!div) {
 			div = new Element('div',{
 			    id : 'teleportTo_'+path.toMD5(),
-			    'class' : 'teleportToLabel noWrap Button CancelButton',
+			    'class' : 'teleportToLabel NoWrap Button CancelButton',
 			    html : tile.options.teleportTo.mapName || tile.options.property.tileName,
 			    styles : {
 				position : 'absolute'

@@ -5,6 +5,7 @@
 
 if (!RPG) var RPG = {};
 if (!RPG.Tiles) RPG.Tiles = {};
+if (!RPG.Tiles.template) RPG.Tiles.template = {};
 if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
@@ -20,8 +21,19 @@ if (typeof exports != 'undefined') {
  *
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
-RPG.Tiles.template = function(options,callback) {
 
+RPG.Tiles.template.onBeforeLeave = function(options,callback) {
+    callback();
+}
 
+RPG.Tiles.template.onBeforeEnter = function(options,callback) {
+    callback();
+}
+
+RPG.Tiles.template.onLeave = function(options,callback) {
+    callback();
+}
+
+RPG.Tiles.template.onEnter = function(options,callback) {
     callback();
 }

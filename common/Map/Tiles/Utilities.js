@@ -108,10 +108,9 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
 	    }
 	}
 
-	if (RPG.Tiles[key] && RPG.Tiles[key] != 'None') {
+	if (RPG.Tiles[key] && RPG.Tiles[key] != 'None' && RPG.Tiles[key][event]) {
 	    triggers.push(function(){
-
-		RPG.Tiles[key]({
+		RPG.Tiles[key][event]({
 		    game : options,
 		    point : options.moveTo,
 		    dir : options.dir,

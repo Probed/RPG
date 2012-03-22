@@ -29,6 +29,7 @@ RPG.CreateCharacter = new Class({
 		    this.updatePortraits();
 		}.bind(this),
 		'change:relay(#genderSelect)' : function(event) {
+		    this.resetStats();
 		    this.updatePortraits();
 		}.bind(this),
 		'change:relay(#raceSelect)' : function(event) {
@@ -48,13 +49,14 @@ RPG.CreateCharacter = new Class({
 		    this.charName.value = RPG.Generator.Name.generate({
 			name : {
 			    seed : RPG.Random.seed,
-			    length:RPG.Random.random(3,11)
+			    length:RPG.Random.random(3,10)
 			}
 		    });
 		}.bind(this),
 		'click:relay(div.RandomGender)' : this.randFuncs[r++] = function(event) {
 		    this.genderSelect.value = Object.getSRandom(RPG.Gender).key;
 		    this.updatePortraits();
+		    this.resetStats();
 		}.bind(this),
 		'click:relay(div.RandomPortrait)' : this.randFuncs[r++] = function(event) {
 		    this.options.portraitIndex = Math.floor(RPG.Random.random(0,Object.keys(this.options.portraits.Gender[this.genderSelect.value]).length));
@@ -62,6 +64,7 @@ RPG.CreateCharacter = new Class({
 		}.bind(this),
 		'click:relay(div.RandomRace)' : this.randFuncs[r++] = function(event) {
 		    this.raceSelect.value = Object.getSRandom(RPG.Race).key;
+		    this.resetStats();
 		}.bind(this),
 		'click:relay(div.RandomClass)' : this.randFuncs[r++] =function(event) {
 		    this.classSelect.value = Object.getSRandom(RPG.Class).key;
@@ -70,7 +73,9 @@ RPG.CreateCharacter = new Class({
 		'click:relay(div.RandomDist)' : this.randFuncs[r++] =function(event) {
 		    this.resetStats();
 		    var keys = Object.keys(RPG.Stats);
-		    for(var i=0; i<RPG.difficultyVal(this.diffSelect.value,'Character.Stats.start');i++){
+		    //determine how many distributable stats this type of character will get
+		    var distributable = RPG.applyModifiers(this.buildCharacter(),0,'Character.Stats.distribute');
+		    for(var i=0; i<distributable; i++){
 			var rand = Array.getSRandom(keys);
 			$(rand).value = Number.from($(rand).value) + 1;
 			this.distributedStats++;
@@ -112,6 +117,12 @@ RPG.CreateCharacter = new Class({
 			})
 			)
 
+		},
+		{
+		    properties : {
+			'class' : 'textMedium textCenter'
+		    },
+		    content : 'Modifiers'
 		}
 		],
 		rows : [
@@ -120,80 +131,191 @@ RPG.CreateCharacter = new Class({
 		    properties : {
 			'class' : 'vTop'
 		    },
-		    content : this.tblPortrait = new HtmlTable({
-			zebra : true,
-			sortable : false,
-			useKeyboard : false,
-			properties : {
-			    'class' : 'tblPortrait'
-			},
-			headers : [
-			{
+		    content : new Element('div').adopt(
+			this.tblPortrait = new HtmlTable({
+			    zebra : true,
+			    sortable : false,
+			    useKeyboard : false,
 			    properties : {
-				colspan : 3,
-				'class' : 'textCenter'
+				'class' : 'tblPortrait'
 			    },
-			    content : this.portrait = new Element('div',{
-				'class' : 'Portrait'
-			    })
-			}
-			],
-			rows : [
-			[
-			{
-			    properties : {
-				colspan : 3,
-				'class' : 'textMedium textCenter'
+			    headers : [
+			    {
+				properties : {
+				    colspan : 3,
+				    'class' : 'textCenter'
+				},
+				content : this.portrait = new Element('div',{
+				    'class' : 'Portrait'
+				})
+			    }
+			    ],
+			    rows : [
+			    [
+			    {
+				properties : {
+				    colspan : 3,
+				    'class' : 'textMedium textCenter'
+				},
+				content : new Element('div').adopt(
+				    (function(){
+					var elms = [];
+					this.portraitDir = {};
+					['n','e','s','w'].each(function(dir){
+					    elms.push(this.portraitDir[dir] = new Element('div',{
+						id : 'Portrait_'+dir,
+						'class' : 'PortraitDir'
+					    }));
+					    if (elms.length == 2) {
+						elms.push(new Element('br'));
+					    }
+					}.bind(this));
+					return elms;
+				    }.bind(this)()))
+			    }
+			    ]
+			    ],
+			    footers : [
+			    {
+				properties : {
+				    'class' : 'textMedium textLeft'
+				},
+				content : RPG.elementFactory.buttons.actionButton({
+				    'class' : 'PrevPortrait',
+				    html : '&lt;'
+				})
 			    },
-			    content : new Element('div').adopt(
-				(function(){
-				    var elms = [];
-				    this.portraitDir = {};
-				    ['n','e','s','w'].each(function(dir){
-					elms.push(this.portraitDir[dir] = new Element('div',{
-					    id : 'Portrait_'+dir,
-					    'class' : 'PortraitDir'
-					}));
-					if (elms.length == 2) {
-					    elms.push(new Element('br'));
-					}
-				    }.bind(this));
-				    return elms;
-				}.bind(this)()))
-			}
-			]
-			],
-			footers : [
-			{
-			    properties : {
-				'class' : 'textMedium textLeft'
+			    {
+				properties : {
+				    'class' : 'textCenter textSmall vMiddle'
+				},
+				content : RPG.elementFactory.buttons.actionButton({
+				    'class' : 'RandomPortrait',
+				    html : 'Random'
+				})
 			    },
-			    content : RPG.elementFactory.buttons.actionButton({
-				'class' : 'PrevPortrait',
-				html : '&lt;'
-			    })
-			},
-			{
-			    properties : {
-				'class' : 'textCenter textSmall vMiddle'
-			    },
-			    content : RPG.elementFactory.buttons.actionButton({
-				'class' : 'RandomPortrait',
-				html : 'Random'
-			    })
-			},
-			{
-			    properties : {
-				'class' : 'textMedium textRight'
-			    },
-			    content : RPG.elementFactory.buttons.actionButton({
-				'class' : 'NextPortrait',
-				html : '&gt;'
-			    })
-			}
-			]
+			    {
+				properties : {
+				    'class' : 'textMedium textRight'
+				},
+				content : RPG.elementFactory.buttons.actionButton({
+				    'class' : 'NextPortrait',
+				    html : '&gt;'
+				})
+			    }
+			    ]
 
-		    }).toElement()
+			}).toElement(),
+			new HtmlTable({
+			    zebra : true,
+			    sortable : false,
+			    useKeyboard : false,
+			    properties : {
+				cellpadding : 2,
+				styles : {
+				    width : '100%'
+				}
+			    },
+			    rows : [
+			    [
+			    {
+				properties : {
+				    colspan : 2
+				},
+				content : 'Hitpoints:'
+			    }
+			    ],
+			    [
+			    {
+				properties : {
+				    'class' : 'textLarge textCenter',
+				    colspan : 2,
+				    styles : {
+					'background-color' : 'red'
+				    }
+				},
+				content : this.hitpoints = new Element('div',{
+				    id : 'hitpoints',
+				    html : '0',
+				    styles : {
+					color : 'white'
+				    }
+				})
+			    }
+			    ],
+			    [
+			    {
+				properties : {
+				    colspan : 2
+				},
+				content : 'Mana:'
+			    }
+			    ],
+			    [
+			    {
+				properties : {
+				    'class' : 'textLarge textCenter',
+				    colspan : 2,
+				    styles : {
+					'background-color' : 'blue'
+				    }
+				},
+				content : this.mana = new Element('div',{
+				    id : 'mana',
+				    html : '0',
+				    styles : {
+					color : 'white'
+				    }
+				})
+			    }
+			    ],
+			    [
+			    {
+				properties : {
+
+				},
+				content : 'Lives:'
+			    },
+			    {
+				properties : {
+				    'class' : 'textRight textLarge'
+				},
+				content : this.lives = new Element('div',{
+				    html : 'Infinity'
+				})
+			    }
+			    ],
+			    [
+			    {
+				properties : {
+
+				},
+				content : 'Level:'
+			    },
+			    {
+				properties : {
+				    'class' : 'textRight textLarge'
+				},
+				content : '1'
+			    }
+			    ],
+			    [
+			    {
+				properties : {
+
+				},
+				content : 'XP:'
+			    },
+			    {
+				properties : {
+				    'class' : 'textRight textLarge'
+				},
+				content : '0'
+			    }
+			    ]
+			    ]
+			}).toElement()
+			)
 		},
 		{
 		    properties : {
@@ -444,9 +566,14 @@ RPG.CreateCharacter = new Class({
 						click : function(event) {
 						    var s = this.distributedStats - 1;
 						    var n = Number.from($(name).value);
-						    var min = RPG.getClassStat(this.classSelect.value,name,'start');
-						    if ((s >= 0 && s <= RPG.difficultyVal(this.diffSelect.value,'Character.Stats.start')) &&
-							(n-1 >= min)) {
+						    //determine the minimum number this Stat can have.
+						    var min = RPG.applyModifiers(this.buildCharacter(),stats.value,'Character.Stats.start.'+name);
+
+						    //determine how many distributable stats this type of character will get
+						    var distributable = RPG.applyModifiers(this.buildCharacter(),0,'Character.Stats.distribute');
+
+						    //ensure that there is enough distributable stats left to decrement this stat
+						    if ((s >= 0 && s <= distributable) && (n-1 >= min)) {
 							$(name).value = n-1;
 							this.distributedStats--;
 							this.updateDistributable();
@@ -464,7 +591,7 @@ RPG.CreateCharacter = new Class({
 					    'class' : 'textRight',
 					    type : 'text',
 					    name : name,
-					    value : RPG.getClassStat(this.classSelect.value,name,'start'),
+					    value : RPG.applyModifiers(this.buildCharacter(),stats.value,'Character.Stats.start.'+name),
 					    styles : {
 						width : '30px'
 					    }
@@ -480,9 +607,14 @@ RPG.CreateCharacter = new Class({
 						click : function(event) {
 						    var s = this.distributedStats + 1;
 						    var n = Number.from($(name).value);
-						    var min = RPG.getClassStat(this.classSelect.value,name,'start');
-						    if ((s >= 0 && s <= RPG.difficultyVal(this.diffSelect.value,'Character.Stats.start')) &&
-							(n+1 >= min)) {
+						    //determine the minimum number this Stat can have.
+						    var min = RPG.applyModifiers(this.buildCharacter(),stats.value,'Character.Stats.start.'+name);
+
+						    //determine how many distributable stats this type of character will get
+						    var distributable = RPG.applyModifiers(this.buildCharacter(),0,'Character.Stats.distribute');
+
+						    //ensure that there is enough distributable stats left to decrement this stat
+						    if ((s >= 0 && s <= distributable) && (n+1 >= min)) {
 							$(name).value = n+1;
 							this.distributedStats++;
 							this.updateDistributable();
@@ -509,6 +641,17 @@ RPG.CreateCharacter = new Class({
 			]
 			]
 		    }).toElement()
+		},
+		{
+		    properties : {
+			'class' : 'vTop'
+		    },
+		    content : (this.modifierTable = new HtmlTable({
+			zebra : false,
+			sortable : false,
+			useKeyboard : false,
+			rows : [[]]
+		    })).toElement()
 		}
 		],
 		[
@@ -523,7 +666,8 @@ RPG.CreateCharacter = new Class({
 		},
 		{
 		    properties : {
-			'class' : 'textMedium textRight'
+			'class' : 'textMedium textCenter',
+			colspan : 2
 		    },
 		    content : RPG.elementFactory.buttons.actionButton({
 			'class' : 'createCharacter',
@@ -561,37 +705,20 @@ RPG.CreateCharacter = new Class({
     },
 
     createCharacter : function() {
-	var gender = this.genderSelect.value
-	var character = {
-	    name : this.charName.value,
-	    portrait : (this.options.portraits.Gender[gender][Object.keys(this.options.portraits.Gender[gender])[this.options.portraitIndex]] || this.options.portraits.Gender[gender][0]),
-	    Gender : gender,
-	    Race : this.raceSelect.value,
-	    Class : this.classSelect.value,
-	    Stats : (function(){
-		var stats = {};
-		Object.each(RPG.Stats,function(stat,name){
-		    stats[name] = {
-			value : $(name).value
-		    };
-		});
-		return stats;
-	    }()),
-	    Difficulty : $('diffSelect').value
-	};
+	var character = this.buildCharacter();
 	var errors = RPG.optionValidator.validate(character,RPG.character_options);
-
 	/**
 	 * validate stats
 	 */
 	var base = 0;
 	var total = 0;
 	Object.each(RPG.Stats,function(stats,name) {
-	    base+=RPG.getClassStat(character.Class,name,'start');
+	    base+=RPG.applyModifiers(character,stats.value,'Character.Stats.start.'+name);
 	    total+=Number.from($(name).value);
 	});
-	if (total - base != RPG.difficultyVal(this.diffSelect.value,'Character.Stats.start')) {
-	    errors.push('Please distribute the <b>' + (RPG.difficultyVal(this.diffSelect.value,'Character.Stats.start') - (total - base)) +'</b> remainig stat(s)');
+	var distributable = RPG.applyModifiers(character,0,'Character.Stats.distribute');
+	if ((total - base) != distributable) {
+	    errors.push('Please distribute the <b>' + (distributable - (total - base)) +'</b> remainig stat(s)');
 	}
 
 	if (errors && errors.length > 0) {
@@ -613,12 +740,132 @@ RPG.CreateCharacter = new Class({
 
     resetStats : function() {
 	Object.each(RPG.Stats,function(stats,name) {
-	    $(name).value = RPG.getClassStat(this.classSelect.value,name,'start');
-	});
+	    $(name).value = RPG.applyModifiers(this.buildCharacter(),stats.value,'Character.Stats.start.'+name);
+	}.bind(this));
 	this.distributedStats = 0;
 	this.updateDistributable();
+	this.updateHPMana();
     },
     updateDistributable : function() {
-	this.distribute.set('html',RPG.difficultyVal(this.diffSelect.value,'Character.Stats.start') - this.distributedStats);
+	this.distribute.set('html',RPG.applyModifiers(this.buildCharacter(),0,'Character.Stats.distribute') - this.distributedStats);
+	this.updateHPMana();
+	this.updateModifierTable();
+    },
+
+    buildCharacter : function() {
+	var gender = this.genderSelect.value;
+	return {
+	    name : this.charName.value,
+	    portrait : (this.options.portraits.Gender[gender][Object.keys(this.options.portraits.Gender[gender])[this.options.portraitIndex]] || this.options.portraits.Gender[gender][0]),
+	    Gender : gender,
+	    Race : this.raceSelect.value,
+	    Class : this.classSelect.value,
+	    Stats : (function(){
+		var stats = {};
+		Object.each(RPG.Stats,function(stat,name){
+		    if (!$(name)) return;
+		    stats[name] = {
+			value : $(name).value
+		    };
+		});
+		return stats;
+	    }()),
+	    Difficulty : this.diffSelect.value,
+	    level : "1"
+	};
+    },
+
+    updateHPMana : function() {
+	if (!$('CreateCharacter')) return;
+	this.hitpoints.set('html',RPG.calcMaxHP(this.buildCharacter()));
+	this.mana.set('html',RPG.calcMaxMana(this.buildCharacter()));
+	this.lives.set('html',RPG.applyModifiers(this.buildCharacter(),0,'Character.lives'));
+    },
+
+    updateModifierTable : function() {
+	if (!this.modifierTable) return;
+	this.modifierTable.empty();
+	var character = this.buildCharacter();
+	var types = {};
+	['Difficulty','Gender','Race','Class'].each(function(type){
+	    types[type] = {};
+	});
+
+	var rows = [];
+	RPG.applyModifiers(character,0,'Character.Stats.distribute',function(path,mod,modifier,characterValue){
+	    types[mod][path] = {
+		charVal : characterValue,
+		modifier : (modifier>=0?'+':'')+modifier
+	    };
+	});
+
+	RPG.applyModifiers(character,0,'Character.lives',function(path,mod,modifier,characterValue){
+	    types[mod][path] = {
+		charVal : characterValue,
+		modifier : (modifier>=0?'+':'')+modifier
+	    };
+	});
+	Object.each(RPG.Stats,function(stat,name) {
+	    RPG.applyModifiers(character,stat.value,'Character.Stats.start.'+name,function(path,mod,modifier,characterValue){
+		types[mod][path] = {
+		    charVal : characterValue,
+		    modifier : (modifier>=0?'+':'')+modifier
+		};
+	    });
+	});
+
+	['hp','mana'].each(function(item){
+	    RPG.applyModifiers(character,0,'Character.'+item+'.max',function(path,mod,modifier,characterValue){
+		types[mod][path] = {
+		    charVal : characterValue,
+		    modifier :  (modifier>=0?'+':'') + (modifier*100)+'%'
+		};
+	    });
+	});
+
+	Object.each(types,function(type,name){
+	    this.modifierTable.push([
+	    {
+		properties : {
+		    'class' : '',
+		    colspan : 2
+		},
+		content : name
+	    },
+	    {
+		properties : {
+		    'class' : 'textLarge textRight',
+		    colspan : 2
+		},
+		content : character[name]
+	    }
+	    ],{
+
+		'class' : 'table-tr-odd'
+
+	    });
+	    Object.each(type,function(mod, path){
+		this.modifierTable.push([
+		{
+		    properties : {
+		    },
+		    content : '&nbsp;&nbsp;&nbsp;&nbsp;'
+		},
+		{
+		    properties : {
+		    },
+		    content : path.split('.').slice(1).join(' ').capitalize()
+		},
+		{
+		    properties : {
+			'class' : 'textLarge textRight'
+		    },
+		    content : mod.modifier
+		}
+		]);
+	    }.bind(this));
+	}.bind(this));
+
     }
+
 });

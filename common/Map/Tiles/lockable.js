@@ -5,6 +5,7 @@
 
 if (!RPG) var RPG = {};
 if (!RPG.Tiles) RPG.Tiles = {};
+if (!RPG.Tiles.lockable) RPG.Tiles.lockable = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
@@ -24,100 +25,103 @@ if (typeof exports != 'undefined') {
  *
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
-RPG.Tiles.lockable = function(options,callback) {
 
-    switch (options.event) {
-	case 'onBeforeEnter' :
-	    if (options.contents.locked) {
-		if (typeof exports == 'undefined') {
-		    //client
-		    //@todo unlock attempt
-		    RPG.Unlock.show(options,{
-			success : function(solution){
-			    callback(solution);
-			},
-			fail : function() {
-			    callback({
-				traverse : false,
-				error : 'Locked'
-			    });
-			}
+//RPG.Tiles.lockable.onBeforeLeave = function(options,callback) {
+//    callback();
+//}
+
+RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
+    if (options.contents.locked) {
+	if (typeof exports == 'undefined') {
+	    //client
+	    //@todo unlock attempt
+	    RPG.Unlock.show(options,{
+		success : function(solution){
+		    callback(solution);
+		},
+		fail : function() {
+		    callback({
+			traverse : false,
+			error : 'Locked'
 		    });
+		}
+	    });
 
-		} else {
-		    //server
-		    if (RPG.Unlock.checkSolution(options)) {
+	} else {
+	    //server
+	    if (RPG.Unlock.checkSolution(options)) {
 
-			RPG.Game.updateGameTile(options,{
-			    tileType : 'lockable',
-			    tileOptions : {
-				lockable : {
-				    locked : false
-				}
-			    }
-			},function(universe){
-			    if (universe.error) {
-				callback(universe);
+		RPG.Game.updateGameTile(options,{
+		    tileType : 'lockable',
+		    tileOptions : {
+			lockable : {
+			    locked : false
+			}
+		    }
+		},function(universe){
+		    if (universe.error) {
+			callback(universe);
+			return;
+		    }
+		    var oldXp = options.game.character.xp;
+
+		    //Calculate XP:
+		    var baseXP = RPG.Unlock.calcXP(options);
+
+		    //apply XP modifiers
+		    RPG.Character.calcXP(baseXP,options,function(xp){
+			options.game.character.xp += xp;
+
+			//save the characters xp
+			RPG.Character.store({
+			    user : options.game.user,
+			    character : options.game.character
+			}, function(character){
+			    if (character.error) {
+				options.game.character.xp = oldXp;
+				callback(character);
 				return;
 			    }
-			    var oldXp = options.game.character.xp;
 
-			    //Calculate XP:
-			    var baseXP = RPG.Unlock.calcXP(options);
+			    options.game.character = character;
 
-			    //apply XP modifiers
-			    RPG.Character.calcXP(baseXP,options,function(xp){
-				options.game.character.xp += xp;
+			    //finally callback
+			    callback({
+				lockable : 'Unlock attempt Successful. xp: '+xp
+			    });
 
-				//save the characters xp
-				RPG.Character.store({
-				    user : options.game.user,
-				    character : options.game.character
-				}, function(character){
-				    if (character.error) {
-					options.game.character.xp = oldXp;
-					callback(character);
-					return;
-				    }
-
-				    options.game.character = character;
-
-				    //finally callback
-				    callback({
-					lockable : 'Unlock attempt Successful. xp: '+xp
-				    });
-
-				});//end store character
-			    });//end calcXP
-			});//end store universe
-		    } else {
-
-			callback({
-			    traverse : false,
-			    error : 'Locked'
-			});
-		    }
-		}
+			});//end store character
+		    });//end calcXP
+		});//end store universe
 	    } else {
-		callback();
+
+		callback({
+		    traverse : false,
+		    error : 'Locked'
+		});
 	    }
-	    break;
-
-	case 'onEnter' :
-	    //server
-	    if (typeof exports != 'undefined' && options.events.onBeforeEnter.lockable) {
-
-		//remove the tile from the current Universe so it will get reloaded from the database
-		//and the client should receive the the cloned tile created above.
-		RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-		RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
-	    }
-	    callback();
-	    break;
-
-	default :
-	    callback();
+	}
+    } else {
+	callback();
     }
+
+}
+
+//RPG.Tiles.lockable.onLeave = function(options,callback) {
+//    callback();
+//}
+
+RPG.Tiles.lockable.onEnter = function(options,callback) {
+    //server
+    if (typeof exports != 'undefined' && options.events.onBeforeEnter.lockable) {
+
+	//remove the tile from the current Universe so it will get reloaded from the database
+	//and the client should receive the the cloned tile created above.
+	RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+    }
+    callback();
+
 }
 
 /**

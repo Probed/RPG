@@ -200,3 +200,44 @@ RPG.TileType.Switch = function(options) {
 	},options||{})
     };
 }
+
+
+/**
+ * NPC
+ *
+ * Much like an actual character, NPC's have gender/race/class/stats etc
+ *
+ *
+ */
+RPG.TileType.NPC = function(options) {
+    return {
+	npc : Object.merge(
+	    //clone and filter the character options:
+	    Object.filter(RPG.character_options,function(value,key){
+		return key != 'portrait' && key != 'name';
+	    }),
+	    //add some NPC only options
+	    {
+		lives : 1,//override character lives
+		disposition : ['Friendly','Neutral','Angered','Hostile','Bloodthirsty']
+	    }
+	    ,options||{})
+    };
+}
+
+/**
+ * Roam
+ *
+ * Allows the tile to move around
+ */
+RPG.TileType.Roam = function(options) {
+    return {
+	roam : Object.merge({
+	    can : [true],
+	    home : '',//spawn point
+	    radius : [0,256,0],//how far can they go
+	    distance : [0,256,0] //how far have they gone
+	}
+	,options||{})
+    };
+}

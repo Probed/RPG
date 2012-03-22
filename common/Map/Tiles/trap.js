@@ -5,6 +5,7 @@
 
 if (!RPG) var RPG = {};
 if (!RPG.Tiles) RPG.Tiles = {};
+if (!RPG.Tiles.trap) RPG.Tiles.trap = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
@@ -24,136 +25,139 @@ if (typeof exports != 'undefined') {
  *
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
-RPG.Tiles.trap = function(options,callback) {
 
-    switch (options.event) {
-	case 'onBeforeEnter' :
-	    if (options.contents.armed) {
-		if (typeof exports == 'undefined') {
-		    //client
-		    //@todo disarm attempt
-		    RPG.Disarm.show(options,{
-			success : function(solution){
-			    callback(solution);
-			},
-			fail : function() {
-			    callback({
-				traverse : false,
-				error : 'Trap still Armed.'
-			    });
-			}
+
+//RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
+//    callback();
+//}
+
+RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
+    if (options.contents.armed) {
+	if (typeof exports == 'undefined') {
+	    //client
+	    //@todo disarm attempt
+	    RPG.Disarm.show(options,{
+		success : function(solution){
+		    callback(solution);
+		},
+		fail : function() {
+		    callback({
+			traverse : false,
+			error : 'Trap still Armed.'
 		    });
+		}
+	    });
 
-		} else {
-		    //server
-		    if (RPG.Disarm.checkSolution(options)) {
+	} else {
+	    //server
+	    if (RPG.Disarm.checkSolution(options)) {
 
-			//update the tile to make it disarmed.
-			RPG.Game.updateGameTile(options,{
-			    tileType : 'trap',
-			    tileOptions : {
-				trap : {
-				    armed : false
-				}
-			    }
-			},function(universe){
-			    if (universe.error) {
-				callback(universe);
-				return;
-			    }
-			    var oldXp = options.game.character.xp;
-
-			    //Calculate XP:
-			    var baseXP = RPG.Disarm.calcXP(options);
-
-			    //apply XP modifiers
-			    RPG.Character.calcXP(baseXP,options,function(xp){
-				options.game.character.xp += xp;
-
-				//save the characters xp
-				RPG.Character.store({
-				    user : options.game.user,
-				    character : options.game.character
-				}, function(character){
-				    if (character.error) {
-					options.game.character.xp = oldXp;
-					callback(character);
-					return;
-				    }
-
-				    options.game.character = character;
-
-				    //finally callback
-				    callback({
-					trap : 'Disarm attempt Successful. xp: '+xp
-				    });
-
-				});//end store character
-			    });//end calcXP
-			});//end store universe
-		    } else {
-			//increment the attempt counter
-			options.contents.attempt = (Number.from(options.contents.attempt) || 0) + 1;
-			options.contents.attempts = Number.from(options.contents.attempts);
-			var newOpts = {
-			    armed : true,
-			    attempt : options.contents.attempt
-			};
-			if (newOpts.attempt >= options.contents.attempts) {
-			    //@todo damage them
-			    newOpts.armed = false;
+		//update the tile to make it disarmed.
+		RPG.Game.updateGameTile(options,{
+		    tileType : 'trap',
+		    tileOptions : {
+			trap : {
+			    armed : false
 			}
+		    }
+		},function(universe){
+		    if (universe.error) {
+			callback(universe);
+			return;
+		    }
+		    var oldXp = options.game.character.xp;
 
-			RPG.Game.updateGameTile(options,{
-			    tileType : 'trap',
-			    tileOptions : {
-				trap : newOpts
-			    }
-			},function(universe){
-			    if (universe.error) {
-				callback(universe);
+		    //Calculate XP:
+		    var baseXP = RPG.Disarm.calcXP(options);
+
+		    //apply XP modifiers
+		    RPG.Character.calcXP(baseXP,options,function(xp){
+			options.game.character.xp += xp;
+
+			//save the characters xp
+			RPG.Character.store({
+			    user : options.game.user,
+			    character : options.game.character
+			}, function(character){
+			    if (character.error) {
+				options.game.character.xp = oldXp;
+				callback(character);
 				return;
 			    }
-			    if (newOpts.armed) {
-				var out = Object.clone(universe);
-				Object.erase(out,'options');
-				Object.erase(out.maps[options.game.character.location.mapName],'options');
-				callback({
-				    traverse : false,
-				    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
-				    game : {
-					universe : out //send the updated tile info back to the client
-				    }
-				});
-			    } else {
-				callback({
-				    trap : 'Trap Sprung!'
-				});
+
+			    options.game.character = character;
+
+			    //finally callback
+			    callback({
+				trap : 'Disarm attempt Successful. xp: '+xp
+			    });
+
+			});//end store character
+		    });//end calcXP
+		});//end store universe
+	    } else {
+		//increment the attempt counter
+		options.contents.attempt = (Number.from(options.contents.attempt) || 0) + 1;
+		options.contents.attempts = Number.from(options.contents.attempts);
+		var newOpts = {
+		    armed : true,
+		    attempt : options.contents.attempt
+		};
+		if (newOpts.attempt >= options.contents.attempts) {
+		    //@todo damage them
+		    newOpts.armed = false;
+		}
+
+		RPG.Game.updateGameTile(options,{
+		    tileType : 'trap',
+		    tileOptions : {
+			trap : newOpts
+		    }
+		},function(universe){
+		    if (universe.error) {
+			callback(universe);
+			return;
+		    }
+		    if (newOpts.armed) {
+			var out = Object.clone(universe);
+			Object.erase(out,'options');
+			Object.erase(out.maps[options.game.character.location.mapName],'options');
+			callback({
+			    traverse : false,
+			    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
+			    game : {
+				universe : out //send the updated tile info back to the client
 			    }
 			});
+		    } else {
+			callback({
+			    trap : 'Trap Sprung!'
+			});
 		    }
-		}
-	    } else {
-		callback();
+		});
 	    }
-	    break;
-
-	case 'onEnter' :
-	    //server
-	    if (typeof exports != 'undefined' && options.events.onBeforeEnter.trap) {
-
-		//remove the tile from the current Universe so it will get reloaded from the database
-		//and the client should receive the the cloned tile created above.
-		RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-		RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
-	    }
-	    callback();
-	    break;
-
-	default :
-	    callback();
+	}
+    } else {
+	callback();
     }
 }
+
+//RPG.Tiles.trap.onLeave = function(options,callback) {
+//    callback();
+//}
+
+RPG.Tiles.trap.onEnter = function(options,callback) {
+    //server
+    if (typeof exports != 'undefined' && options.events.onBeforeEnter.trap) {
+
+	//remove the tile from the current Universe so it will get reloaded from the database
+	//and the client should receive the the cloned tile created above.
+	RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+    }
+    callback();
+}
+
 
 /**
  * Client side disarm window

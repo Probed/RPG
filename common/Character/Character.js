@@ -4,81 +4,132 @@ if (typeof exports != 'undefined') {
 }
 
 /**
+ * Character Stats
+ * Defines possible Stats a character can have and the starting value of that stat
+ *
+ *
+ */
+RPG.Stats = {
+    Agility : {
+	value : 2
+    },
+    Charisma : {
+	value : 2
+    },
+    Intelligence : {
+	value : 2
+    },
+    Stamina : {
+	value : 2
+    },
+    Strength : {
+	value : 2
+    },
+    Luck : {
+	value : 2
+    }
+};
+
+/**
  * Game Difficulty
  */
 RPG.Difficulty = {
     Easy : {
-	description : '',
 	Character : {
+	    lives : Infinity,
+	    hp : {
+		max : 0.5//+50% HP
+	    },
+	    mana : {
+		max : 0.5//+50% HP
+	    },
 	    xp : {
-		modifier : 1.5
+		modifier : 0.5//+50% extra xp
 	    },
 	    Stats : {
-		start : 5
+		distribute : 5//start with 5 distributable stats
 	    }
 	},
 	//override generator options
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 32
+		    size : 32//must be power of 2
 		}
 	    }
 	}
     },
     Medium : {
-	description : '',
 	Character : {
+	    lives : Infinity,
+	    hp : {
+		max : 0//no change, default 100%
+	    },
+	    mana : {
+		max : 0//no change, default 100%
+	    },
 	    xp : {
-		modifier : 1
+		modifier : 0//no change, default 100%
 	    },
 	    Stats : {
-		start : 4
+		distribute : 4//start with 4 distributable stats
 	    }
 	},
 	//override generator options
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 64
+		    size : 64//must be power of 2
 		}
 	    }
 	}
     },
     Hard : {
-	description : '',
 	Character : {
+	    lives : 100,
+	    hp : {
+		max : -0.25//-25% mana
+	    },
+	    mana : {
+		max : -0.25//-25% mana
+	    },
 	    xp : {
-		modifier : 0.85
+		modifier : -0.25//-25% xp
 	    },
 	    Stats : {
-		start : 2
+		distribute : 2//start with 2 distributable stats
 	    }
 	},
 	//override generator options
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 128
+		    size : 128//must be power of 2
 		}
 	    }
 	}
     },
     Impossible : {
-	description : '',
 	Character : {
+	    lives : 1,
+	    hp : {
+		max : -0.50//-50% hp
+	    },
+	    mana : {
+		max : -0.50//-50% mana
+	    },
 	    xp : {
-		modifier : 0.5
+		modifier : -0.5//-50% xp
 	    },
 	    Stats : {
-		start : 0
+		distribute : 0//start with 0 distributable stats
 	    }
 	},
 	//override generator options
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 256
+		    size : 256//must be power of 2
 		}
 	    }
 	}
@@ -89,82 +140,140 @@ RPG.difficultyVal = function(difficulty,path) {
 }
 
 /**
- * Character Stats
- */
-RPG.Stats = {
-    Agility : {
-	value : 1
-    },
-    Charisma : {
-	value : 1
-    },
-    Intelligence : {
-	value : 1
-    },
-    Stamina : {
-	value : 1
-    },
-    Strength : {
-	value : 1
-    }
-};
-
-/**
  * Character Classes
  */
 RPG.Class = {
     Warrior : {
-	Stats : {
-	    start : {
-		Strength : RPG.Stats.Strength.value+2,
-		Stamina : RPG.Stats.Stamina.value+1
+	Character : {
+	    hp : {
+		max : 0.50//50% more hp
+	    },
+	    mana : {
+		max : -0.50//50% less mana
+	    },
+	    Stats : {
+		start : {
+		    Strength : 2,//minimun start +2
+		    Stamina : 1//minimun start +1
+		}
 	    }
 	}
     },
     Priest : {
-	Stats : {
-	    start : {
-		Intelligence : RPG.Stats.Intelligence.value+1,
-		Stamina : RPG.Stats.Stamina.value+1,
-		Charisma : RPG.Stats.Charisma.value+1
+	Character : {
+	    hp : {
+		max : -0.50//50% less hp
+	    },
+	    mana : {
+		max : 0.50//50% more mana
+	    },
+	    Stats : {
+		start : {
+		    Intelligence : 1,//minimun start +1
+		    Stamina : 1,//minimun start +1
+		    Charisma : 1//minimun start +1
+		}
 	    }
 	}
     },
     Rogue : {
-	Stats : {
-	    start : {
-		Agility : RPG.Stats.Agility.value+2,
-		Strength : RPG.Stats.Strength.value+1
+	Character : {
+	    hp : {
+		max : 0.25//25% more hp
+	    },
+	    mana : {
+		max : -0.25//25% less mana
+	    },
+	    Stats : {
+		start : {
+		    Agility : 2,//minimun start +2
+		    Strength : 1//minimun start +1
+		}
 	    }
 	}
     },
     Mage : {
-	Stats : {
-	    start : {
-		Intelligence : RPG.Stats.Intelligence.value+2,
-		Agility : RPG.Stats.Agility.value+1
+	Character : {
+	    hp : {
+		max : -0.25//25% less hp
+	    },
+	    mana : {
+		max : 0.25//25% more mana
+	    },
+	    Stats : {
+		start : {
+		    Intelligence : 2,//minimun start +2
+		    Agility : 1//minimun start +1
+		}
 	    }
 	}
     }
 };
-RPG.getClassStat = function(clas, stat, key) {
-    return (RPG.Class[clas] && RPG.Class[clas].Stats[key][stat]) || RPG.Stats[stat].value;
-}
 
 /**
  * Genders
  */
 RPG.Gender = {
-    Male : {},
-    Female : {}
+    Male : {
+	Character : {
+	    Stats : {
+		start : {
+		    Strength : 1//minimun start +1
+		}
+	    }
+	}
+    },
+    Female : {
+	Character : {
+	    Stats : {
+		start : {
+		    Intelligence : 1//minimun start +1
+		}
+	    }
+	}
+    }
 };
 
 /**
  * Races
  */
 RPG.Race = {
-    Human : {},
-    NotHuman : {}
+    Human : {
+	Character : {
+	    Stats : {
+		start : {
+		    Agility : 1//minimun start +1
+		}
+	    }
+	}
+    },
+    Dwarf : {
+	Character : {
+	    Stats : {
+		start : {
+		    Stamina : 1//minimun start +1
+		}
+	    }
+	}
+    },
+    Elf : {
+	Character : {
+	    Stats : {
+		start : {
+		    Intelligence : 1//minimun start +1
+		}
+	    }
+	}
+    },
+    Orc : {
+	Character : {
+	    Stats : {
+		start : {
+		    Strength : 1//minimun start +1
+		}
+	    }
+	}
+    }
 };
 
 
@@ -179,7 +288,18 @@ RPG.character_options = {
     Gender : Object.keys(RPG.Gender),
     Race : Object.keys(RPG.Race),
     Class : Object.keys(RPG.Class),
-    Stats : Object.clone(RPG.Stats)
+    Stats : Object.clone(RPG.Stats),
+    lives : Infinity,
+    level : 1,
+    xp : 1,
+    hp : {
+	max : 1,
+	cur : 1
+    },
+    mana : {
+	max : 1,
+	cur : 1
+    }
 }
 
 /**
@@ -195,4 +315,59 @@ RPG.getCharacterStyles = function(character) {
 
 RPG.getCharacterImage = function(character) {
     return '/client/images/Character/portrait/'+escape(character.Gender)+'/'+escape(character.portrait)+'/'+escape((character.location && character.location.dir) || 'e')+'.png';
+}
+
+/**
+ * loop through a characters options and modify the value based on the path
+ * (optional) fn -> call function with details for each modifier
+ *
+ * Eg: value = 1, path = 'Character.Stats.start'
+ *
+ * 1) Get value from RPG.Difficulty  (eg: +1)
+ * 2) Get value from RPG.Gender  (eg: +1)
+ * 3) Get value from RPG.Race (eg: +0)
+ * 4) Get value from RPG.Class  (eg: +0)
+ *
+ * returns Modified Value : 3
+ */
+RPG.applyModifiers = function(character,value,path,fn) {
+    var modified = value;
+    ['Difficulty','Gender','Race','Class'].each(function(mod){
+	var val = Object.getFromPath(RPG[mod][character[mod]],path);
+	if (typeof val == 'undefined') return;
+	var modifier = null;
+	if (typeof val == 'function') {
+	    modifier = val(character,value,path,modified);
+	} else if (Number.from(val) || val === 0 || val == Infinity) {
+	    if (val == Infinity) {
+		modifier = Infinity;
+		modified = Infinity
+	    } else {
+		modifier = Number.from(val);
+		modified += Number.from(val);
+	    }
+	}
+	if (fn && typeof fn == 'function' && typeof modifier != 'undefined' && typeof modifier != 'object') {
+	    fn(path,mod,modifier,character[mod]);
+	}
+    });
+    return modified;
+},
+
+/**
+ * Calculate a Characters maximum hitpoints
+ * rounded up
+ */
+RPG.calcMaxHP = function(character) {
+    var hp = RPG.applyModifiers(character,1,'Character.hp.max');
+    return Math.ceil((Number.from(character.Stats.Stamina.value) * Number.from(character.level)) * (hp || 1));
+}
+
+/**
+ * Calculate a Characters maximum mana
+ * rounded up
+ */
+RPG.calcMaxMana = function(character) {
+    var mana = RPG.applyModifiers(character,1,'Character.mana.max');
+    return Math.ceil((Number.from(character.Stats.Intelligence.value) * Number.from(character.level)) * (mana || 1));
 }

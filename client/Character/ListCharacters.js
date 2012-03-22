@@ -128,13 +128,14 @@ RPG.ListCharacters = new Class({
 		'class' : 'textMedium textCenter'
 	    },
 	    content : 'Difficulty<br><b class="textLarge">' + character.Difficulty + '</b>'
-	},
-	{
-	    properties : {
-		'class' : 'textMedium'
-	    },
-	    content : 'C: ' + Date.parse(character.database.created || Date('now')).format('%Y-%m-%d')  + '<br>U: ' + Date.parse(character.database.updated || Date('now')).format('%Y-%m-%d')
 	}
+//	,
+//	{
+//	    properties : {
+//		'class' : 'textMedium'
+//	    },
+//	    content : 'C: ' + Date.parse(character.database.created || Date('now')).format('%Y-%m-%d')  + '<br>U: ' + Date.parse(character.database.updated || Date('now')).format('%Y-%m-%d')
+//	}
 	]);
 	row.tr.store('character',character);
 	this.noCharacters = false;

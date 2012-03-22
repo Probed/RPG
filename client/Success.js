@@ -35,6 +35,8 @@ RPG.Success = new (new Class({
 	    });
 	}else if (typeOf(suc) == 'object') {
 	    message = JSON.stringify(suc);
+	} else {
+	    message = suc;
 	}
 	MUI.notification(message);
     },

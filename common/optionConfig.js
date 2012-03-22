@@ -315,7 +315,7 @@ RPG.optionCreator = {
 		/**
 		 * Boolean Values
 		 */
-		case (typeOf(constraint_options[0])) == 'boolean' || constraint_options === 'true' || constraint_options === 'false' :
+		case (constraint_options && (typeOf(constraint_options[0]) == 'boolean' || constraint_options === 'true' || constraint_options === 'false')) :
 		    elm = new Element('input',{
 			type : 'checkbox',
 			id : optionsPath.join('__'),
@@ -589,6 +589,9 @@ RPG.optionValidator = {
 		    if (Number.from(content) === null) {
 			errors.push(('<b>'+path.join(' > ').capitalize().hyphenate().split('-').join(' ').capitalize()+'</b>')+' is invalid:<br>'+unescape(Object.toQueryString(Object.values(constraint).associate(['Min','Max','Default']))).replace(/\&/g,', ')+'<br>');
 		    } else {
+			if (content === 0) {
+			    break;
+			}
 			content = Number.from(content);
 			if (content < con0 || content > con1) {
 			    errors.push(('<b>'+path.join(' > ').capitalize().hyphenate().split('-').join(' ').capitalize()+'</b>')+' is invalid:<br>'+unescape(Object.toQueryString(Object.values(constraint).associate(['Min','Max','Default']))).replace(/\&/g,', ')+'<br>');
@@ -649,7 +652,7 @@ RPG.optionValidator = {
 		 */
 		case typeOf(constraint) == 'array' :
 		    if (typeOf(content) != 'string') {
-			errors.push(('<b>'+path.join(' > ').capitalize().hyphenate().split('-').join(' ').capitalize()+'</b>')+' is invalid:<br>Must be a string.'+'<br>');
+			errors.push(('<b>'+path.join(' > ').capitalize().hyphenate().split('-').join(' ').capitalize()+'</b>')+' is invalid ('+constraint+'):<br>Must be a string.'+'<br>');
 		    }
 		    break;
 
@@ -657,7 +660,12 @@ RPG.optionValidator = {
 		 * array Values
 		 */
 		case typeOf(constraint) == 'number' :
-		    content = Number.from(content);
+		    if (typeOf(content) != 'number') {
+			content = Number.from(content);
+		    }
+		    if (content === 0) {
+			break;
+		    }
 		    if (!content) {
 			errors.push(('<b>'+path.join(' > ').capitalize().hyphenate().split('-').join(' ').capitalize()+'</b>')+' is invalid:<br>Must be numeric.'+'<br>');
 		    }

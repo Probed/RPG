@@ -313,70 +313,93 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 			return null;
 		    },
 		    'interior.all,path,openings' : function(paintPath,area,point,index) {
-			var tiles = [];
-			tiles.push(RPG.createTile(['world','earth','floor'],house.cache,{
-			    property : {
-				tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
-				folderName : options.properties.name,
-				image : {
-				    name : options.mainFloor.floor
-				}
-			    }
-			}));
-			if (rand.random() <= 0.01) {
-			    tiles.push(RPG.createTile(['world','earth','lever'],house.cache,{
+			RPG.unshiftTile(house.tiles, point,
+			    RPG.createTile(['world','earth','floor'],house.cache,{
 				property : {
-				    tileName : point.join(''),
+				    tileName : options.mainFloor.floor.substr(0,options.mainFloor.floor.lastIndexOf('.')),
 				    folderName : options.properties.name,
 				    image : {
-					name : 'open.png'
-				    }
-				},
-				'switch' : {
-				    state : 'Open',
-				    states : {
-					'Open' : [{
-					    path : options.properties.name+'.world.earth.lever.'+point.join(''),
-					    options : JSON.encode({
-						property : {
-						    image : {
-							name : 'open.png'
-						    }
-						},
-						'switch' : {
-						    state : 'Open'
-						}
-					    })
-					}],
-					'Closed' : [{
-					    path : options.properties.name+'.world.earth.lever.'+point.join(''),
-					    options : JSON.encode({
-						property : {
-						    image : {
-							name : 'closed.png'
-						    }
-						},
-						'switch' : {
-						    state : 'Closed'
-						}
-					    })
-					}]
+					name : options.mainFloor.floor
 				    }
 				}
 			    }));
+			if (rand.random() <= 0.01) {
+			    RPG.pushTile(house.tiles, point,
+				RPG.createTile(['world','earth','lever'],house.cache,{
+				    property : {
+					tileName : point.join(''),
+					folderName : options.properties.name,
+					image : {
+					    name : 'open.png'
+					}
+				    },
+				    'switch' : {
+					state : 'Open',
+					states : {
+					    'Open' : [{
+						path : options.properties.name+'.world.earth.lever.'+point.join(''),
+						options : JSON.encode({
+						    property : {
+							image : {
+							    name : 'open.png'
+							}
+						    },
+						    'switch' : {
+							state : 'Open'
+						    }
+						})
+					    }],
+					    'Closed' : [{
+						path : options.properties.name+'.world.earth.lever.'+point.join(''),
+						options : JSON.encode({
+						    property : {
+							image : {
+							    name : 'closed.png'
+							}
+						    },
+						    'switch' : {
+							state : 'Closed'
+						    }
+						})
+					    }]
+					}
+				    }
+				}));
 			}
 			if (rand.random() <= 0.01) {
-			    tiles.push(RPG.createTile(['world','earth','trap'],house.cache,{
-				property : {
-				    tileName : point.join(''),
-				    folderName : options.properties.name
-				},
-				trap : {
-				    seed : rand.random(0,99999999999)
-				}
-			    }));
+			    RPG.pushTile(house.tiles, point,
+				RPG.createTile(['world','earth','trap'],house.cache,{
+				    property : {
+					tileName : point.join(''),
+					folderName : options.properties.name
+				    },
+				    trap : {
+					seed : rand.random(0,99999999999)
+				    }
+				}));
 			}
-			return tiles;
+			if (rand.random() <= 0.05) {
+			    RPG.pushTile(house.tiles, point,
+				RPG.createTile(['npc','earth','animal'],house.cache,{
+				    property : {
+					tileName : RPG.Generator.Name.generate({
+					    name : {
+						length:rand.random(4,8),
+						seed : rand.seed
+					    }
+					},rand),
+					folderName : options.properties.name,
+					image : {
+					    name : RPG.getRandomTileImage('npc.earth.animal',rand).image
+					}
+				    },
+				    npc : RPG.optionCreator.random(RPG.Tiles.npc.options.npc,rand),
+				    roam : Object.merge(RPG.optionCreator.random(RPG.Tiles.npc.options.roam,rand),{
+					home : point,
+					distance : 0
+				    })
+				}));
+			}
 		    },
 		    'openings' : function(paintPath,area,point,index) {
 			var dir = paintPath[paintPath.length-1];

@@ -9348,7 +9348,7 @@ HtmlTable = Class.refactor(HtmlTable, {
 	},
 
 	empty: function(){
-		this.selectNone();
+		this.selectable && this.selectNone();
 		return this.previous();
 	},
 
