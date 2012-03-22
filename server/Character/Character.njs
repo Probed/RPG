@@ -160,9 +160,10 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			if (info.affectedRows) {
 			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+db.characterID,Object.merge(options.character,{
 				database : {
-				    characterID : db.characterID,
-				    updated : Date('now'),
-				    created : db.created
+				    characterID : db.characterID
+//				    ,
+//				    updated : Date('now'),
+//				    created : db.created
 				}
 			    })));
 			    db = null;
@@ -200,9 +201,10 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			if (info.insertId) {
 			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+info.insertId,Object.merge(options.character,{
 				database : {
-				    characterID : info.insertId,
-				    updated : Date('now'),
-				    created : Date('now')
+				    characterID : info.insertId
+//				    ,
+//				    updated : Date('now'),
+//				    created : Date('now')
 				}
 			    })));
 			} else {

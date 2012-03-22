@@ -23,18 +23,18 @@ if (typeof exports != 'undefined') {
  */
 
 
-//RPG.Tiles.npc.onBeforeLeave = function(options,callback) {
+//RPG.Tiles.NPC.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.npc.onBeforeEnter = function(options,callback) {
+//RPG.Tiles.NPC.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.npc.onLeave = function(options,callback) {
+//RPG.Tiles.NPC.onLeave = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.npc.onEnter = function(options,callback) {
+//RPG.Tiles.NPC.onEnter = function(options,callback) {
 //    callback();
 //}

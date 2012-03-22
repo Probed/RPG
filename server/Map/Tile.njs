@@ -134,7 +134,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 			    tCache.push(JSON.encode(tile));
 			});
 		    });
-		    RPG.Log('database hit','Tiles: Loaded ' + cnt + ' tiles from "'+mapName+"");
+		    //RPG.Log('database hit','Tiles: Loaded ' + cnt + ' tiles from "'+mapName+"");
 		    options.paths = tCache.unique();
 		    RPG.Tile.loadTilesCache(options,function(cache) {
 			if (cache.error) {
@@ -153,7 +153,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 			universe = null;
 		    });
 		} else {
-		    RPG.Log('database hit','No Tiles Found.');
+		    //RPG.Log('database hit','No Tiles Found.');
 		    callback({});
 		}
 	    }
@@ -203,7 +203,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    }
 	    pathSql = pathSql.substr(0,pathSql.length-1);
 	    pathSql += ')';
-	    RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.');
+	    //RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.');
 	} else {
 	    //RPG.Log('no tiles',''+options.paths);
 	    callback({});
@@ -457,9 +457,9 @@ RPG.Tile = new (RPG.TileClass = new Class({
 		    options.errors.push(err);
 		} else {
 		    if (info.insertId) {
-			RPG.Log('database insert','"'+ (options.map.options.property.mapName || 'tileset') + '" tile row '+options.rowNum+' inserted: '+Object.keys(options.col).length);
+			//RPG.Log('database insert','"'+ (options.map.options.property.mapName || 'tileset') + '" tile row '+options.rowNum+' inserted: '+Object.keys(options.col).length);
 		    } else {
-			RPG.Log('error','no insert id..');
+			//RPG.Log('error','no insert id..');
 			options.errors.push('Failed to get newly inserted '+options.mapOrTileset+' Tiles :( ');
 		    }
 		}
@@ -491,9 +491,8 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    Object.merge(options,{
 		tilePoints : circle.area
 	    });
-	    circle = null;
 	    RPG.Tile.load(options,function(universe){
-		callback(universe);
+		callback(universe,circle);
 	    });
 	});
     }

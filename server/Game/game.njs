@@ -66,7 +66,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 				response.onRequestComplete(response,changes);
 				return;
 			    }
-			    require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+changes.game.character.location.universeID,changes.game.universe);
+			    require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
 			    response.onRequestComplete(response,changes);
 			});
 			break;
@@ -130,25 +130,33 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	options.moveTo = RPG[options.dir](options.character.location.point,1);
 
+	//before changes
+	var beforeCharacter = Object.clone(options.character);
 
 	RPG.moveCharacterToTile(options,function(moveEvents) {
 	    if (moveEvents.error) {
 		callback(moveEvents);
 		return;
 	    }
-	    RPG.Tile.getViewableTiles(options,function(universe){
+
+	    RPG.Game.tick(options, function(universe){
+		Object.erase(options,'user');
 		Object.erase(options,'mapID');
 		Object.erase(options,'mapOrTileset');
 		Object.erase(options,'universeID');
-		Object.erase(options,'user');
 		Object.merge(options.universe,universe);
+		Object.erase(universe,options);
+		Object.each(universe.maps,function(map){
+		    Object.erase(map,options);
+		});
 		callback({
 		    game : {
 			universe : universe,//only send back the new stuff
-			character : options.character
+			character : Object.diff(beforeCharacter,options.character)
 		    },
 		    events : Object.cleanEmpty(moveEvents)
 		});
+		beforeCharacter = null;
 	    });
 	});
     },
@@ -203,12 +211,177 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    map.cache = updateOptions.cache;
 	}
 
-	//save our newUniverse tile changes
-	RPG.Universe.store({
-	    user : options.game.user,
-	    universe : newUniverse,
-	    bypassCache : updateOptions.bypassCache
-	},callback);
+	if (updateOptions.storeWait) {
+	    callback(newUniverse);
+	} else {
+	    //save our newUniverse tile changes
+	    RPG.Universe.store({
+		user : options.game.user,
+		universe : newUniverse,
+		bypassCache : updateOptions.bypassCache
+	    },callback);
+	}
+    },
+
+    /**
+     * This will move a tile on the current characters map
+     *
+     * options: (see the TileType eg: teleportTo for all options)
+     *
+     * updateOptions:
+     * tileType : the tileType to match
+     * tileOptions : function calling back for info for each tileType being moved
+     * point : the point on the current map to update. if no point, options.game.moveTo is used.
+     *
+     * optional updateOptions
+     * bypassCache : defaults false. determine if we should update the game cache
+     */
+    moveGameTile : function(options,updateOptions,callback) {
+	if (typeof updateOptions.bypassCache != 'boolean') updateOptions.bypassCache = false;
+
+	//create a empty universe with same options as current
+	//this universe is what gets saved since it only contains the updated tiles
+	var newUniverse = {
+	    options : options.game.universe.options,
+	    maps : {}
+	};
+
+	//create an empty map with current map options for updating
+	var map = newUniverse.maps[options.game.character.location.mapName] = {
+	    options : options.game.universe.maps[options.game.character.location.mapName].options,
+	    tiles : {},
+	    cache : {}
+	};
+
+	var currentMap = options.game.universe.maps[options.game.character.location.mapName];
+
+	var moved = false;
+
+	if (updateOptions.tileType && updateOptions.tileOptions) {
+	    options.tiles.each(function(tilePath){
+		var c = Object.getFromPath(currentMap.cache,tilePath);
+		if (!c) return;
+		if (c.options[updateOptions.tileType]) {
+
+		    var moveInfo = updateOptions.tileOptions(c,currentMap,tilePath);
+		    if (!moveInfo) {
+			return;
+		    }
+
+		    //ensure the client will get the new Tile
+		    if (!map.tiles) map.tiles = {};
+		    if (!map.tiles[moveInfo.point[0]])map.tiles[moveInfo.point[0]] = {};
+		    map.tiles[moveInfo.point[0]][moveInfo.point[1]] = Array.clone(currentMap.tiles[moveInfo.point[0]][moveInfo.point[1]]);
+
+		    //push the tile to the new location and set it's new options
+		    RPG.pushTile(map.tiles, moveInfo.point, RPG.cloneTile(currentMap.cache, tilePath, map.cache, moveInfo.options));
+
+		    //ensure the client will get the new Tile
+		    if (!map.tiles) map.tiles = {};
+		    if (!map.tiles[options.game.point[0]])map.tiles[options.game.point[0]] = {};
+		    map.tiles[options.game.point[0]][options.game.point[1]] = currentMap.tiles[options.game.point[0]][options.game.point[1]];
+
+		    //remove the tile from the old location
+		    RPG.removeTile(map.tiles, tilePath, options.game.point);
+
+		    moved = true;
+		}
+	    });
+	}
+	if (!moved) {
+	    callback({});
+	    return;
+	}
+
+	if (updateOptions.cache) {
+	    map.cache = updateOptions.cache;
+	}
+
+	if (updateOptions.storeWait) {
+	    callback(newUniverse);
+	} else {
+	    //save our newUniverse tile changes
+	    RPG.Universe.store({
+		user : options.game.user,
+		universe : newUniverse,
+		bypassCache : updateOptions.bypassCache
+	    },callback);
+	}
+    },
+
+    tick : function(options,callback) {
+
+	//find out what the character can see:
+	RPG.Tile.getViewableTiles(options,function(universe,circle){
+	    //RPG.Log('Viewable',''+circle.area.length);
+	    var tickEvents = {};//results of tick events
+	    var tickChain = new Chain();
+	    var tickCompleteChain = new Chain();
+
+	    //go through all visable tiles
+	    circle.area.each(function(point){
+		//get the map for the character
+		var map = options.universe.maps[options.character.location.mapName];
+		if (!map) return;
+
+		//get the tile at the location of the circle point
+		var tiles = map.tiles && map.tiles[point[0]] && map.tiles[point[0]][point[1]];
+		if (!tiles) return
+
+		//add it to the chain
+		tickChain.chain(function(){
+
+		    options.point = point;
+
+		    //RPG.Log('tick Chain',point+''+tiles);
+		    //trigger a tick event on each tile
+		    RPG.triggerTileTypes(options,tiles,'tick',tickEvents,function(tickResults) {
+			if (tickResults) {
+			    Object.merge(tickEvents,tickResults);
+			}
+			//move to the next tile
+			tickChain.callChain();
+		    });
+		});
+
+		//add it to the complete chain
+		tickCompleteChain.chain(function(){
+		    options.point = point;
+		    //RPG.Log('tick Chain complete',''+tiles);
+		    //trigger a tick event on each tile
+		    RPG.triggerTileTypes(options,tiles,'tickComplete',tickEvents,function(tickResults) {
+			if (tickResults) {
+			    Object.merge(tickEvents,tickResults);
+			}
+			//move to the next tile
+			tickCompleteChain.callChain();
+		    });
+		});
+	    });
+
+	    //Called Last when all triggers are complete
+	    tickChain.chain(function(){
+		//RPG.Log('tick Chain','Complete');
+		//RPG.Log('tick Chain Complete','Started');
+		//start the complete chain
+		tickCompleteChain.callChain();
+	    });
+
+	    //All Finished. Finally callback
+	    tickCompleteChain.chain(function(){
+		//RPG.Log('tick Chain Complete','Complete');
+
+		if (tickEvents.universe) {
+		    //merge the tick events with the universe so the client will receive any updates
+		    Object.merge(universe,tickEvents.universe);
+		}
+		callback(universe);
+	    });
+
+	    //start triggering
+	    //RPG.Log('tick Chain','Started');
+	    tickChain.callChain();
+	});
     }
 
 }))();

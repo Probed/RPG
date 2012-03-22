@@ -219,7 +219,7 @@ RPG.TileType.NPC = function(options) {
 	    //add some NPC only options
 	    {
 		lives : 1,//override character lives
-		disposition : ['Friendly','Neutral','Angered','Hostile','Bloodthirsty']
+		disposition : ['Terrified','Frightend','Cautious','Friendly','Neutral','Angered','Hostile','Bloodthirsty']
 	    }
 	    ,options||{})
     };

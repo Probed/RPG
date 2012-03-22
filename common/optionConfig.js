@@ -33,6 +33,7 @@ if (!RPG) var RPG = {};
 
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('./Random.js'));
+    Object.merge(RPG,require('../server/Log/Log.njs'));
     module.exports = RPG;
 }
 
@@ -69,9 +70,81 @@ Object.extend({
 	    root : root,
 	    child : child
 	};
+    },
+
+    diff : function(original,updated,diff,path,usingUpdated) {
+	if (!diff) diff = {};
+	if (!path) path = [];
+
+	//check incoming 'original', if it is an object we can iterate through it.
+	if (typeOf(original) == 'object' && !usingUpdated) {
+
+	    Object.each(original,function(v,k){
+		path.push(k);
+		var u = Object.getFromPath(updated,path);
+		if (!u) {
+		    //RPG.Log('null',''+path + ' ' + JSON.encode(updated));
+		    path.pop();
+		    return;
+		}
+		//determine the type of the object value
+
+		switch (typeOf(v)) {
+		    //recurse into objects
+		    case 'object' :
+			//RPG.Log('Object',''+path);
+			//push the object's key onto the path
+			Object.diff(v,updated,diff,path);
+			break;
+
+		    case 'array' :
+		    case 'function' :
+			if (u && v && v.toString() != u.toString()) {
+			    //RPG.Log('arr/func',k + ' - ' + v + ' == '+ u);
+			    path.pop();
+			    Object.pathToObject(diff,path).child[k] = u;
+			    path.push(k);
+			}
+			break;
+
+		    //default (number/string/boolean)
+		    default :
+			if (v != u) {
+			    RPG.Log('default',k + ' - ' + v + ' == '+ u);
+			    path.pop();
+			    Object.pathToObject(diff,path).child[k] = u;
+			    path.push(k);
+			}
+		}
+		path.pop();
+	    });
+	}
+	//	else {
+	//	    RPG.Log('Orig',original+'');
+	//	    var u = Object.getFromPath(updated,path);
+	//	    if (!u) return diff;
+	//	    var last = path.pop();//pop off the last item so we can manually create it
+	//	    switch (typeOf(original)) {
+	//		case 'array' :
+	//		case 'function' :
+	//		    //RPG.Log('arr/func',original + ' - ' +u);
+	//		    if (original && u && original.toString() != u.toString()) {
+	//			Object.pathToObject(diff,path).child[last] = u;
+	//		    }
+	//		    break;
+	//
+	//		default ://(number/string/boolean)
+	//		    //RPG.Log('default',original + ' - ' +u);
+	//		    if (original != u) {
+	//			Object.pathToObject(diff,path).child[last] = u;
+	//		    }
+	//	    }
+	//	    path.push(last);//put the last one back on to perserve path integrity
+	//	}
+
+	return diff;
     }
 });
-
 
 RPG.optionCreator = {
     /**
