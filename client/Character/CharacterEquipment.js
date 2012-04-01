@@ -10,7 +10,8 @@ RPG.CharacterEquipment = new Class({
 	LeftGrowthLeg : false,
 	RightGrowthArm : false,
 	LeftGrowthArm : false,
-	GrowthHead : false
+	GrowthHead : false,
+	character : null
     },
     /**
      * Init Character Equipment
@@ -44,8 +45,8 @@ RPG.CharacterEquipment = new Class({
 	    resizable : false,
 	    maximizable : false,
 	    closable : true,
-	    height : 645,
-	    width : 580,
+	    height : (25*20),
+	    width : 24*19,
 	    require : {
 		css : ['/client/mochaui/themes/charcoal/css/Character/CharacterEquipment.css'],
 		js :['/common/Character/CharacterSlots.js'],
@@ -55,7 +56,6 @@ RPG.CharacterEquipment = new Class({
 
 	this.tips = new Tips([],{
 	    showDelay: 100,
-	    maxOpacity: .9,
 	    fixed : true,
 	    offset : {
 		y : 35,
@@ -69,29 +69,58 @@ RPG.CharacterEquipment = new Class({
 	for(var r=0;r<=19;r++) {
 	    rows.push(new Array());
 	    for(var c=0;c<=17;c++) {
-		if (r==0&&c==5) {
+		if (r==0&&c==2) {
 		    rows[r].push({
 			properties : {
-			    'class' : 'CharacterName',
-			    colspan : 8
+			    'class' : 'CharacterName vMiddle',
+			    colspan : 14
 			},
 			content : this.characterName = new Element('div', {
-			    'class' : 'textCenter',
-			    styles : {
-				overflow:'hidden',
-				height : '32px'
-			    },
-			    'html' : 'Character Name [PLACEHODER]'
+			    'class' : 'textCenter textLarge',
+			    'html' : this.options.character.Race +  ' ' + this.options.character.Gender + ' ' + this.options.character.Class +  ' ' + this.options.character.name
 			})
 		    });
-		    c=12;
+		    c=15;
 		} else {
-		    rows[r].push({
-			properties : {
-			    'class' : 'EmptyTD ItemEmpty'
-			},
-			content : '&nbsp;'
-		    });
+
+		    if (r>=8&&r<=11 && c>=1&&c<=7) {
+			if (r==8&&c==1) {
+			    rows[r].push({
+				properties : {
+				    id : 'RightInfo',
+				    'class' : 'vTop',
+				    colspan : 6,
+				    rowspan : 4,
+				    styles : {
+
+				}
+				},
+				content : '&nbsp;'
+			    });
+			}
+		    } else if (r>=8&&r<=11 && c>=12&&c<=18) {
+			if (r==8&&c==12) {
+			    rows[r].push({
+				properties : {
+				    id : 'LeftInfo',
+				    'class' : 'vTop',
+				    colspan : 6,
+				    rowspan : 4,
+				    styles : {
+
+				}
+				},
+				content : '&nbsp;'
+			    });
+			}
+		    } else {
+			rows[r].push({
+			    properties : {
+				'class' : 'EmptyTD ItemEmpty'
+			    },
+			    content : '&nbsp;'
+			});
+		    }
 		}
 	    }
 	}
@@ -168,6 +197,7 @@ RPG.CharacterEquipment = new Class({
 	bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character.png)'
 	this.characterEquipmentTable.toElement().setStyle('background-image',bgUrls);
 
+	this.refreshInfo();
     },
     restore : function() {
 	MUI.updateContent({
@@ -177,5 +207,99 @@ RPG.CharacterEquipment = new Class({
 	});
 	this.characterEquipmentWindow.minimize();
 	this.characterEquipmentWindow.restore();
+    },
+
+    refreshInfo : function() {
+	$('RightInfo').empty();
+	$('LeftInfo').empty();
+	var rightTable = new HtmlTable({
+	    zebra : false,
+	    selectable : false,
+	    useKeyboard : false,
+	    properties : {
+		cellpadding : 1,
+		styles : {
+		    width : '100%'
+		}
+	    }
+	});
+
+	var rows = [];
+	['hp','mana','lives'].each(function(stat){
+	    var width = this.options.character[stat].max == null?100:Math.round((((Number.from(this.options.character[stat].cur)) /  Number.from(this.options.character[stat].max)) * 100));
+	    rows.push([
+	    {
+		properties : {
+		    'class' : 'textRight textLarge',
+		    styles : {
+			width : '15%'
+		    }
+		},
+		content : stat.capitalize()
+	    },
+	    {
+		properties : {
+		    'class' : 'textCenter textLarge'
+		},
+		content : new Element('div',{
+		    styles : {
+			width : (width>=0?width:0) + '%',
+			'background-color' : width==0?'none':stat=='mana'?'blue':stat=='hp'?'red':'purple'
+		    },
+		    'class' : 'textLarge NoWrap',
+		    html :  this.options.character[stat].max == null?'Infinite':this.options.character[stat].cur + " / " + this.options.character[stat].max
+		})
+
+	    }
+	    ]);
+	}.bind(this));
+
+	rightTable.pushMany(rows);
+	$('RightInfo').adopt(rightTable);
+
+
+	rows = [];
+	var leftTable = new HtmlTable({
+	    zebra : false,
+	    selectable : false,
+	    useKeyboard : false,
+	    properties : {
+		cellpadding : 1,
+		align : 'center',
+		styles : {
+
+	    }
+	    },
+	    rows : [[]]
+	});
+
+	Object.keys(RPG.Stats).each(function(stat){
+	    rows.push([
+	    {
+		properties : {
+		    styles : {
+			width : '15%'
+		    }
+		},
+		content : stat
+	    },
+	    {
+		properties : {
+		    'class' : 'textRight',
+		    styles : {
+			width : '20px'
+		    }
+		},
+		content : this.options.character.Stats[stat].value
+	    }
+	    ]);
+	}.bind(this));
+
+	leftTable.pushMany(rows);
+	$('LeftInfo').adopt(leftTable);
+
+
+
+	rightTable = null;
     }
 });

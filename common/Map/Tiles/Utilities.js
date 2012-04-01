@@ -163,7 +163,7 @@ RPG.moveCharacterToTile = function(options,callback) {
     //check to see if we can leave the current tile:
     RPG.triggerTileTypes(options,curLocTiles,'onBeforeLeave',moveEvents,function(beforeLeaveResults){
 	if (beforeLeaveResults && beforeLeaveResults.error) {
-	    callback(beforeEnterResults);
+	    callback(beforeLeaveResults);
 	    return;
 	}
 	if (beforeLeaveResults) {
@@ -213,6 +213,45 @@ RPG.moveCharacterToTile = function(options,callback) {
 		    callback(moveEvents);
 		});
 	    });
+	});
+    });
+}
+
+/* Triggers the Activate and Activae Complete TileType events
+ *
+ * Required Options: {
+ *	universe,
+ *	character
+ *	dir
+ *	moveTo
+ *
+ *	callback(events || error)
+ */
+RPG.activateTile = function(options,callback) {
+
+    var map = options.universe.maps[options.character.location.mapName];
+    if (!map) callback({});
+    var curLocTiles = map.tiles && map.tiles[options.character.location.point[0]] && map.tiles[options.character.location.point[0]][options.character.location.point[1]];
+    if (!curLocTiles) callback({});
+
+    var activateEvents = {};
+
+    //Trigger the Activate Event
+    RPG.triggerTileTypes(options,curLocTiles,'activate',activateEvents,function(activateResults){
+	if (activateResults && activateResults.error) {
+	    callback(activateResults);
+	    return;
+	}
+	Object.merge(activateEvents,{
+	    activate : activateResults
+	});
+	//trigger the Activate Complete event to wrap up and
+	RPG.triggerTileTypes(options,curLocTiles,'activateComplete',activateEvents,function(activateCompleteResults){
+	    if (activateCompleteResults && activateCompleteResults.error) {
+		callback(activateCompleteResults);
+		return;
+	    }
+	    callback(activateCompleteResults);
 	});
     });
 }

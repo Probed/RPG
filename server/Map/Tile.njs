@@ -203,7 +203,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    }
 	    pathSql = pathSql.substr(0,pathSql.length-1);
 	    pathSql += ')';
-	    //RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.');
+	//RPG.Log('database hit','TileCache: Loading ' + paths.length + ' tile cache objects.');
 	} else {
 	    //RPG.Log('no tiles',''+options.paths);
 	    callback({});
@@ -457,7 +457,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 		    options.errors.push(err);
 		} else {
 		    if (info.insertId) {
-			//RPG.Log('database insert','"'+ (options.map.options.property.mapName || 'tileset') + '" tile row '+options.rowNum+' inserted: '+Object.keys(options.col).length);
+		    //RPG.Log('database insert','"'+ (options.map.options.property.mapName || 'tileset') + '" tile row '+options.rowNum+' inserted: '+Object.keys(options.col).length);
 		    } else {
 			//RPG.Log('error','no insert id..');
 			options.errors.push('Failed to get newly inserted '+options.mapOrTileset+' Tiles :( ');
@@ -478,22 +478,18 @@ RPG.Tile = new (RPG.TileClass = new Class({
      */
     getViewableTiles : function(options,callback) {
 
-	RPG.Character.calcSightRadius(options.character,function(radius){
-	    if (!radius || radius < 2) {
-		callback({
-		    error : 'Invalid Sight Radius: ' + radius
-		});
-		return;
-	    }
+	var radius = RPG.calcSightRadius(options.character);
+	if (!radius || radius < 2) {
+	    radius = 1;
+	}
+	var circle = RPG.getCircleArea(options.character.location.point,radius);
 
-	    var circle = RPG.getCircleArea(options.character.location.point,radius);
+	Object.merge(options,{
+	    tilePoints : circle.area
+	});
 
-	    Object.merge(options,{
-		tilePoints : circle.area
-	    });
-	    RPG.Tile.load(options,function(universe){
-		callback(universe,circle);
-	    });
+	RPG.Tile.load(options,function(universe){
+	    callback(universe,circle);
 	});
     }
 }))();

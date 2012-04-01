@@ -22,7 +22,7 @@ CREATE TABLE `user` (
   KEY `User_passwodHash` using HASH (`passwordHash`),
   KEY `User_apiKey` using HASH (`apiKey`),
   KEY `User_verifyKey` using HASH (`verifyKey`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `universes` (
   `universeID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -35,7 +35,7 @@ CREATE TABLE `universes` (
   KEY `Universes_userID` (`userID`),
   KEY `Universes_universeName` (`universeName`),
   CONSTRAINT `Universes_userID` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `characters` (
   `characterID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -48,7 +48,7 @@ CREATE TABLE `characters` (
   KEY `FK_character_userID` (`userID`),
   KEY `Character_name` (`name`),
   CONSTRAINT `FK_character_userID` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `maps` (
   `mapID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -59,7 +59,7 @@ CREATE TABLE `maps` (
   KEY `Maps_universeID` (`universeID`),
   KEY `Maps_mapName` (`mapName`),
   CONSTRAINT `Maps_universeID` FOREIGN KEY (`universeID`) REFERENCES `universes` (`universeID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `mapscache` (
   `mapCacheID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -74,7 +74,7 @@ CREATE TABLE `mapscache` (
   KEY `MapCache_folderName` (`folderName`),
   KEY `MapCache_mapID` (`mapID`),
   CONSTRAINT `MapCache_mapID` FOREIGN KEY (`mapID`) REFERENCES `maps` (`mapID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `maptiles` (
   `tileID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -84,10 +84,10 @@ CREATE TABLE `maptiles` (
   PRIMARY KEY (`tileID`),
   KEY `mapTiles_mapIDIndex` (`mapID`),
   KEY `MapTiles_point_index` (point),
-  SPATIAL INDEX `MapTiles_point` (point),
-  FULLTEXT INDEX `mapTiles_tiles` (`tiles`),
+/*SPATIAL INDEX `MapTiles_point` (point),
+  FULLTEXT INDEX `mapTiles_tiles` (`tiles`),*/
   CONSTRAINT `MapTiles_mapID` FOREIGN KEY (`mapID`) REFERENCES `maps` (`mapID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tilesets` (
   `tilesetID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -100,7 +100,7 @@ CREATE TABLE `tilesets` (
   KEY `Tilesets_name` (`name`),
   KEY `Tilesets_category` (`category`),
   CONSTRAINT `Tilesets_UserID` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tilesetscache` (
   `tilesetCacheID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -115,7 +115,7 @@ CREATE TABLE `tilesetscache` (
   KEY `TilesetsCache_path` (`path`),
   KEY `TilesetsCache_tileName` (`tileName`),
   CONSTRAINT `TilesetsCache_TilesetID` FOREIGN KEY (`tilesetID`) REFERENCES `tilesets` (`tilesetID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tilesettiles` (
   `tileID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -125,10 +125,10 @@ CREATE TABLE `tilesettiles` (
   PRIMARY KEY (`tileID`),
   KEY `TilesetTiles_tilesetID` (`tilesetID`),
   KEY `TilesetTiles_point_index` (point),
-  SPATIAL INDEX `TilesetTiles_point` (point),
-  FULLTEXT INDEX `TilesetTiles_tiles` (`tiles`),
+/*SPATIAL INDEX `TilesetTiles_point` (point),
+  FULLTEXT INDEX `TilesetTiles_tiles` (`tiles`),*/
   CONSTRAINT `TilesetTiles_tilesetID` FOREIGN KEY (`tilesetID`) REFERENCES `tilesets` (`tilesetID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 /*
@@ -143,7 +143,7 @@ CREATE TABLE `visitedtiles` (
   KEY `VisitedTiles_characterID_Characters_characterID` (`characterID`),
   CONSTRAINT `VisitedTiles_tileID_MapTiles_tileID` FOREIGN KEY (`tileID`) REFERENCES `maptiles` (`tileID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `VisitedTiles_characterID_Characters_characterID` FOREIGN KEY (`characterID`) REFERENCES `characters` (`characterID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 */
 
 GRANT SELECT, INSERT, UPDATE ON `user` TO 'rpg_player'@'localhost' IDENTIFIED BY PASSWORD '*6F934DB89E9B576A915D4EC69F29F118AAA6866A';

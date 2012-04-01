@@ -69,7 +69,7 @@ RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
 		    var baseXP = RPG.Unlock.calcXP(options);
 
 		    //apply XP modifiers
-		    RPG.Character.calcXP(baseXP,options,function(xp){
+		    RPG.calcXP(baseXP,options,function(xp){
 			options.game.character.xp += xp;
 
 			//save the characters xp

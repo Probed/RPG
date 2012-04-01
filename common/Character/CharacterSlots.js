@@ -706,7 +706,7 @@ RPG.CharacterSlots = {
 	connectTo : 'Waist',
 	partOf : 'Waist',
 	row : 9,
-	col : 8
+	col : 2
     },
     /**
      * Waist
@@ -722,7 +722,7 @@ RPG.CharacterSlots = {
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 9,
-	col : 9
+	col : 3
     },
 
     /*

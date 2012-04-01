@@ -378,6 +378,17 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    }
 				}));
 			}
+			if (rand.random() <= 0.025) {
+			    RPG.pushTile(house.tiles, point,
+				RPG.createTile(['world','earth','container'],house.cache,{
+				    property : {
+					tileName : point.join(''),
+					folderName : options.properties.name
+				    },
+				    lockable : RPG.optionCreator.random(RPG.Tiles.world.earth.container.options.lockable,rand)
+
+				}));
+			}
 			if (rand.random() <= 0.05) {
 			    RPG.pushTile(house.tiles, point,
 				RPG.createTile(['npc','earth','animal'],house.cache,{

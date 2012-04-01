@@ -60,17 +60,21 @@ RPG.Character = new (RPG.CharacterClass = new Class({
     create : function(options,callback) {
 	options.character = typeOf(options.character) == 'string'?JSON.decode(options.character):typeOf(options.character) == 'object'?options.character:{};
 
-	//set stuff the user isn't allowed to set
-	options.character.hp = {
-	    max : RPG.calcMaxHP(options.character),
-	    cur : RPG.calcMaxHP(options.character)
-	};
-	options.character.mana = {
-	    max : RPG.calcMaxMana(options.character),
-	    cur : RPG.calcMaxMana(options.character)
-	};
+	//set stuff the user isn't allowed to set. calculated later.
 	options.character.level = 1;
 	options.character.xp = 0;
+	options.character.hp = {
+	    max : 1,
+	    cur : 1
+	};
+	options.character.mana = {
+	    max : 1,
+	    cur : 1
+	};
+	options.character.lives = {
+	    max : 1,
+	    cur : 1
+	};
 
 	//validate the incoming character
 	var errors = [];
@@ -80,6 +84,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	var base = 0;
 	var val = null;
 	var min = null;
+
 	options.character.Stats && Object.each(RPG.Stats, function(stats,name){
 	    val = Number.from(options.character.Stats[name].value);
 	    min =RPG.applyModifiers(options.character,stats.value,'Character.Stats.start.'+name);
@@ -91,6 +96,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		errors.push(name + ' for a ' + options.character.Class + ' is a <b>minimum of ' + min+'</b>')
 	    }
 	}.bind(this));
+
 	var distributable = RPG.applyModifiers(options.character,0,'Character.Stats.distribute');
 	if ((total - base) != distributable) {
 	    errors.push('Please distribute the <b>' + (distributable - (total - base)) +'</b> remainig stat(s)');
@@ -103,6 +109,19 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    });
 	    return;
 	}
+
+	options.character.hp = {
+	    max : RPG.calcMaxHP(options.character),
+	    cur : RPG.calcMaxHP(options.character)
+	};
+	options.character.mana = {
+	    max : RPG.calcMaxMana(options.character),
+	    cur : RPG.calcMaxMana(options.character)
+	};
+	options.character.lives = {
+	    max : RPG.applyModifiers(options.character,0,'Character.lives'),//Infinity values are JSON encoded as null. be aware
+	    cur : RPG.applyModifiers(options.character,0,'Character.lives') //Infinity values are JSON encoded as null. be aware
+	};
 
 	this.checkDupeName(options,function(dupeName) {
 	    if (dupeName) {
@@ -161,9 +180,9 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+db.characterID,Object.merge(options.character,{
 				database : {
 				    characterID : db.characterID
-//				    ,
-//				    updated : Date('now'),
-//				    created : db.created
+				//				    ,
+				//				    updated : Date('now'),
+				//				    created : db.created
 				}
 			    })));
 			    db = null;
@@ -202,9 +221,9 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+info.insertId,Object.merge(options.character,{
 				database : {
 				    characterID : info.insertId
-//				    ,
-//				    updated : Date('now'),
-//				    created : Date('now')
+				//				    ,
+				//				    updated : Date('now'),
+				//				    created : Date('now')
 				}
 			    })));
 			} else {
@@ -236,7 +255,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    options.user.options.userID
 	    ],
 	    function(err,results) {
-		RPG.Log('database hit','Loading Character List: '+options.user.options.userID);
+		//RPG.Log('database hit','Loading Character List: '+options.user.options.userID);
 		if (err) {
 		    callback({
 			error : err
@@ -307,7 +326,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    options.characterID
 	    ],
 	    function(err,results) {
-		RPG.Log('database hit','Loading Character: '+options.characterID);
+		//RPG.Log('database hit','Loading Character: '+options.characterID);
 		if (err) {
 		    callback({
 			error : err
@@ -366,7 +385,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			    success : true,
 			    characterID : options.characterID
 			});
-			RPG.Log('delete','Character Deleted: '+options.characterID);
+			//RPG.Log('delete','Character Deleted: '+options.characterID);
 			require('../Cache.njs').Cache.remove(options.user.options.userID,'character_'+options.characterID);
 
 		    } else {
@@ -377,29 +396,5 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		}
 	    }.bind(this)
 	    );
-    },
-
-
-    /**
-     * required options:
-     * character
-     */
-    calcSightRadius : function(options, callback) {
-	callback(5);
-    },
-
-    /**
-     * baseXP the amount to modify
-     *
-     * required options
-     * game
-     *
-     * callback(xp || 0)
-     */
-    calcXP : function(baseXP, options,callback) {
-	var modifier = RPG.applyModifiers(options.game.character,1,'Character.xp.modifier');
-	callback(baseXP * (modifier || 1));
     }
-
-
 }))();

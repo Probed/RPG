@@ -71,7 +71,7 @@ RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
 		    var baseXP = RPG.Disarm.calcXP(options);
 
 		    //apply XP modifiers
-		    RPG.Character.calcXP(baseXP,options,function(xp){
+		    RPG.calcXP(baseXP,options,function(xp){
 			options.game.character.xp += xp;
 
 			//save the characters xp

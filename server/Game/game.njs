@@ -6,7 +6,7 @@ Object.merge(RPG,
 
 RPG.Game = new (RPG.GameClass = new Class({
     Implements : [Events,Options],
-    routeAccepts : ['PlayCharacter','MoveCharacter'],
+    routeAccepts : ['PlayCharacter','MoveCharacter','ActivateTile'],
 
     require : {
 	css : [
@@ -58,6 +58,13 @@ RPG.Game = new (RPG.GameClass = new Class({
 		}
 		switch (true) {
 		    //process game commands:
+
+		    /**
+		     * Move a Character from One Tile to another.
+		     *
+		     * Casues a 'tick' and 'tickComplete' event upon successful move
+		     *
+		     */
 		    case request.url.query.m == 'MoveCharacter' :
 			game.dir = request.url.query.dir;
 			game.clientEvents = JSON.decode(request.data,true);
@@ -68,6 +75,20 @@ RPG.Game = new (RPG.GameClass = new Class({
 			    }
 			    require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
 			    response.onRequestComplete(response,changes);
+			});
+			break;
+
+		    /**
+		     * Activate the tile the character is currently on
+		     *
+		     */
+		    case request.url.query.m == 'ActivateTile' :
+			game.clientEvents = JSON.decode(request.data,true);
+
+			game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
+
+			RPG.activateTile(game, function(events){
+			    response.onRequestComplete(response,events);
 			});
 			break;
 
@@ -132,6 +153,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	//before changes
 	var beforeCharacter = Object.clone(options.character);
+	var beforeUniOptions = Object.clone(options.universe.options);
 
 	RPG.moveCharacterToTile(options,function(moveEvents) {
 	    if (moveEvents.error) {
@@ -145,10 +167,16 @@ RPG.Game = new (RPG.GameClass = new Class({
 		Object.erase(options,'mapOrTileset');
 		Object.erase(options,'universeID');
 		Object.merge(options.universe,universe);
-		Object.erase(universe,options);
+
+		//remove universe/map options to reduce amount sent back to client
+		//@todo make Object.diff-able incase things changed
 		Object.each(universe.maps,function(map){
-		    Object.erase(map,options);
+		    Object.erase(map,'options');
 		});
+
+		//only send back the difference in options:
+		universe.options = Object.diff(beforeUniOptions,options.universe.options);
+
 		callback({
 		    game : {
 			universe : universe,//only send back the new stuff
@@ -157,6 +185,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    events : Object.cleanEmpty(moveEvents)
 		});
 		beforeCharacter = null;
+		beforeUniOptions = null;
 	    });
 	});
     },

@@ -110,7 +110,7 @@ Object.extend({
 		    //default (number/string/boolean)
 		    default :
 			if (v != u) {
-			    RPG.Log('default',k + ' - ' + v + ' == '+ u);
+			    //RPG.Log('default',k + ' - ' + v + ' == '+ u);
 			    path.pop();
 			    Object.pathToObject(diff,path).child[k] = u;
 			    path.push(k);

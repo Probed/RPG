@@ -150,7 +150,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    db[options.mapOrTileset+'ID'],
 			    ],
 			    function(err,info) {
-				RPG.Log('database delete',options.mapOrTileset+' "'+ mapName +'" #'+db[options.mapOrTileset+'ID']+' deleted ');
+				//RPG.Log('database delete',options.mapOrTileset+' "'+ mapName +'" #'+db[options.mapOrTileset+'ID']+' deleted ');
 				if (err) {
 				    options.errors.push(err);
 				} else {
@@ -179,7 +179,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    db[options.mapOrTileset+'ID'],
 			    ].clean(),
 			    function(err,info) {
-				RPG.Log('database update',options.mapOrTileset+' "'+ mapName +'" #'+db[options.mapOrTileset+'ID']+' updated.');
+				//RPG.Log('database update',options.mapOrTileset+' "'+ mapName +'" #'+db[options.mapOrTileset+'ID']+' updated.');
 				if (err) {
 				    options.errors.push(err);
 				} else {
@@ -366,7 +366,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    db[options.mapOrTileset+'CacheID']
 			    ],
 			    function(err,info) {
-				RPG.Log('database delete','"'+options.map.options.property.mapName+'" cache "'+ path +'" id:'+db[options.mapOrTileset+'CacheID']+' deleted.');
+				//RPG.Log('database delete','"'+options.map.options.property.mapName+'" cache "'+ path +'" id:'+db[options.mapOrTileset+'CacheID']+' deleted.');
 				if (err) {
 				    options.errors.push(err);
 				} else {
@@ -440,7 +440,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    db[options.mapOrTileset+'CacheID']
 			    ],
 			    function(err,info) {
-				RPG.Log('database update','"'+options.map.options.property.mapName+'" cache "'+ path +'" #'+db[options.mapOrTileset+'CacheID']+' updated.');
+				//RPG.Log('database update','"'+options.map.options.property.mapName+'" cache "'+ path +'" #'+db[options.mapOrTileset+'CacheID']+' updated.');
 				if (err) {
 				    RPG.Log('error',err)
 				    options.errors.push(err);

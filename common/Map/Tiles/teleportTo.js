@@ -32,7 +32,7 @@ if (typeof exports != 'undefined') {
 //    callback();
 //}
 
-RPG.Tiles.teleportTo.onBeforeEnter = function(options,callback) {
+RPG.Tiles.teleportTo.activate = RPG.Tiles.teleportTo.onBeforeEnter = function(options,callback) {
 
     if (options.contents.warn && typeof exports == 'undefined') {
 	//client side
@@ -48,7 +48,7 @@ RPG.Tiles.teleportTo.onBeforeEnter = function(options,callback) {
 	    },
 	    no : function() {
 		callback({
-		    error:'teleportTo canceled.'
+		    teleportTo:'Canceled'
 		});
 	    }
 	})
@@ -61,16 +61,22 @@ RPG.Tiles.teleportTo.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 
+RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(options,callback) {
+    if (typeof exports != 'undefined') {
 
-    if (!options.contents.mapName && options.contents.generator) {
+	if (options.game.clientEvents && ((options.game.clientEvents.activate && options.game.clientEvents.activate.teleportTo == 'Canceled') || (options.game.clientEvents.onBeforeEnter && options.game.clientEvents.onBeforeEnter.teleportTo == 'Canceled'))) {
+	    //client canceled.
+	    callback();
+	    return;
+	}
 
-	if (typeof exports != 'undefined') {
-	    //Server-Side:
+	//Server-Side:
+	if (!options.contents.mapName && options.contents.generator) {
+
 	    /**
-		     * Generate the map
-		     */
+	     * Generate the map
+	     */
 	    var newUniverse = {
 		options : options.game.universe.options
 	    };
@@ -88,8 +94,8 @@ RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 		var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 		newUniverse.options.settings.activeMap = mapName;
 		/**
-			 * Update the new map start points to teleport back to where they came from
-			 */
+		 * Update the new map start points to teleport back to where they came from
+		 */
 		random.generated.possibleStartLocations.each(function(loc){
 		    //at each start location in the new universe
 		    //find or create a tile with teleportTo properties and update it to point to the current map
@@ -154,12 +160,12 @@ RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 		    }
 		});
 
+
 		//console.log(newUniverse.maps[options.game.character.location.mapName]);
 		//we do not want this placed in cache yet otherwise the getViewableTiles method returns nothing
 		var storeoptions = {
 		    user : options.game.user,
 		    universe : newUniverse,
-		    character : options.game.character,
 		    bypassCache : true
 		};
 
@@ -169,38 +175,60 @@ RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 			return;
 		    }
 
-		    options.game.character.location = Object.merge(options.game.character.location,{
-			universeID : universe.options.database.universeID,
-			mapID : universe.maps[mapName].options.database.mapID,
-			mapName : mapName,
-			point : charStartPoint
-		    });
+		    var updateCharacter = Object.clone(options.game.character);
+		    var charDiff = {
+			location : {
+			    universeID : universe.options.database.universeID,
+			    mapID : universe.maps[mapName].options.database.mapID,
+			    mapName : mapName,
+			    point : charStartPoint
+			}
+		    };
+		    updateCharacter = Object.merge(updateCharacter,charDiff);
+
+		    storeoptions.character = updateCharacter;
 
 		    RPG.Character.store(storeoptions,function(character) {
 			if (character.error) {
 			    callback(character);
 			    return;
 			}
-			callback({
-			    traverse : false,
-			    teleportTo : Object.clone(character.location)
-			});
+
+			options.game.character = updateCharacter;
+
+			if (options.event == 'activateComplete') {
+			    RPG.Tile.getViewableTiles(Object.merge({
+				bypassCache : true
+			    },options.game), function(viewableUniverse) {
+				viewableUniverse.options = {
+				    settings : {
+					activateMap : options.contents.mapName
+				    }
+				};
+				Object.merge(options.game.universe,viewableUniverse);
+				callback({
+				    game : {
+					universe : viewableUniverse,
+					character : charDiff
+				    },
+				    events : options.events
+				});
+			    });
+			} else {
+			    callback({
+				traverse : false,
+				teleportTo : Object.clone(character.location)
+			    });
+			}
 		    });
 		});
 	    });
 
-	} else {
-	    //Client-Side:
 
-	    callback();
-	}
-
-    } else if (options.contents.mapName) {
-	//Handle teleportation requests to existing maps
-	//Server-Side:
-	if (typeof exports != 'undefined') {
-
-	    //verify the map exists:
+	} else if (options.contents.mapName) {
+	    //Handle teleportation requests to existing maps
+	    //Server-Side:
+	    //load the map :
 	    RPG.Universe.load({
 		user : options.game.user,
 		mapName : options.contents.mapName,
@@ -214,11 +242,14 @@ RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 		}
 
 		var updateCharacter = Object.clone(options.game.character);
-		updateCharacter.location = Object.merge(updateCharacter.location,{
-		    mapID : universe.maps[options.contents.mapName].options.database.mapID,
-		    mapName : options.contents.mapName,
-		    point : options.contents.point
-		});
+		var charDiff = {
+		    location : {
+			mapID : universe.maps[options.contents.mapName].options.database.mapID,
+			mapName : options.contents.mapName,
+			point : options.contents.point
+		    }
+		};
+		updateCharacter = Object.merge(updateCharacter,charDiff);
 		var updateUniverse = {
 		    options : Object.clone(universe.options)
 		};
@@ -234,6 +265,12 @@ RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 			callback(universe);
 			return;
 		    }
+		    //remove all but wha we want to send back to the client
+		    universe.options = {
+			settings : {
+			    activateMap : options.contents.mapName
+			}
+		    };
 
 		    RPG.Character.store(storeoptions,function(character) {
 			if (character.error) {
@@ -241,20 +278,69 @@ RPG.Tiles.teleportTo.onEnter = function(options,callback) {
 			    return;
 			}
 
-			options.game.character = character;
-			callback({
-			    traverse : false,
-			    teleportTo : Object.clone(character.location)
-			});
+			options.game.character = updateCharacter;
+
+			if (options.event == 'activateComplete') {
+			    RPG.Tile.getViewableTiles(Object.merge({
+				bypassCache : true
+			    },options.game), function(viewableUniverse) {
+				viewableUniverse.options = {
+				    settings : {
+					activateMap : options.contents.mapName
+				    }
+				};
+				Object.merge(options.game.universe,viewableUniverse);
+				callback({
+				    game : {
+					universe : viewableUniverse,
+					character : charDiff
+				    },
+				    events : options.events
+				});
+			    });
+			} else {
+			    callback({
+				traverse : false,
+				teleportTo : Object.clone(character.location)
+			    });
+			}
 		    });//end save character
 		});//end save universe
 	    });//end load map
+	}
 
-	}else {
-	    //Client-Side
+    } else {
+	//Client Side:
+	if (options.events && ((options.events.activate && options.events.activate.teleportTo == 'Canceled') || (options.events.onBeforeEnter && options.events.onBeforeEnter.teleportTo == 'Canceled'))) {
+	    callback();
+	    return;
+	}
+
+	//only send back to server when 'activated'. (onEnter is sent back with traverse)
+	if (options.event == 'activateComplete' && options.events.activate && !options.events.activate.error) {
+
+	    new Request.JSON({
+		url : '/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+options.game.character.database.characterID+'',
+		onFailure : function(results) {
+		    RPG.Error.notify(results);
+		    if (results.responseText) {
+			var resp = JSON.decode(results.responseText,true);
+			if (resp.game) {
+			    Object.merge(options.game,resp.game);
+			}
+		    }
+		    callback();
+		},
+		onSuccess : function(results) {
+		    results.game && Object.merge(options.game,results.game);
+		    callback({
+			activate : results.events
+		    });
+		}
+	    }).post(JSON.encode(options.events));//send the results of the clientside events to the server for validation
+
+	} else {
 	    callback();
 	}
-    } else {
-	callback();
     }
 }

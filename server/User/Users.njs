@@ -32,7 +32,8 @@ RPG.Users = new (RPG.UsersClass = new Class({
 		up : 'Up',
 		down : 'Down',
 		left : 'Left',
-		right : 'Right'
+		right : 'Right',
+		activate : 'numKey+0'
 	    }
 	},
 	cookieOptions : {
@@ -99,14 +100,14 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			if (results && results[0]) {
 			    user.isLoggedIn = true;
 			    this.populateUser(results[0],user);
-			    RPG.Log('lookup','User Found: '+JSON.encode(user));
+			    //RPG.Log('lookup','User Found: '+JSON.encode(user));
 			    onComplete(user);
 			} else {
-			    RPG.Log('lookup','User Not Found: '+apiKey);
+			    //RPG.Log('lookup','User Not Found: '+apiKey);
 			    onComplete(user);
 			}
 		    } else {
-			RPG.Log('lookup error','User Error: '+JSON.encode(user));
+			//RPG.Log('lookup error','User Error: '+JSON.encode(user));
 			onComplete(user);
 		    }
 		}.bind(this)
@@ -742,11 +743,18 @@ RPG.Users = new (RPG.UsersClass = new Class({
      */
     getApplicationOptions : function(user) {
 	var opts = {
-	    user : {}
+	    user : {
+		settings : Object.clone(this.options.defaultSettings)
+	    }
 	};
 	['userID','name','email','created','updated','lastLogin','settings'].each(function(col){
 	    if (user.options[col]){
-		opts.user[col] = user.options[col];
+
+		if (opts.user[col]) {
+		    Object.merge(opts.user[col],user.options[col]);
+		} else {
+		    opts.user[col] = user.options[col];
+		}
 	    }
 	});
 

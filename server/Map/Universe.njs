@@ -153,7 +153,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    options.user.options.userID
 		    ],
 		    function(err,info) {
-			RPG.Log('database hit','Updated Universe: '+options.universe.options.property.universeName+' (#' +db.universeID+')');
+			//RPG.Log('database hit','Updated Universe: '+options.universe.options.property.universeName+' (#' +db.universeID+')');
 			if (err) {
 			    options.user.storingUniverse = false;
 			    callback({
@@ -201,7 +201,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    options.user.options.userID
 		    ],
 		    function(err,info) {
-			RPG.Log('database hit','Inserted Universe: '+options.universe.options.property.universeName+' (#'+info.insertId+')');
+			//RPG.Log('database hit','Inserted Universe: '+options.universe.options.property.universeName+' (#'+info.insertId+')');
 			if (err) {
 			    options.user.storingUniverse = false;
 			    callback({
@@ -273,7 +273,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	    Number.from(uID)//ignore universeID for updates
 	    ],
 	    function(err,results) {
-		RPG.Log('database hit','Universe.checkDupeName '+uName);
+		//RPG.Log('database hit','Universe.checkDupeName '+uName);
 		if (err) {
 		    callback({
 			error : err

@@ -30,11 +30,12 @@ if (typeof exports != 'undefined') {
 //    callback();
 //}
 
-RPG.Tiles['switch'].onBeforeEnter = function(options,callback) {
+RPG.Tiles['switch'].activate = function(options,callback) {
     var paths = null;
+    var idx = 0;
     if (typeof exports == 'undefined') {
 	//client
-	if (!options.contents.auto) {
+	if (options.contents.auto) {
 	    RPG.Switch.show(options,{
 		success : function(state){
 		    callback(state);
@@ -44,15 +45,22 @@ RPG.Tiles['switch'].onBeforeEnter = function(options,callback) {
 		}
 	    });
 	} else {
-	    callback();
+	    //automaically cycle through the states
+	    idx = Object.keys(options.contents.states).indexOf(options.contents.state);
+	    state = Object.keys(options.contents.states)[idx+1] || Object.keys(options.contents.states)[0];
+	    callback({
+		'switch' : {
+		    state : state
+		}
+	    });
 	}
 
     } else {
 	//server
-	var state = options.game.clientEvents.onBeforeEnter['switch'] && options.game.clientEvents.onBeforeEnter['switch'].state;
-	if (options.contents.auto) {
+	var state = options.game.clientEvents.activate['switch'] && options.game.clientEvents.activate['switch'].state;
+	if (!options.contents.auto) {
 	    //automaically cycle through the states
-	    var idx = Object.keys(options.contents.states).indexOf(options.contents.state);
+	    idx = Object.keys(options.contents.states).indexOf(options.contents.state);
 	    state = Object.keys(options.contents.states)[idx+1] || Object.keys(options.contents.states)[0];
 	}
 
@@ -97,7 +105,7 @@ RPG.Tiles['switch'].onBeforeEnter = function(options,callback) {
 		    });
 		    return;
 		}
-		//finally callback with the paths so that 'onEnter' can use the list to remove tiles from the cache
+		//finally callback with the paths so that 'activateComplete' can use the list to remove tiles from the cache
 		callback({
 		    switchPaths : paths
 		});
@@ -111,17 +119,17 @@ RPG.Tiles['switch'].onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles['switch'].onEnter = function(options,callback) {
+RPG.Tiles['switch'].activateComplete = function(options,callback) {
 
-    //server
-    if (typeof exports != 'undefined' && options.events.onBeforeEnter.switchPaths) {
+    if (typeof exports != 'undefined' && options.events.activate.switchPaths) {
+	//server-side
 
-	//remove the tile from the current Universe so it will get reloaded from the database
+	//remove the tile from the current cached Universe so it will get reloaded from the database
 	//and the client should receive any switched ones
-	paths = [];
+	var paths = [];
 
 	//find and remove all tiles of the specified path
-	options.events.onBeforeEnter.switchPaths.each(function(path){
+	options.events.activate.switchPaths.each(function(path){
 	    path = JSON.decode(path);
 	    paths.push(path);
 	    var tiles = options.game.universe.maps[options.game.character.location.mapName].tiles;
@@ -132,9 +140,43 @@ RPG.Tiles['switch'].onEnter = function(options,callback) {
 	    });
 	});
 	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache,paths);
-	Object.erase(options.events.onBeforeEnter,'switchPaths');
+	Object.erase(options.events.activate,'switchPaths');
+	RPG.Tile.getViewableTiles(options.game, function(viewableUniverse) {
+	    Object.erase(viewableUniverse,'options');
+	    Object.merge(options.game.universe,viewableUniverse);
+	    callback({
+		game : {
+		    universe : viewableUniverse
+		},
+		events : options.events
+	    });
+	});
+    } else if (typeof exports == 'undefined' && options.events.activate['switch']) {
+
+	//client side
+	new Request.JSON({
+	    url : '/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+options.game.character.database.characterID+'',
+	    onFailure : function(results) {
+		RPG.Error.notify(results);
+		if (results.responseText) {
+		    var resp = JSON.decode(results.responseText,true);
+		    if (resp.game) {
+			Object.merge(options.game,resp.game);
+		    }
+		}
+		callback();
+	    },
+	    onSuccess : function(results) {
+		results.game && Object.merge(options.game,results.game);
+		callback({
+		    activate : results.events
+		});
+	    }
+	}).post(JSON.encode(options.events));//send the results of the clientside events to the server for validation
+
+    } else {
+	callback();
     }
-    callback();
 }
 
 /**

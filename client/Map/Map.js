@@ -4,7 +4,7 @@ RPG.Map = new Class({
 
     rowOffset : 0,
     colOffset : 0,
-    mapZoom : 32,
+    mapZoom : 48,
 
     rows : 1,
     cols : 1,
@@ -22,7 +22,7 @@ RPG.Map = new Class({
 		overflow : 'none'
 	    },
 	    events : {
-		'mousewheel:relay(td.M_tileHolder)' : function(event) {
+		'mousewheel:relay(.M_tileHolder)' : function(event) {
 		    this.paintingRows = false;
 		    this.paintingColumns = false;
 		    this.paintingTiles = false;
@@ -35,7 +35,7 @@ RPG.Map = new Class({
 		    }
 		    event.preventDefault();
 		}.bind(this),
-		'mousedown:relay(td.M_tileHolder)' : function(event) {
+		'mousedown:relay(.M_tileHolder)' : function(event) {
 		    this.draggingMap = true;
 		    this.dragMapStart = {
 			x : event.event.pageX,
@@ -43,7 +43,7 @@ RPG.Map = new Class({
 		    };
 		    event.preventDefault();
 		}.bind(this),
-		'mouseup:relay(td.M_tileHolder)' : function(event) {
+		'mouseup:relay(.M_tileHolder)' : function(event) {
 		    event.preventDefault();
 		//drag mouse up handled below in document events
 		}.bind(this)
@@ -118,27 +118,40 @@ RPG.Map = new Class({
 	}.bind(this));
 
 
-	var kEvents = {};
-	kEvents[RPG.AppUser.options.settings.keyboard.up] = function(event) {
+	var keyEvents = {};
+
+	//Move North
+	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.up] = function(event) {
 	    this.moveCharacter('n',1);
 	    event.preventDefault();
 	}.bind(this);
-	kEvents[RPG.AppUser.options.settings.keyboard.down] = function(event) {
+
+	//Move South
+	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.down] = function(event) {
 	    this.moveCharacter('s',1);
 	    event.preventDefault();
 	}.bind(this);
-	kEvents[RPG.AppUser.options.settings.keyboard.left] = function(event) {
+
+	//Move West
+	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.left] = function(event) {
 	    this.moveCharacter('w',1);
 	    event.preventDefault();
 	}.bind(this);
-	kEvents[RPG.AppUser.options.settings.keyboard.right] = function(event) {
+
+	//Move East
+	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.right] = function(event) {
 	    this.moveCharacter('e',1);
 	    event.preventDefault();
 	}.bind(this);
 
-	this.keyboardEvents = new Keyboard({
-	    defaultEventType: 'keyup',
-	    events: kEvents
+	//Activate
+	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.activate] = function(event) {
+	    this.activateTile();
+	    event.preventDefault();
+	}.bind(this);
+
+	this.keyUpEvents = new Keyboard({
+	    events: keyEvents
 	}).activate();
 
 	this.refreshMap();
@@ -148,10 +161,10 @@ RPG.Map = new Class({
     },
 
     calcCols : function() {
-	return Math.floor(($('pnlMainContent').getSize().x) / this.mapZoom)+2;
+	return Math.floor(($('pnlMainContent').getSize().x) / this.mapZoom);
     },
     calcRows : function() {
-	return Math.floor(($('pnlMainContent').getSize().y) / this.mapZoom)+2;
+	return Math.floor(($('pnlMainContent').getSize().y) / this.mapZoom);
     },
 
     refreshCanvas : function() {
@@ -209,7 +222,6 @@ RPG.Map = new Class({
     },
 
     refreshMap : function() {
-	//return this.refreshCanvas();
 
 	if (this.refreshingMap) return;
 	this.refreshingMap = true;
@@ -234,8 +246,8 @@ RPG.Map = new Class({
 	if (newCols == this.cols && newRows == this.rows) {
 
 	    if (!this.draggingMap) {
-		this.rowOffset = this.options.character.location.point[0] - Math.ceil(this.rows/2);
-		this.colOffset = this.options.character.location.point[1] - Math.ceil(this.cols/2);
+		this.rowOffset = this.options.character.location.point[0] - Math.floor(this.rows/2);
+		this.colOffset = this.options.character.location.point[1] - Math.floor(this.cols/2);
 	    }
 
 	    var tileHolders = $$('#GameMap td.M_tileHolder');
@@ -300,8 +312,8 @@ RPG.Map = new Class({
 	    this.rows = newRows;
 	}
 
-	this.rowOffset = this.options.character.location.point[0] - Math.ceil(this.rows/2);
-	this.colOffset = this.options.character.location.point[1] - Math.ceil(this.cols/2);
+	this.rowOffset = this.options.character.location.point[0] - Math.floor(this.rows/2);
+	this.colOffset = this.options.character.location.point[1] - Math.floor(this.cols/2);
 
 	if (this.mapTable) {
 	    $(this.mapTable).getElements('div').destroy();
@@ -400,28 +412,48 @@ RPG.Map = new Class({
 
     moveCharacter : function(dir,amount) {
 	if (this.characterMoving) return;
-	var i = 0;
-	for(i=0;i<amount;i++) {
 
-	    var options = {
-		universe : this.options.universe,
-		character : this.options.character,
-		moveTo : RPG[dir](this.options.character.location.point,1),
-		dir : dir
-	    };
+	var options = {
+	    universe : this.options.universe,
+	    character : this.options.character,
+	    moveTo : RPG[dir](this.options.character.location.point,1),
+	    dir : dir
+	};
 
-	    this.characterMoving = true;
-	    RPG.moveCharacterToTile(options, function(moveEvents){
-		if (moveEvents.error) {
-		    RPG.Error.notify(moveEvents.error);
-		    this.characterMoving = false;
-		    return;
-		} else {
-		    this.options.Character.changeDirection(dir);
-		    this.refreshMap();
-		    this.characterMoving = false;
-		}
-	    }.bind(this));
-	}
+	this.characterMoving = true;
+	RPG.moveCharacterToTile(options, function(moveEvents){
+	    if (moveEvents.error) {
+		RPG.Error.notify(moveEvents.error);
+		this.characterMoving = false;
+		return;
+	    } else {
+		this.options.Character.changeDirection(dir);
+		this.refreshMap();
+		this.characterMoving = false;
+	    }
+	}.bind(this));
+    },
+
+    activateTile : function() {
+	if (this.tileActivating) return;
+
+	var options = {
+	    universe : this.options.universe,
+	    character : this.options.character,
+	    moveTo : this.options.character.location.point
+	};
+
+	this.tileActivating = true;
+	RPG.activateTile(options, function(activateEvents){
+	    if (activateEvents.error) {
+		RPG.Error.notify(activateEvents.error);
+		this.tileActivating = false;
+		return;
+	    } else {
+		this.refreshMap();
+		this.tileActivating = false;
+	    }
+	}.bind(this));
+
     }
 });

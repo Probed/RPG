@@ -289,7 +289,6 @@ RPG.character_options = {
     Race : Object.keys(RPG.Race),
     Class : Object.keys(RPG.Class),
     Stats : Object.clone(RPG.Stats),
-    lives : Infinity,
     level : 1,
     xp : 1,
     hp : {
@@ -299,6 +298,10 @@ RPG.character_options = {
     mana : {
 	max : 1,
 	cur : 1
+    },
+    lives : {
+	max : Infinity,
+	cur : Infinity
     }
 }
 
@@ -370,4 +373,25 @@ RPG.calcMaxHP = function(character) {
 RPG.calcMaxMana = function(character) {
     var mana = RPG.applyModifiers(character,1,'Character.mana.max');
     return Math.ceil((Number.from(character.Stats.Intelligence.value) * Number.from(character.level)) * (mana || 1));
+}
+
+
+/**
+ * Calculate a Charactes Sight Radius
+ */
+RPG.calcSightRadius = function(character) {
+    return 5;
+},
+
+/**
+ * baseXP the amount to modify
+ *
+ * required options
+ * game
+ *
+ * callback(xp || 0)
+ */
+RPG.calcXP = function(baseXP, options,callback) {
+    var modifier = RPG.applyModifiers(options.game.character,1,'Character.xp.modifier');
+    callback(Math.floor(baseXP * (modifier || 1)));
 }

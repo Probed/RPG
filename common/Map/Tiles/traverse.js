@@ -61,9 +61,9 @@ RPG.Tiles.traverse.onEnter = function(options,callback) {
 	    new Request.JSON({
 		url : '/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+options.game.character.database.characterID+'&dir='+options.game.dir,
 		onFailure : function(results) {
-		    RPG.Error.notify(results);
+		    RPG.Error.notify('Unable to move to that tile.');
 		    if (results.responseText) {
-			var resp = JSON.decode(results.responseText);
+			var resp = JSON.decode(results.responseText,true);
 			if (resp.game) {
 			    Object.merge(options.game,resp.game);
 			}

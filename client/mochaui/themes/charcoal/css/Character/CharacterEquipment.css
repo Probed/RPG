@@ -9,8 +9,8 @@
 }
 
 .GrowthSlot {
-    width : 31px;
-    height : 31px;
+    width : 24px;
+    height : 24px;
     cursor : pointer;
     -moz-border-radius: 10px;
     border-radius: 10px;
@@ -57,12 +57,12 @@
     border-radius: 10px;
 }
 .ItemEmpty {
-    width : 32px;
-    height : 32px;
+    width : 24px;
+    height : 24px;
 }
 .ItemSlot {
-    width : 31px;
-    height : 31px;
+    width : 24px;
+    height : 24px;
     cursor : pointer;
     -moz-border-radius: 10px;
     border-radius: 10px;

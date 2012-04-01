@@ -71,7 +71,7 @@ RPG.TileType.Property = function(options) {
 RPG.TileType.Teleport = function(options) {
     return {
 	teleportTo : Object.merge({
-	    warn : [false],
+	    warn : [true],
 	    mapName : [],
 	    generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators)),
 	    point : []
@@ -235,9 +235,25 @@ RPG.TileType.Roam = function(options) {
 	roam : Object.merge({
 	    can : [true],
 	    home : '',//spawn point
-	    radius : [0,256,0],//how far can they go
-	    distance : [0,256,0] //how far have they gone
+	    radius : [0,15,0]//how far can they go
 	}
 	,options||{})
     };
+}
+
+
+/**
+ * Lockable Container
+ *
+ * Allows the tile to move around
+ */
+RPG.TileType.Container = function(options) {
+    return Object.merge(
+	RPG.TileType.Lockable(),
+	{
+	    container : {
+		items : []
+	    }
+	},
+	options||{});
 }
