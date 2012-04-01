@@ -41,7 +41,9 @@ RPG.Tiles['switch'].activate = function(options,callback) {
 		    callback(state);
 		},
 		fail : function() {
-		    callback();
+		    callback({
+			error : 'Canceled'
+		    });
 		}
 	    });
 	} else {
@@ -141,38 +143,7 @@ RPG.Tiles['switch'].activateComplete = function(options,callback) {
 	});
 	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache,paths);
 	Object.erase(options.events.activate,'switchPaths');
-	RPG.Tile.getViewableTiles(options.game, function(viewableUniverse) {
-	    Object.erase(viewableUniverse,'options');
-	    Object.merge(options.game.universe,viewableUniverse);
-	    callback({
-		game : {
-		    universe : viewableUniverse
-		},
-		events : options.events
-	    });
-	});
-    } else if (typeof exports == 'undefined' && options.events.activate['switch']) {
-
-	//client side
-	new Request.JSON({
-	    url : '/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+options.game.character.database.characterID+'',
-	    onFailure : function(results) {
-		RPG.Error.notify(results);
-		if (results.responseText) {
-		    var resp = JSON.decode(results.responseText,true);
-		    if (resp.game) {
-			Object.merge(options.game,resp.game);
-		    }
-		}
-		callback();
-	    },
-	    onSuccess : function(results) {
-		results.game && Object.merge(options.game,results.game);
-		callback({
-		    activate : results.events
-		});
-	    }
-	}).post(JSON.encode(options.events));//send the results of the clientside events to the server for validation
+	callback();
 
     } else {
 	callback();

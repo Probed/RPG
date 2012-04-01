@@ -12,15 +12,15 @@
     width : 24px;
     height : 24px;
     cursor : pointer;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
+/*    -moz-border-radius: 10px;
+    border-radius: 10px;*/
     display : inline-block;
 }
 .GrowthSlot-empty {
     border-color : #8e8b31;
-    -moz-box-shadow: 0 0 1px 1px #8e8b31;
+/*    -moz-box-shadow: 0 0 1px 1px #8e8b31;
     -webkit-box-shadow: 0 0 1px 1px #8e8b31;
-    box-shadow: 0 0 1px 1px #8e8b31;
+    box-shadow: 0 0 1px 1px #8e8b31;*/
     cursor : auto;
 }
 .GrowthSlot-hover {
@@ -50,9 +50,9 @@
 .ItemSlotTipDesc {
     margin: 5px 10px 5px 10px;
     padding: 5px 10px 5px 10px;
-    -moz-box-shadow: 0 0 2px 2px white;
+/*    -moz-box-shadow: 0 0 2px 2px white;
     -webkit-box-shadow: 0 0 2px 2px white;
-    box-shadow: 0 0 2px 2px white;
+    box-shadow: 0 0 2px 2px white;*/
     -moz-border-radius: 10px;
     border-radius: 10px;
 }
@@ -72,10 +72,10 @@
     line-height: 32px;
 }
 .ItemSlot-empty {
-    border-color : #000000;
+/*    border-color : #000000;
     -moz-box-shadow: 0 0 1px 1px #000000;
     -webkit-box-shadow: 0 0 1px 1px #000000;
-    box-shadow: 0 0 1px 1px #000000;
+    box-shadow: 0 0 1px 1px #000000;*/
     cursor : auto;
 }
 .ItemSlot-hover {

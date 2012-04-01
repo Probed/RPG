@@ -251,7 +251,10 @@ RPG.activateTile = function(options,callback) {
 		callback(activateCompleteResults);
 		return;
 	    }
-	    callback(activateCompleteResults);
+	    Object.merge(activateEvents,{
+		activateComplete : activateCompleteResults
+	    });
+	    callback(activateEvents);
 	});
     });
 }

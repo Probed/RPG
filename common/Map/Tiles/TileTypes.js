@@ -114,23 +114,18 @@ RPG.TileType.Traversable = function(options) {
  * lockable Tile:
  *
  * These are tiles that can locked/unlocked
- * locked tiles prevent a character from entering them unil unlocked.
- *
- * options :
- *	locked : true/false
- *	type : what puzzle to load to unlock the tile
- *	level : how difficult it is to unlock the tile
- *	Difficulty : difficulty setting
- *	seed : seed used to generate puzzle
+ * locked tiles can prevent a character from entering them unil unlocked.
  */
 RPG.TileType.Lockable = function(options) {
     return {
 	lockable : Object.merge({
-	    locked : [false],
-	    type : ['tumbler'],
-	    level : [1,100,1],
-	    Difficulty : Object.keys(RPG.Difficulty),
-	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))]
+	    locked : [false],   //is it locked?
+	    type : ['tumbler'], //what puzzle to load to unlock the tile
+	    level : [1,100,1],  //how difficult it is to unlock the tile
+	    Difficulty : Object.keys(RPG.Difficulty), //difficulty setting
+	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))], //seed used to generate puzzle
+	    preventTraverse : [true], //stop the character from entering tiles that are locked
+	    collectable : [false] //allow the character to collect this locked tile into thier inventory
 	},options||{})
     };
 }
@@ -241,19 +236,15 @@ RPG.TileType.Roam = function(options) {
     };
 }
 
-
 /**
- * Lockable Container
+ * Container
  *
- * Allows the tile to move around
  */
 RPG.TileType.Container = function(options) {
-    return Object.merge(
-	RPG.TileType.Lockable(),
-	{
-	    container : {
-		items : []
-	    }
-	},
-	options||{});
+    return {
+	container : Object.merge({
+	    items : []
+	}
+	,options||{})
+    };
 }

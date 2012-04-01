@@ -11,7 +11,7 @@ RPG.CharacterEquipment = new Class({
 	RightGrowthArm : false,
 	LeftGrowthArm : false,
 	GrowthHead : false,
-	character : null
+	character : null//@todo some reason RPG.Character class has a clone which isn't getting updated. it should not be a clone
     },
     /**
      * Init Character Equipment
@@ -77,7 +77,7 @@ RPG.CharacterEquipment = new Class({
 			},
 			content : this.characterName = new Element('div', {
 			    'class' : 'textCenter textLarge',
-			    'html' : this.options.character.Race +  ' ' + this.options.character.Gender + ' ' + this.options.character.Class +  ' ' + this.options.character.name
+			    'html' : 'Level ' + this.options.character.level + ' ' + this.options.character.Race +  ' ' + this.options.character.Class +  ' ' + this.options.character.name
 			})
 		    });
 		    c=15;
@@ -207,6 +207,7 @@ RPG.CharacterEquipment = new Class({
 	});
 	this.characterEquipmentWindow.minimize();
 	this.characterEquipmentWindow.restore();
+	this.refreshInfo();
     },
 
     refreshInfo : function() {
@@ -247,12 +248,37 @@ RPG.CharacterEquipment = new Class({
 			'background-color' : width==0?'none':stat=='mana'?'blue':stat=='hp'?'red':'purple'
 		    },
 		    'class' : 'textLarge NoWrap',
-		    html :  this.options.character[stat].max == null?'Infinite':this.options.character[stat].cur + " / " + this.options.character[stat].max
+		    html :  this.options.character[stat].max == null?'Infinite':this.options.character[stat].cur + " / " + this.options.character[stat].max + ' ' + width.formatPercentage(0)
 		})
 
 	    }
 	    ]);
 	}.bind(this));
+
+	rows.push([
+	{
+	    properties : {
+		'class' : 'textRight textLarge',
+		styles : {
+		    width : '15%'
+		}
+	    },
+	    content : 'XP'
+	},
+	{
+	    properties : {
+		'class' : 'textCenter textLarge'
+	    },
+	    content : new Element('div',{
+		'class' : 'textLarge NoWrap',
+		html :  (Number.from(this.options.character.xp) || 0).format({
+		    group : ',',
+		    decimals : 0
+		})
+	    })
+
+	}
+	]);
 
 	rightTable.pushMany(rows);
 	$('RightInfo').adopt(rightTable);

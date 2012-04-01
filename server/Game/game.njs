@@ -73,7 +73,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 				response.onRequestComplete(response,changes);
 				return;
 			    }
-			    require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
+			    //require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
 			    response.onRequestComplete(response,changes);
 			});
 			break;
@@ -84,11 +84,13 @@ RPG.Game = new (RPG.GameClass = new Class({
 		     */
 		    case request.url.query.m == 'ActivateTile' :
 			game.clientEvents = JSON.decode(request.data,true);
-
-			game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
-
-			RPG.activateTile(game, function(events){
-			    response.onRequestComplete(response,events);
+			this.activateTile(game, function(changes){
+			    if (changes.error) {
+				response.onRequestComplete(response,changes);
+				return;
+			    }
+			    //require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
+			    response.onRequestComplete(response,changes);
 			});
 			break;
 
@@ -103,6 +105,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 			    Object.erase(game,'mapOrTileset');
 			    Object.erase(game,'universeID');
 			    Object.erase(game,'user');
+			    Object.erase(game,'tilePoints');
 			    //send out the loaded game
 			    game.require = this.require;
 			    response.onRequestComplete(response,game);
@@ -142,31 +145,31 @@ RPG.Game = new (RPG.GameClass = new Class({
      * universe
      * dir = direction (n,e,s,w)
      */
-    moveCharacter : function(options,callback) {
-	if (!RPG.dirs.contains(options.dir)) {
+    moveCharacter : function(game,callback) {
+	if (!RPG.dirs.contains(game.dir)) {
 	    callback({
-		error : 'Invalid direction: ' + options.dir
+		error : 'Invalid direction: ' + game.dir
 	    });
 	}
 
-	options.moveTo = RPG[options.dir](options.character.location.point,1);
+	game.moveTo = RPG[game.dir](game.character.location.point,1);
 
 	//before changes
-	var beforeCharacter = Object.clone(options.character);
-	var beforeUniOptions = Object.clone(options.universe.options);
+	var beforeCharacter = Object.clone(game.character);
+	var beforeUniOptions = Object.clone(game.universe.options);
 
-	RPG.moveCharacterToTile(options,function(moveEvents) {
+	RPG.moveCharacterToTile(game,function(moveEvents) {
 	    if (moveEvents.error) {
 		callback(moveEvents);
 		return;
 	    }
 
-	    RPG.Game.tick(options, function(universe){
-		Object.erase(options,'user');
-		Object.erase(options,'mapID');
-		Object.erase(options,'mapOrTileset');
-		Object.erase(options,'universeID');
-		Object.merge(options.universe,universe);
+	    RPG.Game.tick(game, function(universe){
+		Object.erase(game,'user');
+		Object.erase(game,'mapID');
+		Object.erase(game,'mapOrTileset');
+		Object.erase(game,'universeID');
+		Object.merge(game.universe,universe);
 
 		//remove universe/map options to reduce amount sent back to client
 		//@todo make Object.diff-able incase things changed
@@ -175,18 +178,49 @@ RPG.Game = new (RPG.GameClass = new Class({
 		});
 
 		//only send back the difference in options:
-		universe.options = Object.diff(beforeUniOptions,options.universe.options);
+		universe.options = Object.diff(beforeUniOptions,game.universe.options);
 
 		callback({
 		    game : {
 			universe : universe,//only send back the new stuff
-			character : Object.diff(beforeCharacter,options.character)
+			character : Object.diff(beforeCharacter,game.character)
 		    },
 		    events : Object.cleanEmpty(moveEvents)
 		});
 		beforeCharacter = null;
 		beforeUniOptions = null;
 	    });
+	});
+    },
+
+    /**
+     * Activate Tile
+     *
+     */
+    activateTile : function(game,callback) {
+	game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
+
+	var beforeCharacter = Object.clone(game.character);
+	var beforeUniOptions = Object.clone(game.universe.options);
+
+	RPG.activateTile(game, function(events){
+	    RPG.Tile.getViewableTiles(Object.merge({
+		bypassCache : true
+	    },game), function(viewableUniverse) {
+
+		viewableUniverse.options = Object.diff(beforeUniOptions,game.universe.options);
+
+		Object.merge(game.universe,viewableUniverse);
+		callback({
+		    game : {
+			universe : viewableUniverse,
+			character : Object.diff(beforeCharacter, game.character)
+		    },
+		    events : events
+		});
+	    });
+
+
 	});
     },
 

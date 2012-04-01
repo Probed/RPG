@@ -57,28 +57,11 @@ RPG.Tiles.traverse.onEnter = function(options,callback) {
 		callback();
 	    });
 	} else {
-	    //Client-Side
-	    new Request.JSON({
-		url : '/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+options.game.character.database.characterID+'&dir='+options.game.dir,
-		onFailure : function(results) {
-		    RPG.Error.notify('Unable to move to that tile.');
-		    if (results.responseText) {
-			var resp = JSON.decode(results.responseText,true);
-			if (resp.game) {
-			    Object.merge(options.game,resp.game);
-			}
-		    }
-		    callback();
-		},
-		onSuccess : function(results) {
-		    Object.merge(options.game,results.game);
-		    callback({
-			traverse : results.events
-		    });
-		}
-	    }).post(JSON.encode(options.events));//send the results of the clientside events to the server for validation
+	    callback();
 	}
     } else {
-	callback();
+	callback({
+	    error : 'Cannot move to that tile.'
+	});
     }
 }

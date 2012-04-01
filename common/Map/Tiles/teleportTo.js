@@ -44,14 +44,19 @@ RPG.Tiles.teleportTo.activate = RPG.Tiles.teleportTo.onBeforeEnter = function(op
 	    height : 60,
 	    width : 200,
 	    yes : function() {
-		callback();
+		callback({
+		    teleportTo : true
+		});
 	    },
 	    no : function() {
-		callback({
-		    teleportTo:'Canceled'
-		});
+		callback();
 	    }
-	})
+	});
+
+    } else if (!options.contents.warn && typeof exports == 'undefined') {
+	callback({
+	    teleportTo : true
+	});
     } else {
 	callback();
     }
@@ -63,13 +68,7 @@ RPG.Tiles.teleportTo.activate = RPG.Tiles.teleportTo.onBeforeEnter = function(op
 
 
 RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(options,callback) {
-    if (typeof exports != 'undefined') {
-
-	if (options.game.clientEvents && ((options.game.clientEvents.activate && options.game.clientEvents.activate.teleportTo == 'Canceled') || (options.game.clientEvents.onBeforeEnter && options.game.clientEvents.onBeforeEnter.teleportTo == 'Canceled'))) {
-	    //client canceled.
-	    callback();
-	    return;
-	}
+    if (typeof exports != 'undefined' && options.game.clientEvents && ((options.game.clientEvents.activate && options.game.clientEvents.activate.teleportTo) || (options.game.clientEvents.onBeforeEnter && options.game.clientEvents.onBeforeEnter.teleportTo))) {
 
 	//Server-Side:
 	if (!options.contents.mapName && options.contents.generator) {
@@ -133,9 +132,8 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 		});
 
 		/**
-			 * Update the current map tile cache with the newly generated map name so it knows what to load next time
-			 */
-
+		 * Update the current map tile cache with the newly generated map name so it knows what to load next time
+		 */
 		newUniverse.maps[options.game.character.location.mapName] = {
 		    options : options.game.universe.maps[options.game.character.location.mapName].options
 		};//make an entry in the new universe for the current maps cached tiles
@@ -160,9 +158,8 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 		    }
 		});
 
-
-		//console.log(newUniverse.maps[options.game.character.location.mapName]);
 		//we do not want this placed in cache yet otherwise the getViewableTiles method returns nothing
+		//we just want to save the new universe to the database.
 		var storeoptions = {
 		    user : options.game.user,
 		    universe : newUniverse,
@@ -175,16 +172,15 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 			return;
 		    }
 
+		    //now that the universe is successfully in the database we can update the character to
+		    //start at a point in that universe.
 		    var updateCharacter = Object.clone(options.game.character);
-		    var charDiff = {
-			location : {
-			    universeID : universe.options.database.universeID,
-			    mapID : universe.maps[mapName].options.database.mapID,
-			    mapName : mapName,
-			    point : charStartPoint
-			}
-		    };
-		    updateCharacter = Object.merge(updateCharacter,charDiff);
+		    Object.merge(updateCharacter.location,{
+			universeID : universe.options.database.universeID,
+			mapID : universe.maps[mapName].options.database.mapID,
+			mapName : mapName,
+			point : charStartPoint
+		    });
 
 		    storeoptions.character = updateCharacter;
 
@@ -194,32 +190,13 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 			    return;
 			}
 
-			options.game.character = updateCharacter;
+			//merge the new character data into the cached character.
+			Object.merge(options.game.character,updateCharacter);
 
-			if (options.event == 'activateComplete') {
-			    RPG.Tile.getViewableTiles(Object.merge({
-				bypassCache : true
-			    },options.game), function(viewableUniverse) {
-				viewableUniverse.options = {
-				    settings : {
-					activateMap : options.contents.mapName
-				    }
-				};
-				Object.merge(options.game.universe,viewableUniverse);
-				callback({
-				    game : {
-					universe : viewableUniverse,
-					character : charDiff
-				    },
-				    events : options.events
-				});
-			    });
-			} else {
-			    callback({
-				traverse : false,
-				teleportTo : Object.clone(character.location)
-			    });
-			}
+			//callback with the events:
+			callback({
+			    traverse : false//stop a traverse if it is ocuring. no need since we are being teleported
+			});
 		    });
 		});
 	    });
@@ -242,14 +219,12 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 		}
 
 		var updateCharacter = Object.clone(options.game.character);
-		var charDiff = {
-		    location : {
-			mapID : universe.maps[options.contents.mapName].options.database.mapID,
-			mapName : options.contents.mapName,
-			point : options.contents.point
-		    }
-		};
-		updateCharacter = Object.merge(updateCharacter,charDiff);
+		Object.merge(updateCharacter.location,{
+		    mapID : universe.maps[options.contents.mapName].options.database.mapID,
+		    mapName : options.contents.mapName,
+		    point : options.contents.point
+		});
+
 		var updateUniverse = {
 		    options : Object.clone(universe.options)
 		};
@@ -265,12 +240,6 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 			callback(universe);
 			return;
 		    }
-		    //remove all but wha we want to send back to the client
-		    universe.options = {
-			settings : {
-			    activateMap : options.contents.mapName
-			}
-		    };
 
 		    RPG.Character.store(storeoptions,function(character) {
 			if (character.error) {
@@ -278,69 +247,22 @@ RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(
 			    return;
 			}
 
-			options.game.character = updateCharacter;
+			//merge the new character data into the cached character.
+			Object.merge(options.game.character,updateCharacter);
 
-			if (options.event == 'activateComplete') {
-			    RPG.Tile.getViewableTiles(Object.merge({
-				bypassCache : true
-			    },options.game), function(viewableUniverse) {
-				viewableUniverse.options = {
-				    settings : {
-					activateMap : options.contents.mapName
-				    }
-				};
-				Object.merge(options.game.universe,viewableUniverse);
-				callback({
-				    game : {
-					universe : viewableUniverse,
-					character : charDiff
-				    },
-				    events : options.events
-				});
-			    });
-			} else {
-			    callback({
-				traverse : false,
-				teleportTo : Object.clone(character.location)
-			    });
-			}
+			//callback with the events:
+			callback({
+			    traverse : false//stop a traverse if it is ocuring. no need since we are being teleported
+			});
+
 		    });//end save character
 		});//end save universe
 	    });//end load map
+	} else {
+	    callback();//do nothing
 	}
-
     } else {
 	//Client Side:
-	if (options.events && ((options.events.activate && options.events.activate.teleportTo == 'Canceled') || (options.events.onBeforeEnter && options.events.onBeforeEnter.teleportTo == 'Canceled'))) {
-	    callback();
-	    return;
-	}
-
-	//only send back to server when 'activated'. (onEnter is sent back with traverse)
-	if (options.event == 'activateComplete' && options.events.activate && !options.events.activate.error) {
-
-	    new Request.JSON({
-		url : '/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+options.game.character.database.characterID+'',
-		onFailure : function(results) {
-		    RPG.Error.notify(results);
-		    if (results.responseText) {
-			var resp = JSON.decode(results.responseText,true);
-			if (resp.game) {
-			    Object.merge(options.game,resp.game);
-			}
-		    }
-		    callback();
-		},
-		onSuccess : function(results) {
-		    results.game && Object.merge(options.game,results.game);
-		    callback({
-			activate : results.events
-		    });
-		}
-	    }).post(JSON.encode(options.events));//send the results of the clientside events to the server for validation
-
-	} else {
-	    callback();
-	}
+	callback();
     }
 }

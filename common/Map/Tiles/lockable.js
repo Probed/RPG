@@ -30,9 +30,11 @@ if (typeof exports != 'undefined') {
 //    callback();
 //}
 
-RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
+RPG.Tiles.lockable.activate = RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
     if (options.contents.locked) {
-	if (typeof exports == 'undefined') {
+
+	//prompt the client when they activate the tile, or when the lock prevents traversal and the character is attempting to enter the tile:
+	if (typeof exports == 'undefined' && ((options.event == 'activate') || (options.contents.preventTraverse && options.event == 'onBeforeEnter'))) {
 	    //client
 	    //@todo unlock attempt
 	    RPG.Unlock.show(options,{
@@ -41,13 +43,14 @@ RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
 		},
 		fail : function() {
 		    callback({
-			traverse : false,
+			traverse : !options.contents.preventTraverse,
 			error : 'Locked'
 		    });
 		}
 	    });
 
-	} else {
+	} else if (typeof exports != 'undefined' && options.game.clientEvents && options.game.clientEvents[options.event] && options.game.clientEvents[options.event][options.contents.type]) {
+
 	    //server
 	    if (RPG.Unlock.checkSolution(options)) {
 
@@ -100,6 +103,8 @@ RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
 		    error : 'Locked'
 		});
 	    }
+	} else {
+	    callback();
 	}
     } else {
 	callback();
@@ -111,9 +116,9 @@ RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.lockable.onEnter = function(options,callback) {
+RPG.Tiles.lockable.activateComplete = RPG.Tiles.lockable.onEnter = function(options,callback) {
     //server
-    if (typeof exports != 'undefined' && options.events.onBeforeEnter.lockable) {
+    if (typeof exports != 'undefined' && options.events && ((options.events.activate && options.events.activate.lockable) || (options.events.onBeforeEnter && options.events.onBeforeEnter.lockable))) {
 
 	//remove the tile from the current Universe so it will get reloaded from the database
 	//and the client should receive the the cloned tile created above.
@@ -212,7 +217,7 @@ RPG.Unlock = new (new Class({
 	switch (options.contents.type) {
 	    case  'tumbler' :
 		var code = Math.floor(rand.random(100,999));
-		if (Number.from(options.game.clientEvents.onBeforeEnter.tumbler.solution) == code) {
+		if (Number.from(options.game.clientEvents[options.event].tumbler.solution) == code) {
 		    return true;
 		} else {
 		    return false;

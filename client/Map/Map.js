@@ -122,25 +122,25 @@ RPG.Map = new Class({
 
 	//Move North
 	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.up] = function(event) {
-	    this.moveCharacter('n',1);
+	    this.moveCharacter('n');
 	    event.preventDefault();
 	}.bind(this);
 
 	//Move South
 	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.down] = function(event) {
-	    this.moveCharacter('s',1);
+	    this.moveCharacter('s');
 	    event.preventDefault();
 	}.bind(this);
 
 	//Move West
 	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.left] = function(event) {
-	    this.moveCharacter('w',1);
+	    this.moveCharacter('w');
 	    event.preventDefault();
 	}.bind(this);
 
 	//Move East
 	keyEvents['keydown:'+RPG.AppUser.options.settings.keyboard.right] = function(event) {
-	    this.moveCharacter('e',1);
+	    this.moveCharacter('e');
 	    event.preventDefault();
 	}.bind(this);
 
@@ -238,6 +238,7 @@ RPG.Map = new Class({
 
 	this.options.Character.toElement().setStyle('height',this.mapZoom);
 	this.options.Character.toElement().setStyle('width',this.mapZoom);
+	this.options.Character.changeDirection(this.options.character.location.dir);
 
 	var map = this.options.universe.maps[this.options.character.location.mapName];
 	$$('#GameMap .teleportToLabel').each(function(elm) {
@@ -362,7 +363,6 @@ RPG.Map = new Class({
 	}
 	row = map = c = r = newCols = newRows = null;
 	this.mapDiv.adopt(this.mapTable);
-
 	this.refreshingMap = false;
     },
 
@@ -410,10 +410,10 @@ RPG.Map = new Class({
 	return cell;
     },
 
-    moveCharacter : function(dir,amount) {
+    moveCharacter : function(dir) {
 	if (this.characterMoving) return;
 
-	var options = {
+	var game = {
 	    universe : this.options.universe,
 	    character : this.options.character,
 	    moveTo : RPG[dir](this.options.character.location.point,1),
@@ -421,15 +421,17 @@ RPG.Map = new Class({
 	};
 
 	this.characterMoving = true;
-	RPG.moveCharacterToTile(options, function(moveEvents){
+	RPG.moveCharacterToTile(game, function(moveEvents){
+	    game.events = moveEvents;
 	    if (moveEvents.error) {
 		RPG.Error.notify(moveEvents.error);
 		this.characterMoving = false;
 		return;
 	    } else {
-		this.options.Character.changeDirection(dir);
-		this.refreshMap();
-		this.characterMoving = false;
+		this.getServerEvents(game,'/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+game.character.database.characterID+'&dir='+game.dir,function(){
+		    this.refreshMap();
+		    this.characterMoving = false;
+		}.bind(this));
 	    }
 	}.bind(this));
     },
@@ -437,23 +439,56 @@ RPG.Map = new Class({
     activateTile : function() {
 	if (this.tileActivating) return;
 
-	var options = {
+	var game = {
 	    universe : this.options.universe,
 	    character : this.options.character,
 	    moveTo : this.options.character.location.point
 	};
 
 	this.tileActivating = true;
-	RPG.activateTile(options, function(activateEvents){
+	RPG.activateTile(game, function(activateEvents){
+	    game.events = activateEvents;
 	    if (activateEvents.error) {
 		RPG.Error.notify(activateEvents.error);
 		this.tileActivating = false;
 		return;
 	    } else {
-		this.refreshMap();
-		this.tileActivating = false;
+		if (Object.keys(activateEvents.activate).length == 0 && Object.keys(activateEvents.activateComplete).length == 0) {
+		    //no event data to send.. ignore
+		    RPG.Error.notify('Nothing Happened.');
+		    this.tileActivating = false;
+		    return;
+		}
+
+		this.getServerEvents(game,'/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+game.character.database.characterID,function(){
+		    this.refreshMap();
+		    this.tileActivating = false;
+		}.bind(this));
 	    }
 	}.bind(this));
+    },
 
+    /**
+     * Send a request to the server with the results of the client side execution of events
+     * The server will respond with an and updated 'game' object and results of the server side 'events'
+     */
+    getServerEvents : function(game,url,callback) {
+	new Request.JSON({
+	    url : url,
+	    onFailure : function(results) {
+		RPG.Error.notify(results);
+		if (results.responseText) {
+		    var resp = JSON.decode(results.responseText,true);
+		    if (resp.game) {
+			Object.merge(game,resp.game);
+		    }
+		}
+		callback();
+	    },
+	    onSuccess : function(results) {
+		results.game && Object.merge(game,results.game);
+		callback();
+	    }
+	}).post(JSON.encode(game.events));//send the results of the clientside events to the server for validation
     }
 });

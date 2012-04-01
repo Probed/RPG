@@ -9,8 +9,8 @@ RPG.Game = new Class({
 
     initialize : function(options) {
 	this.setOptions(options);
-
-	this.options.Character = new RPG.Character(options);
+	Object.erase(this.options,'require');
+	this.options.Character = new RPG.Character(this.options);
 
 	this.gameDiv = new Element('div',{
 	    id : 'Game'
