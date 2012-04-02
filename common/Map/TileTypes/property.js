@@ -1,11 +1,11 @@
 /**
- * Handles template triggers
+ * Handles Property triggers
  *
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.template) RPG.Tiles.template = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.property) RPG.TileTypes.property = {};
 if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
@@ -22,34 +22,19 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.Tiles.template.tick = function(options,callback) {
+//RPG.TileTypes.property.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
-
-//RPG.Tiles.template.tickComplete = function(options,callback) {
+//
+//RPG.TileTypes.property.onBeforeEnter = function(options,callback) {
+//    //ALL Tiles Have Property options be careful here
 //    callback();
 //}
-
-//RPG.Tiles.template.activate = function(options,callback) {
+//
+//RPG.TileTypes.property.onLeave = function(options,callback) {
 //    callback();
 //}
-
-//RPG.Tiles.template.activateComplete = function(options,callback) {
-//    callback();
-//}
-
-//RPG.Tiles.template.onBeforeLeave = function(options,callback) {
-//    callback();
-//}
-
-//RPG.Tiles.template.onBeforeEnter = function(options,callback) {
-//    callback();
-//}
-
-//RPG.Tiles.template.onLeave = function(options,callback) {
-//    callback();
-//}
-
-//RPG.Tiles.template.onEnter = function(options,callback) {
+//
+//RPG.TileTypes.property.onEnter = function(options,callback) {
 //    callback();
 //}

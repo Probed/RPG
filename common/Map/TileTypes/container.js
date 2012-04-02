@@ -1,11 +1,11 @@
 /**
- * Handles NPC triggers
+ * Handles container triggers
  *
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.NPC) RPG.Tiles.NPC = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.container) RPG.TileTypes.container = {};
 if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
@@ -22,19 +22,34 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
+//RPG.TileTypes.container.tick = function(options,callback) {
+//    callback();
+//}
 
-//RPG.Tiles.NPC.onBeforeLeave = function(options,callback) {
+//RPG.TileTypes.container.tickComplete = function(options,callback) {
 //    callback();
 //}
-//
-//RPG.Tiles.NPC.onBeforeEnter = function(options,callback) {
+
+RPG.TileTypes.container.activate = function(options,callback) {
+    callback();
+}
+
+RPG.TileTypes.container.activateComplete = function(options,callback) {
+    callback();
+}
+
+//RPG.TileTypes.container.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
-//
-//RPG.Tiles.NPC.onLeave = function(options,callback) {
+
+//RPG.TileTypes.container.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
-//
-//RPG.Tiles.NPC.onEnter = function(options,callback) {
+
+//RPG.TileTypes.container.onLeave = function(options,callback) {
+//    callback();
+//}
+
+//RPG.TileTypes.container.onEnter = function(options,callback) {
 //    callback();
 //}

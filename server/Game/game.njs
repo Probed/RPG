@@ -73,8 +73,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 				response.onRequestComplete(response,changes);
 				return;
 			    }
-			    //require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
-			    response.onRequestComplete(response,changes);
+			    response.onRequestComplete(response,RPG.Game.removeSecrets(changes));
 			});
 			break;
 
@@ -89,13 +88,12 @@ RPG.Game = new (RPG.GameClass = new Class({
 				response.onRequestComplete(response,changes);
 				return;
 			    }
-			    //require('../Cache.njs').Cache.merge(request.user.options.userID,'universe_'+game.character.location.universeID,changes.game.universe);
-			    response.onRequestComplete(response,changes);
+			    response.onRequestComplete(response,RPG.Game.removeSecrets(changes));
 			});
 			break;
 
 		    default :
-			RPG.Tile.getViewableTiles(game,function(universe){
+			RPG.Game.getViewableTiles(game,function(universe){
 			    if (universe.error) {
 				response.onRequestComplete(response,universe);
 				return;
@@ -108,7 +106,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 			    Object.erase(game,'tilePoints');
 			    //send out the loaded game
 			    game.require = this.require;
-			    response.onRequestComplete(response,game);
+			    response.onRequestComplete(response,RPG.Game.removeSecrets(game));
 			    Object.erase(game,'require');
 			}.bind(this));
 			break
@@ -117,6 +115,28 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    }.bind(this));
 	}.bind(this));
 
+    },
+
+    //makes a clone, make sure to call just before sending to client
+    //the clone is to avoid modifying the cached object
+    removeSecrets : function(game,internal) {
+	if (!internal) internal = {};
+	if (!internal.path) internal.path = [];
+	if (!internal.cloned) {
+	    internal.cloned = true;
+	    game = Object.clone(game);
+	}
+
+	if (typeof game == 'object') {
+	    Object.each(game,function(content,key,source){
+		if (key == 'secret') {
+		    Object.erase(source,key);
+		} else {
+		    RPG.Game.removeSecrets(content,internal);
+		}
+	    });
+	}
+	return game;
     },
 
     /**
@@ -135,6 +155,32 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    }
 	    options.universe = universe;
 	    callback(options);
+	});
+    },
+
+
+    /**
+     * required options:
+     * user,
+     * character,
+     * universe
+     *
+     * returns : object from RPG.Tile.loadTiles excluding cached tiles
+     */
+    getViewableTiles : function(options,callback) {
+
+	var radius = RPG.calcSightRadius(options.character);
+	if (!radius || radius < 2) {
+	    radius = 1;
+	}
+	var circle = RPG.getCircleArea(options.character.location.point,radius);
+
+	Object.merge(options,{
+	    tilePoints : circle.area
+	});
+
+	RPG.Tile.load(options,function(universe){
+	    callback(universe,circle);
 	});
     },
 
@@ -204,7 +250,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 	var beforeUniOptions = Object.clone(game.universe.options);
 
 	RPG.activateTile(game, function(events){
-	    RPG.Tile.getViewableTiles(Object.merge({
+	    RPG.Game.getViewableTiles(Object.merge({
 		bypassCache : true
 	    },game), function(viewableUniverse) {
 
@@ -375,7 +421,7 @@ RPG.Game = new (RPG.GameClass = new Class({
     tick : function(options,callback) {
 
 	//find out what the character can see:
-	RPG.Tile.getViewableTiles(options,function(universe,circle){
+	RPG.Game.getViewableTiles(options,function(universe,circle){
 	    //RPG.Log('Viewable',''+circle.area.length);
 	    var tickEvents = {};//results of tick events
 	    var tickChain = new Chain();

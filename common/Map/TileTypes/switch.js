@@ -4,8 +4,8 @@
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles['switch']) RPG.Tiles['switch'] = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes['switch']) RPG.TileTypes['switch'] = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
@@ -26,11 +26,11 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.Tiles['switch'].onBeforeLeave = function(options,callback) {
+//RPG.TileTypes['switch'].onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles['switch'].activate = function(options,callback) {
+RPG.TileTypes['switch'].activate = function(options,callback) {
     var paths = null;
     var idx = 0;
     if (typeof exports == 'undefined') {
@@ -117,11 +117,11 @@ RPG.Tiles['switch'].activate = function(options,callback) {
     }
 }
 
-//RPG.Tiles['switch'].onLeave = function(options,callback) {
+//RPG.TileTypes['switch'].onLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles['switch'].activateComplete = function(options,callback) {
+RPG.TileTypes['switch'].activateComplete = function(options,callback) {
 
     if (typeof exports != 'undefined' && options.events.activate.switchPaths) {
 	//server-side

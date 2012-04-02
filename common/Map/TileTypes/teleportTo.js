@@ -3,8 +3,8 @@
  *
  */
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.teleportTo) RPG.Tiles.teleportTo = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.teleportTo) RPG.TileTypes.teleportTo = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Map/Universe.njs'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
@@ -28,11 +28,11 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.Tiles.teleportTo.onBeforeLeave = function(options,callback) {
+//RPG.TileTypes.teleportTo.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.teleportTo.activate = RPG.Tiles.teleportTo.onBeforeEnter = function(options,callback) {
+RPG.TileTypes.teleportTo.activate = RPG.TileTypes.teleportTo.onBeforeEnter = function(options,callback) {
 
     if (options.contents.warn && typeof exports == 'undefined') {
 	//client side
@@ -62,12 +62,12 @@ RPG.Tiles.teleportTo.activate = RPG.Tiles.teleportTo.onBeforeEnter = function(op
     }
 }
 
-//RPG.Tiles.teleportTo.onLeave = function(options,callback) {
+//RPG.TileTypes.teleportTo.onLeave = function(options,callback) {
 //    callback();
 //}
 
 
-RPG.Tiles.teleportTo.activateComplete = RPG.Tiles.teleportTo.onEnter = function(options,callback) {
+RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = function(options,callback) {
     if (typeof exports != 'undefined' && options.game.clientEvents && ((options.game.clientEvents.activate && options.game.clientEvents.activate.teleportTo) || (options.game.clientEvents.onBeforeEnter && options.game.clientEvents.onBeforeEnter.teleportTo))) {
 
 	//Server-Side:

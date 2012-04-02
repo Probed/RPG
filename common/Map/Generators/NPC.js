@@ -13,13 +13,13 @@ if (typeof exports != 'undefined') {
 
 }
 
-RPG.Generator.NPC = new (RPG.Generator.NPCClass = new Class({
+RPG.Generator.npc = new (RPG.Generator.npcClass = new Class({
     Extends : RPG.ItemGeneratorBaseClass,
 
-    name : 'NPC',
+    name : 'npc',
     constraints : {
 	properties : {
-	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'NPC'],
+	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'npc'],
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    type : RPG.tileFolderList(RPG.Tiles,'npc.earth'),
 	    Difficulty : Object.keys(RPG.Difficulty),

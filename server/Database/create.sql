@@ -108,7 +108,7 @@ CREATE TABLE `tilesetscache` (
   `folderName` varchar(20) NOT NULL,
   `path` varchar(255) NOT NULL,
   `tileName` varchar(100) NOT NULL,
-  `options` text CHARACTER SET latin1 NOT NULL,
+  `options` mediumtext CHARACTER SET latin1 NOT NULL,
   PRIMARY KEY (`tilesetCacheID`),
   KEY `TilesetsCache_tilesetID` (`tilesetID`),
   KEY `TilesetsCache_folderName` (`folderName`),
@@ -130,6 +130,20 @@ CREATE TABLE `tilesettiles` (
   CONSTRAINT `TilesetTiles_tilesetID` FOREIGN KEY (`tilesetID`) REFERENCES `tilesets` (`tilesetID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+CREATE TABLE `inventorycache` (
+  `inventoryCacheID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `characterID` int(10) UNSIGNED NOT NULL,
+  `folderName` varchar(20) NOT NULL,
+  `path` varchar(255) NOT NULL,
+  `tileName` varchar(100) NOT NULL,
+  `options` mediumtext CHARACTER SET latin1 NOT NULL,
+  PRIMARY KEY (`inventoryCacheID`),
+  KEY `InventoryCache_tileName` (`tileName`),
+  KEY `InventoryCache_path` (`path`),
+  KEY `InventoryCache_folderName` (`folderName`),
+  KEY `InventoryCache_characterID` (`characterID`),
+  CONSTRAINT `InventoryCache_characterID` FOREIGN KEY (`characterID`) REFERENCES `characters` (`characterID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*
 CREATE TABLE `visitedtiles` (

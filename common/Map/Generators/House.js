@@ -391,7 +391,6 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    point : point
 				}
 			    },rand);
-
 			    Object.merge(house.cache,results.cache);
 			    RPG.pushTile(house.tiles,point,results.path);
 

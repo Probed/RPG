@@ -119,7 +119,7 @@ A `universe` object is returned for easy merging into an existing universe.
 *Example*
 
 ```javascript
-RPG.Tile.getViewableTiles({
+RPG.Game.getViewableTiles({
     user : request.user,
     character : myCharacter,
     universe : myUniverse

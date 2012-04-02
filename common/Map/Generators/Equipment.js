@@ -24,7 +24,8 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    type : RPG.tileFolderList(RPG.Tiles,'item.earth.equip'),
 	    Difficulty : Object.keys(RPG.Difficulty),
 	    level : [1,100,1],
-	    point : ''
+	    point : '',
+	    identified : [false]
 	}
     },
 
@@ -65,27 +66,30 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    equipmentObj.itemOptions.Stats[name] = 0;
 	});
 
-	var usedStats = [];
-	//apply up to max stats to the item:
-	for (numStats=0; numStats<maxStats; numStats++) {
-	    //select a random stat:
-	    var rStat = Object.getSRandom(equipmentObj.itemOptions.Stats,rand,usedStats);
-	    usedStats.push(rStat.key);
+	if (options.properties.identified) {
 
-	    //get the maximum allowed stat for this level and stat and stat number
-	    var statMods = RPG.difficultyVal(options.properties.Difficulty,'item.equip.statMods')(Math.floor(Number.from(options.properties.level)),rStat.key,numStats);
+	    var usedStats = [];
+	    //apply up to max stats to the item:
+	    for (numStats=0; numStats<maxStats; numStats++) {
+		//select a random stat:
+		var rStat = Object.getSRandom(equipmentObj.itemOptions.Stats,rand,usedStats);
+		usedStats.push(rStat.key);
 
-	    //randomly get a number between 0 and maxStat to become the stat modifier
-	    var stat = Math.round(rand.random(0,statMods.maxStat) - statMods.roundMod);
+		//get the maximum allowed stat for this level and stat and stat number
+		var statMods = RPG.difficultyVal(options.properties.Difficulty,'item.equip.statMods')(Math.floor(Number.from(options.properties.level)),rStat.key,numStats);
 
-	    //will the stat become negative?
-	    if (rand.random() <= statMods.negChance) {
-		stat = -stat;
-	    }
+		//randomly get a number between 0 and maxStat to become the stat modifier
+		var stat = Math.round(rand.random(0,statMods.maxStat) - statMods.roundMod);
 
-	    if (stat) {
-		//set the stat
-		equipmentObj.itemOptions.Stats[rStat.key] = stat;
+		//will the stat become negative?
+		if (rand.random() <= statMods.negChance) {
+		    stat = -stat;
+		}
+
+		if (stat) {
+		    //set the stat
+		    equipmentObj.itemOptions.Stats[rStat.key] = stat;
+		}
 	    }
 	}
 	//trim 0 stats to save bandwidth

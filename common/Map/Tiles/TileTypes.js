@@ -257,10 +257,11 @@ RPG.TileType.Container = function(options) {
 RPG.TileType.Item = function(options) {
     return {
 	item : Object.merge({
-	    generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators.Item)),
+	    generator : Object.keys(require('../Generators/Generators.js').Generators.Item),
+	    identified : [false],
 	    level : [0,100,0],
-	    cost : [0,99999999999,0],
-	    weight : [-100,100,0]
+	    cost : [0,5,0],
+	    weight : [1,1,1]
 	}
 	,options||{})
     };

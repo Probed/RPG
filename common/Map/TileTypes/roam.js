@@ -4,8 +4,8 @@
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.roam) RPG.Tiles.roam = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.roam) RPG.TileTypes.roam = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Log/Log.njs'));
@@ -24,7 +24,7 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-RPG.Tiles.roam.tick = function(options,callback) {
+RPG.TileTypes.roam.tick = function(options,callback) {
     if (typeof exports != 'undefined' && options.contents.can) {
 	//server side
 
@@ -83,7 +83,7 @@ RPG.Tiles.roam.tick = function(options,callback) {
     }
 }
 
-RPG.Tiles.roam.tickComplete = function(options,callback) {
+RPG.TileTypes.roam.tickComplete = function(options,callback) {
     if (!options.events.universeStored && options.events.universe && Object.keys(options.events.universe).length > 0) {
 	options.events.universeStored = true;
 	RPG.Universe.store({
@@ -99,18 +99,18 @@ RPG.Tiles.roam.tickComplete = function(options,callback) {
     }
 }
 
-//RPG.Tiles.roam.onBeforeLeave = function(options,callback) {
+//RPG.TileTypes.roam.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.roam.onBeforeEnter = function(options,callback) {
+//RPG.TileTypes.roam.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.roam.onLeave = function(options,callback) {
+//RPG.TileTypes.roam.onLeave = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.roam.onEnter = function(options,callback) {
+//RPG.TileTypes.roam.onEnter = function(options,callback) {
 //    callback();
 //}

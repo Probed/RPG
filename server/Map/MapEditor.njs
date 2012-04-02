@@ -225,7 +225,8 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	RPG.Universe.load({
 	    user : request.user,
 	    universeID : options.universeID,
-	    tilePoints : RPG.getRectangleArea(options.start,options.end).area
+	    tilePoints : RPG.getRectangleArea(options.start,options.end).area,
+	    mapEditor : true
 	},function(universe){
 	    if (universe.error) {
 		response.onRequestComplete(response,universe);

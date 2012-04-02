@@ -27,17 +27,58 @@ RPG.CharacterEquipment = new Class({
 	    title : '<span class="Character">Character Equipment</span>',
 	    type : 'window',
 	    loadMethod : 'html',
-	    content : (this.characterEquipmentTable = new HtmlTable({
+	    content : (new HtmlTable({
 		zebra : false,
 		selectable : false,
 		useKeyboard : false,
 		properties : {
-		    id : 'CharacterEquipmentTable',
+		    id : '',
 		    cellpadding : 0,
 		    cellspacing : 2
 		},
 		headers : [],
-		rows  :[[]],
+		rows  :[
+		[
+		{
+		    content : (this.characterEquipmentTable = new HtmlTable({
+			zebra : false,
+			selectable : false,
+			useKeyboard : false,
+			properties : {
+			    id : 'CharacterEquipmentTable',
+			    cellpadding : 0,
+			    cellspacing : 2
+			},
+			headers : [],
+			rows  :[[]],
+			footers : []
+		    })).toElement()
+		},
+		{
+		    properties : {
+			'class' : 'vTop'
+		    },
+		    content : (this.characterInventoryTable = new HtmlTable({
+			zebra : false,
+			selectable : false,
+			useKeyboard : false,
+			properties : {
+			    id : 'CharacterInventoryTable',
+			    cellpadding : 0,
+			    border : 0,
+			    align : 'center',
+			    styles : {
+				'border-spacing' : '8px',
+				'border-collapse' : 'separate'
+			    }
+			},
+			headers : [],
+			rows  :[[]],
+			footers : []
+		    })).toElement()
+		}
+		]
+		],
 		footers : []
 	    })).toElement(),
 	    collapsible : false,
@@ -46,11 +87,13 @@ RPG.CharacterEquipment = new Class({
 	    maximizable : false,
 	    closable : true,
 	    height : (25*20),
-	    width : 24*30,
+	    width : (24*18) + 310,
 	    require : {
 		css : ['/client/mochaui/themes/charcoal/css/Character/CharacterEquipment.css'],
 		js :['/common/Character/CharacterSlots.js'],
-		onloaded : this.refresh.bind(this)
+		onloaded : function() {
+		    this.refresh();
+		}.bind(this)
 	    }
 	});
 
@@ -198,6 +241,7 @@ RPG.CharacterEquipment = new Class({
 	this.characterEquipmentTable.toElement().setStyle('background-image',bgUrls);
 
 	this.refreshInfo();
+	this.refreshInventory();
     },
     restore : function() {
 	MUI.updateContent({
@@ -327,5 +371,56 @@ RPG.CharacterEquipment = new Class({
 
 
 	rightTable = null;
+    },
+
+    refreshInventory : function() {
+	this.characterInventoryTable.empty();
+	var temp = {
+	    tiles : {},
+	    cache : {}
+	};
+
+	var rows = [];
+	var row = null;
+	var r = 0;
+	var c = 0;
+	for (r=0;r<11;r++) {
+	    row = [];
+	    for (c=0;c<7;c++) {
+
+		RPG.pushTile(temp.tiles,[r,c],
+		    RPG.createTile('item.earth.equip.weapon',temp.cache,{
+			property : {
+			    tileName : [r,c].join(),
+			    folderName : 'inv',
+			    image : {
+				name : RPG.getRandomTileImage('item.earth.equip.weapon',RPG.Random).image
+			    }
+			}
+		    })
+		    );
+
+		var styles = RPG.getMapTileStyles({
+		    map : temp,
+		    row : r,
+		    col : c,
+		    rowOffset : 0,
+		    colOffset : 0,
+		    zoom : 32
+		});
+
+		row.push({
+		    properties : {
+			'class' : 'textTiny',
+			styles : Object.merge({
+			    border : '1px solid white'
+			},styles)
+		    },
+		    content : '&nbsp;'
+		})
+	    }
+	    rows.push(row);
+	}
+	this.characterInventoryTable.pushMany(rows);
     }
 });

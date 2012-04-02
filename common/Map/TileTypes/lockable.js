@@ -4,8 +4,8 @@
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.lockable) RPG.Tiles.lockable = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.lockable) RPG.TileTypes.lockable = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
@@ -26,11 +26,11 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.Tiles.lockable.onBeforeLeave = function(options,callback) {
+//RPG.TileTypes.lockable.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.lockable.activate = RPG.Tiles.lockable.onBeforeEnter = function(options,callback) {
+RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = function(options,callback) {
     if (options.contents.locked) {
 
 	//prompt the client when they activate the tile, or when the lock prevents traversal and the character is attempting to enter the tile:
@@ -112,11 +112,11 @@ RPG.Tiles.lockable.activate = RPG.Tiles.lockable.onBeforeEnter = function(option
 
 }
 
-//RPG.Tiles.lockable.onLeave = function(options,callback) {
+//RPG.TileTypes.lockable.onLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.lockable.activateComplete = RPG.Tiles.lockable.onEnter = function(options,callback) {
+RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = function(options,callback) {
     //server
     if (typeof exports != 'undefined' && options.events && ((options.events.activate && options.events.activate.lockable) || (options.events.onBeforeEnter && options.events.onBeforeEnter.lockable))) {
 

@@ -1,11 +1,11 @@
 /**
- * Handles Property triggers
+ * Handles NPC triggers
  *
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.property) RPG.Tiles.property = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.npc) RPG.TileTypes.npc = {};
 if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
@@ -22,19 +22,19 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.Tiles.property.onBeforeLeave = function(options,callback) {
+
+//RPG.TileTypes.npc.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.property.onBeforeEnter = function(options,callback) {
-//    //ALL Tiles Have Property options be careful here
+//RPG.TileTypes.npc.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.property.onLeave = function(options,callback) {
+//RPG.TileTypes.npc.onLeave = function(options,callback) {
 //    callback();
 //}
 //
-//RPG.Tiles.property.onEnter = function(options,callback) {
+//RPG.TileTypes.npc.onEnter = function(options,callback) {
 //    callback();
 //}

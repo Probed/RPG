@@ -63,7 +63,7 @@ A `universe` object is returned for easy merging into an existing universe.
 *Example*
 
 ```javascript
-RPG.Map.storeCache({
+RPG.TileCache.storeCache({
     user : request.user,
     universe : myUniverse
 }, function(universe) {

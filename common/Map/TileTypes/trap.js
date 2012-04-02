@@ -4,8 +4,8 @@
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.trap) RPG.Tiles.trap = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.trap) RPG.TileTypes.trap = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
@@ -27,11 +27,11 @@ if (typeof exports != 'undefined') {
  */
 
 
-//RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
+//RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
+RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
     if (options.contents.armed) {
 	if (typeof exports == 'undefined') {
 	    //client
@@ -142,11 +142,11 @@ RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
     }
 }
 
-//RPG.Tiles.trap.onLeave = function(options,callback) {
+//RPG.TileTypes.trap.onLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.trap.onEnter = function(options,callback) {
+RPG.TileTypes.trap.onEnter = function(options,callback) {
     //server
     if (typeof exports != 'undefined' && options.events.onBeforeEnter.trap) {
 

@@ -99,18 +99,18 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
     //loop through each tile type. eg travers, teleportTo, property etc
     Object.each(mergedTileOptions.options,function(content,key,source){
 	//if there exists a function to handle this trigger; create a function wrapper, push it onto the stack then execute each one after the other.
-	if (typeof exports != 'undefined' && !RPG.Tiles[key]) {
+	if (typeof exports != 'undefined' && (!RPG.TileTypes || !RPG.TileTypes[key])) {
 	    RPG.Log('filesystem','TileType lookup: '+key+'.js');
-	    if (require('path').existsSync('./common/Map/Tiles/'+key+'.js')) {
-		Object.merge(RPG,require('./'+key+'.js'))
+	    if (require('path').existsSync('./common/Map/TileTypes/'+key+'.js')) {
+		Object.merge(RPG,require('../TileTypes/'+key+'.js'))
 	    } else {
-		RPG.Tiles[key] = 'None';//skip future checks
+		RPG.TileTypes[key] = 'None';//skip future checks
 	    }
 	}
 
-	if (RPG.Tiles[key] && RPG.Tiles[key] != 'None' && RPG.Tiles[key][event]) {
+	if (RPG.TileTypes[key] && RPG.TileTypes[key] != 'None' && RPG.TileTypes[key][event]) {
 	    triggers.push(function(){
-		RPG.Tiles[key][event]({
+		RPG.TileTypes[key][event]({
 		    game : options,
 		    point : options.moveTo,
 		    dir : options.dir,
@@ -868,4 +868,58 @@ RPG.EachTile = function(tiles,allPoints,fn) {
 	    });
 	}
     }
+}
+
+/**
+     * Takes a cache object and flattens it.
+     * eg :
+     * terrina : {
+     *	    grass : {
+     *		options : {
+     *		    property : {
+     *			..stuff..
+     *		    }
+     *		}
+     *      },
+     *      dirt : { .. }
+     *}
+     *
+     *Results:
+     *{
+     *	'[`terrain`,`grass`]' : options : { property : { ..stuff.. } },
+     *	'[`terrain`,`dirt`]' : options : { property : { ..stuff.. } }
+     *}
+     *
+     */
+RPG.flattenCache = function(cache,internal) {
+    if (!internal) internal = {};
+    if (!internal.path) internal.path = [];
+    if (!internal.flat) internal.flat = {};
+
+    if (!internal.tile) {
+	internal.tile = cache;
+    } else {
+	internal.path.push(internal.pathName);
+    }
+
+    if (internal.tile && internal.tile.options) {
+	internal.flat[JSON.encode(internal.path)] = internal.tile.options;
+
+    } else {
+	Object.each(internal.tile,function(tile,name){
+	    internal.tile = tile;
+	    internal.pathName = name;
+	    RPG.flattenCache(cache,internal);
+	});
+    }
+    internal.path.pop();
+    return internal.flat;
+}
+
+RPG.expandFlatCache = function(flat) {
+    var cache = {};
+    Object.each(flat,function(options,path){
+	Object.pathToObject(cache,JSON.decode(path,true)).child.options = (typeof options == 'string'?JSON.decode(options,true):options);
+    });
+    return cache;
 }

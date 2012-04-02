@@ -248,24 +248,11 @@ RPG.Tile = new (RPG.TileClass = new Class({
 			error : err
 		    });
 		} else if (mcResults && mcResults[0]) {
-		    //go through each map cache result:
-		    var cache = {};
-		    mcResults.each(function(mcResult){
-			Object.pathToObject(cache,JSON.decode(mcResult['path'],true)).child.options = Object.merge({
-			    database : {
-				mapCacheID : mcResult['mapCacheID']
-			    }
-			},
-			JSON.decode(mcResult['options'])
-			    );
-		    });
-		    callback(cache);
-		    cache = null;
+		    callback(RPG.Tile.expandResultsCache(mcResults,options.mapOrTileset));
 		} else {
 		    callback({});
 		}
-	    }
-	    );
+	    });
     },
 
 
@@ -468,28 +455,359 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    );
     },
 
-    /**
-     * required options:
-     * user,
-     * character,
-     * universe
-     *
-     * returns : object from RPG.Tile.loadTiles excluding cached tiles
-     */
-    getViewableTiles : function(options,callback) {
+    expandResultsCache : function(results,tableId) {
+	var cache = {};
+	results.each(function(result){
+	    var dbOpts = {
+		database : {}
+	    };
+	    dbOpts.database[tableId+'CacheID'] = result[tableId+'CacheID'];
+	    Object.pathToObject(cache,JSON.decode(result['path'],true)).child.options = Object.merge(JSON.decode(result['options'],true),dbOpts);
+	});
+	return cache;
+    },
 
-	var radius = RPG.calcSightRadius(options.character);
-	if (!radius || radius < 2) {
-	    radius = 1;
+    storeAllCaches : function(options,callback) {
+	var allChain = new Chain();
+	Object.each(options.universe.maps,function(map,mapName){
+	    allChain.chain(function(){
+		options.map = map;
+		RPG.Tile.storeCache(options,function(){
+		    allChain.callChain();
+
+		});
+	    });
+	});
+	allChain.chain(function() {
+	    callback(options.universe);
+	});
+	allChain.callChain();
+    },
+
+    storeCache : function(options,callback) {
+	if (!options.tableId) options.tableId = options.mapOrTileset || 'map';
+
+	var remove = [];
+	var insert = [];
+	var update = [];
+
+	var flat = RPG.flattenCache(options.map.cache);
+
+	switch (options.tableId) {
+	    case  'inventory' :
+		Object.each(flat,function(tileOpts,path,source){
+		    var db = tileOpts.database;
+		    Object.erase(tileOpts,'database');
+		    if (db && db.inventoryCacheID) {
+
+			if (!Number.from(db.inventoryCacheID)) {
+			    options.errors.push('The Inventory Cache ID for "'+ path+'" must be numeric.');
+			    db = null;
+			    return;
+			}
+
+			if (db.deleted) {
+			    remove.push({
+				sql : 'DELETE FROM inventorycache ' +
+				'WHERE characterID = ? ' +
+				'AND inventoryCacheID = ? ' +
+				'AND characterID in (SELECT characterID FROM characters WHERE userID = ?)',
+				arr : Array.clone([options.character.database.characterID,db.inventoryCacheID,options.user.options.userID]),
+				path : JSON.decode(path,true)
+			    });
+			    Object.erase(source,path);
+
+			} else if (db.renamed) {
+			//rename does nothing in invenory
+			}
+
+			update.push({
+			    sql : 'UPDATE inventorycache ' +
+			    'SET folderName = ?,' +
+			    'path = ?,' +
+			    'tileName = ?,' +
+			    'options = ? ' +
+			    'WHERE characterID = ? ' +
+			    'AND inventoryCacheID = ? ' +
+			    'AND characterID in (SELECT characterID FROM characters WHERE userID = ?)',
+			    arr : Array.clone([
+				tileOpts.property.folderName,
+				path,
+				tileOpts.property.tileName,
+				JSON.encode(tileOpts),
+				options.character.database.characterID,
+				db.inventoryCacheID,
+				options.user.options.userID
+				]),
+			    path : JSON.decode(path,true)
+			});
+			Object.erase(source,path);
+		    } else {
+			insert.push({
+			    sql : 'INSERT INTO inventorycache ' +
+			    'SET characterID = ?,' +
+			    'path = ?,' +
+			    'folderName = ?,' +
+			    'tileName = ?,' +
+			    'options = ?',
+			    arr : Array.clone([
+				options.character.database.characterID,
+				path,
+				tileOpts.property.folderName,
+				tileOpts.property.tileName,
+				JSON.encode(tileOpts)
+				]),
+			    path : JSON.decode(path,true)
+			});
+			Object.erase(source,path);
+		    }
+		});
+		break;
+
+	    case 'map' :
+		Object.each(flat,function(tileOpts,path,source){
+		    var db = tileOpts.database;
+		    Object.erase(tileOpts,'database');
+		    if (db && db.mapCacheID) {
+
+			if (!Number.from(db.mapCacheID)) {
+			    options.errors.push('The Map Cache ID for "'+path+'" must be numeric.');
+			    db = null;
+			    return;
+			}
+
+			if (db.deleted) {
+			    remove.push({
+				sql : 'DELETE FROM mapscache ' +
+				'WHERE mapID = ? ' +
+				'AND mapCacheID = ? ',
+				arr : Array.clone([options.map.options.database.mapID,db.mapCacheID]),
+				path : JSON.decode(path,true)
+			    });
+			    Object.erase(source,path);
+
+			} else if (db.renamed) {
+			    var oldPath = Array.clone(options.path)
+			    oldPath[oldPath.length-1] = db.renamed;
+
+			    update.push({
+				sql : 'UPDATE mapTiles ' +
+				"SET tiles = PREG_REPLACE('/\\?/',?,tiles) " +
+				'WHERE mapID = ? ',
+				arr : Array.clone([
+				    JSON.encode(oldPath),
+				    path,
+				    options.map.options.database.mapID
+				    ]),
+				path : JSON.decode(path,true)
+			    })
+			}
+
+			update.push({
+			    sql : 'UPDATE mapscache ' +
+			    'SET folderName = ?,' +
+			    'path = ?,' +
+			    'tileName = ?,' +
+			    'options = ? ' +
+			    'WHERE mapID = ? ' +
+			    'AND mapCacheID = ? ',
+			    arr : Array.clone([
+				tileOpts.property.folderName,
+				path,//must be index 1
+				tileOpts.property.tileName,
+				JSON.encode(tileOpts),
+				options.map.options.database.mapID,
+				db.mapCacheID
+				]),
+			    path : JSON.decode(path,true),
+			    db : db
+			});
+			Object.erase(source,path);
+		    } else {
+			insert.push({
+			    sql : 'INSERT INTO mapscache ' +
+			    'SET mapID = ?,' +
+			    'path = ?,' +
+			    'folderName = ?,' +
+			    'tileName = ?,' +
+			    'options = ?',
+			    arr : Array.clone([
+				options.map.options.database.mapID,
+				path,//must be index 1
+				tileOpts.property.folderName,
+				tileOpts.property.tileName,
+				JSON.encode(tileOpts)
+				]),
+			    path : JSON.decode(path,true)
+			});
+			Object.erase(source,path);
+		    }
+		});
+		break;
+
+	    case 'tileset' :
+		Object.each(flat,function(tileOpts,path,source){
+		    var db = tileOpts.database;
+		    Object.erase(tileOpts,'database');
+		    if (db && db.tilesetCacheID) {
+
+			if (!Number.from(db.tilesetCacheID)) {
+			    options.errors.push('The Map Cache ID for "'+ path.join('.')+'" must be numeric.');
+			    db = null;
+			    return;
+			}
+
+			if (db.deleted) {
+			    remove.push({
+				sql : 'DELETE FROM tilesetscache ' +
+				'WHERE tilesetID = ? ' +
+				'AND tilesetCacheID = ? ',
+				arr : Array.clone([options.tileset.database.tilesetID,db.tilesetCacheID]),
+				path : JSON.decode(path,true)
+			    });
+			    Object.erase(source,path);
+
+			} else if (db.renamed) {
+			    var oldPath = Array.clone(JSON.decode(path,true))
+			    oldPath[oldPath.length-1] = db.renamed;
+
+			    update.push({
+				sql : 'UPDATE tilesetTiles ' +
+				"SET tiles = PREG_REPLACE('/\\?/',?,tiles) " +
+				'WHERE tilesetID = ? ',
+				arr : Array.clone([
+				    JSON.encode(oldPath),
+				    path,
+				    options.tileset.database.tilesetID
+				    ]),
+				path : JSON.decode(path,true)
+			    });
+			}
+
+			update.push({
+			    sql : 'UPDATE tilesetscache ' +
+			    'SET folderName = ?,' +
+			    'path = ?,' +
+			    'tileName = ?,' +
+			    'options = ? ' +
+			    'WHERE tilesetID = ? ' +
+			    'AND tilesetCacheID = ? ',
+			    arr : Array.clone([
+				tileOpts.property.folderName,
+				path,
+				tileOpts.property.tileName,
+				JSON.encode(tileOpts),
+				options.tileset.database.tilesetID,
+				db.tilesetCacheID
+				]),
+			    path : JSON.decode(path,true),
+			    db : db
+			});
+			Object.erase(source,path);
+		    } else {
+			insert.push({
+			    sql : 'INSERT INTO tilesetscache ' +
+			    'SET tilesetID = ?,' +
+			    'path = ?,' +
+			    'folderName = ?,' +
+			    'tileName = ?,' +
+			    'options = ?',
+			    arr : Array.clone([
+				options.tileset.database.tilesetID,
+				path,
+				tileOpts.property.folderName,
+				tileOpts.property.tileName,
+				JSON.encode(tileOpts)
+				]),
+			    path : JSON.decode(path,true)
+			});
+			Object.erase(source,path);
+		    }
+		});
+		break;
+
+	    default :
+		callback({
+		    error : 'storeCache requires a tableId paramenter'
+		});
+		return;
+		break;
 	}
-	var circle = RPG.getCircleArea(options.character.location.point,radius);
 
-	Object.merge(options,{
-	    tilePoints : circle.area
+	var cacheChain = new Chain();
+
+	RPG.Log('info','TileCache: Remove: ' + remove.length + ' - Update: ' + update.length + ' - Insert: ' + insert.length);
+
+	//go through all the actions and perform their sql statments in sequence
+	[remove,update,insert].each(function(action,index){
+	    if (!action || action.length == 0) return;
+
+	    //for each sql statment inside the action:
+	    action.each(function(sqlStuff) {
+
+		//push an sql statment onto the chain
+		cacheChain.chain(function(){
+		    require('../Database/mysql.njs').mysql.query(
+			sqlStuff.sql,
+			sqlStuff.arr,
+			function(err,results) {
+			    var tile = null;
+			    if (err) {
+				options.errors.push(err);
+			    } else {
+				switch (index) {
+				    case 0 : //remove
+					//RPG.Log('database delete','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.') +'" id:'+(results && results.insertId)+'');
+					if (results.affectedRows) {
+					    var pathName = sqlStuff.path.pop();
+					    Object.erase(Object.getFromPath(options.map.cache,sqlStuff.path),pathName);
+					} else {
+					    options.errors.push('Could not delete Cache item "'+ sqlStuff.path.join('.')+'" :(');
+					}
+					break;
+
+				    case 1 : //update
+					//RPG.Log('database update','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.') +'" id:'+(JSON.encode(sqlStuff.db))+'');
+					if (results.affectedRows) {
+					    tile = Object.getFromPath(options.map.cache,sqlStuff.path);
+					    if (!tile) {
+						RPG.Log('database update','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.')  +'" Cached Tile Not Found...');
+					    } else {
+						tile.options.database = sqlStuff.db;
+					    }
+					} else {
+					    options.errors.push('Could not update Cache item "'+sqlStuff.path.join('.')+'" :(');
+					}
+					break;
+
+				    case 2 ://insert
+					//RPG.Log('database insert','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.')  +'" id:'+(results && results.insertId)+'');
+					if (results.insertId) {
+					    tile = Object.getFromPath(options.map.cache,sqlStuff.path);
+					    if (!tile) {
+						RPG.Log('database insert','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.')  +'" Cached Tile Not Found...');
+					    } else {
+						tile.options.database = {};
+						tile.options.database[options.tableId+'CacheID'] = results.insertId;
+					    }
+					} else {
+					    options.errors.push('Failed to get newly inserted Cache ID :( '+JSON.encode(options.tile));
+					}
+					break;
+				}
+
+			    }
+			    tile = null;
+			    cacheChain.callChain();
+			});
+		});
+	    });
 	});
 
-	RPG.Tile.load(options,function(universe){
-	    callback(universe,circle);
+	cacheChain.chain(function() {
+	    //finally callback when everything is complete.
+	    callback(options.universe);
 	});
+	cacheChain.callChain();
     }
 }))();

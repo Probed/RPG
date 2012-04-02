@@ -1,11 +1,11 @@
 /**
- * Handles container triggers
+ * Handles template triggers
  *
  */
 
 if (!RPG) var RPG = {};
-if (!RPG.Tiles) RPG.Tiles = {};
-if (!RPG.Tiles.container) RPG.Tiles.container = {};
+if (!RPG.TileTypes) RPG.TileTypes = {};
+if (!RPG.TileTypes.template) RPG.TileTypes.template = {};
 if (typeof exports != 'undefined') {
     module.exports = RPG;
 }
@@ -22,34 +22,34 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.Tiles.container.tick = function(options,callback) {
+//RPG.TileTypes.template.tick = function(options,callback) {
 //    callback();
 //}
 
-//RPG.Tiles.container.tickComplete = function(options,callback) {
+//RPG.TileTypes.template.tickComplete = function(options,callback) {
 //    callback();
 //}
 
-RPG.Tiles.container.activate = function(options,callback) {
-    callback();
-}
-
-RPG.Tiles.container.activateComplete = function(options,callback) {
-    callback();
-}
-
-//RPG.Tiles.container.onBeforeLeave = function(options,callback) {
+//RPG.TileTypes.template.activate = function(options,callback) {
 //    callback();
 //}
 
-//RPG.Tiles.container.onBeforeEnter = function(options,callback) {
+//RPG.TileTypes.template.activateComplete = function(options,callback) {
 //    callback();
 //}
 
-//RPG.Tiles.container.onLeave = function(options,callback) {
+//RPG.TileTypes.template.onBeforeLeave = function(options,callback) {
 //    callback();
 //}
 
-//RPG.Tiles.container.onEnter = function(options,callback) {
+//RPG.TileTypes.template.onBeforeEnter = function(options,callback) {
+//    callback();
+//}
+
+//RPG.TileTypes.template.onLeave = function(options,callback) {
+//    callback();
+//}
+
+//RPG.TileTypes.template.onEnter = function(options,callback) {
 //    callback();
 //}
