@@ -14,7 +14,7 @@ if (typeof exports != 'undefined') {
 }
 
 RPG.Generator.Dungeon = new (RPG.Generator.DungeonClass = new Class({
-    Extends : RPG.GeneratorBaseClass,
+    Extends : RPG.MapGeneratorBaseClass,
     Implements : [Options],
     name : 'Dungeon',
     constraints : {

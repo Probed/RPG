@@ -73,7 +73,20 @@ RPG.Character = new Class({
 		//@todo Fix Description
 		events : {
 		    click : function(event) {
-
+//			if (!this.inventory) {
+//			    new MUI.Require({
+//				js : ['/client/Character/CharacterEquipment.js'],
+//				onloaded : function() {
+//				    this.inventory = new RPG.Inventory({
+//					character : this.options.character
+//				    });
+//				}.bind(this)
+//			    });
+//			} else {
+//			    if (this.inventory) {
+//				this.inventory.restore();
+//			    }
+//			}
 		    }
 		}
 	    })

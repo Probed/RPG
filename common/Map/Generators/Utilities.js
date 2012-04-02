@@ -899,7 +899,9 @@ RPG.offsetArea = function(area,offset,directionFunc,offset2,directionFunc2) {
 
 RPG.getRandomTileImage = function(path,rand) {
     if (typeOf(path) == 'array') path = path.join('.');
-    var img = Array.getSRandom(Object.getFromPath(RPG.Tiles,path+'.options.property.image.name'),rand);
+    var imglist = Object.getFromPath(RPG.Tiles,path+'.options.property.image.name');
+    if (!imglist) return null;
+    var img = Array.getSRandom(imglist,rand);
     return {
 	image : img,
 	name : img.substr(0,img.lastIndexOf("."))

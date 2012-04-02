@@ -903,7 +903,9 @@ RPG.rpgApplication = new Class({
 		 */
 		var onloaded = function() {
 		    if (page.populates && RPG[page.requires.exports]) {
-			this.pageHandlers[Object.toQueryString(page.requires)] = new RPG[page.requires.exports](page.options);
+			if (!this.pageHandlers[Object.toQueryString(page.requires)]) {
+			    this.pageHandlers[Object.toQueryString(page.requires)] = new RPG[page.requires.exports](page.options);
+			}
 			MUI.updateContent({
 			    element : $(page.populates),
 			    loadMethod : 'html',

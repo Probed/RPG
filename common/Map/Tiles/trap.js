@@ -85,7 +85,7 @@ RPG.Tiles.trap.onBeforeEnter = function(options,callback) {
 				return;
 			    }
 
-			    options.game.character = character;
+			    Object.merge(options.game.character,character);
 
 			    //finally callback
 			    callback({

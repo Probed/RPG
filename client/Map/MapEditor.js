@@ -131,7 +131,7 @@ RPG.MapEditor = new Class({
 		this.listUniverseWindow();
 	    }.bind(this),
 	    'click:relay(a.Generate)' : function(event) {
-		this.generatorWindow(event.target.get('html'));
+		this.generatorWindow(event.target.retrieve('path'));
 	    }.bind(this),
 	    'click:relay(a.SaveUniverse)' : function(event) {
 		this.saveUniverse();
@@ -822,19 +822,19 @@ RPG.MapEditor = new Class({
 		new Element('li').adopt(
 		    new Element('a').set('html','Generate'),
 		    new Element('ul').adopt(
-			new Element('li').adopt(
-			    (function(){
+			(function(){
+			    var types = [];
+			    ['Map','Item','NPC'].each(function(gen){
 				var generators = [];
-				Object.each(RPG.Generators,function(content,key){
-				    generators.push(new Element('li').adopt(new Element('a').set('html',key).addClass('Generate')))
+				Object.each(RPG.Generators[gen],function(content,key){
+				    generators.push(new Element('li').adopt(new Element('a').set('html',key).store('path',[gen,key]).addClass('Generate')))
 				});
-				return generators;
-			    }())
-			    )
+				types.push(new Element('li').adopt(new Element('a').addClass('arrow-right').set('html',gen),new Element('ul').adopt(generators)));
+			    });
+			    return types;
+			})()
 			)
-
 		    )
-
 		)
 	    );
 	Object.each(RPG.Tiles,function(content,key) {
@@ -1690,9 +1690,9 @@ RPG.MapEditor = new Class({
 	    } else if ($$('.selectedTileset').length > 0 && this.activeTileset) {
 		map = this.activeTileset;
 	    }
-	    if (!map.options.generator || (map.options.generator && !map.options.generator[generator])) {
+	    if (!map.options.generator || (map.options.generator && !map.options.generator[generator[1]])) {
 		map.options.generator = {};
-		map.options.generator[generator] = {
+		map.options.generator[generator[1]] = {
 		    options:{}
 		}
 	    }
@@ -1701,7 +1701,7 @@ RPG.MapEditor = new Class({
 
 	new MUI.Window({
 	    id : 'generatorWindow',
-	    title : generator + ' Generator',
+	    title : generator[1] + ' Generator',
 	    type : 'window',
 	    loadMethod : 'html',
 	    content : new Element('div',{
@@ -1715,9 +1715,9 @@ RPG.MapEditor = new Class({
 	    width : 350,
 	    height : 320,
 	    require : {
-		js : RPG.Generators[generator].require.js,
+		js : Object.getFromPath(RPG.Generators,generator).require.js,
 		onloaded : function() {
-		    $('generatorDiv').empty().adopt(RPG.optionCreator.getOptionTabs(RPG.Generator[generator].constraints,null,[],map.options.generator[generator].options,'generator'));
+		    $('generatorDiv').empty().adopt(RPG.optionCreator.getOptionTabs(RPG.Generator[generator[1]].constraints,null,[],map.options.generator[generator[1]].options,'generator'));
 		    MUI.initializeTabs('generator_mapTileConfigTabs');
 		}.bind(this)
 	    },
@@ -1729,18 +1729,18 @@ RPG.MapEditor = new Class({
 			events : {
 			    click : function(event) {
 				var options = RPG.optionCreator.getOptionsFromTable('generatorWindow','generator');
-				var errors = RPG.optionValidator.validate(options,RPG.Generator[generator].constraints);
+				var errors = RPG.optionValidator.validate(options,RPG.Generator[generator[1]].constraints);
 				if (errors && errors.length > 0) {
 				    RPG.Error.show(errors);
 				    errors = null;
 				    return;
 				}
 
-				RPG.Generator[generator].generate(options,RPG.Random,function(generated){
+				RPG.Generator[generator[1]].generate(options,RPG.Random,function(generated){
 				    if (generated.tiles && generated.cache) {
 					Object.merge(map.tiles,generated.tiles);
 					Object.merge(map.cache,generated.cache);
-					Object.merge(map.options.generator[generator].options,options);
+					Object.merge(map.options.generator[generator[1]].options,options);
 					this.refreshMapTree();
 					this.refreshMap();
 

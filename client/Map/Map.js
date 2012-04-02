@@ -16,6 +16,7 @@ RPG.Map = new Class({
     },
     initialize : function(options) {
 	this.setOptions(options);
+
 	this.mapDiv = new Element('div',{
 	    id : 'GameMap',
 	    styles : {
@@ -238,6 +239,7 @@ RPG.Map = new Class({
 
 	this.options.Character.toElement().setStyle('height',this.mapZoom);
 	this.options.Character.toElement().setStyle('width',this.mapZoom);
+	//Object.merge(this.options.Character.options.character,this.options.character);
 	this.options.Character.changeDirection(this.options.character.location.dir);
 
 	var map = this.options.universe.maps[this.options.character.location.mapName];
@@ -411,7 +413,7 @@ RPG.Map = new Class({
     },
 
     moveCharacter : function(dir) {
-	if (this.characterMoving) return;
+	if (this.gameWaiting) return;
 
 	var game = {
 	    universe : this.options.universe,
@@ -420,24 +422,24 @@ RPG.Map = new Class({
 	    dir : dir
 	};
 
-	this.characterMoving = true;
+	this.gameWaiting = true;
 	RPG.moveCharacterToTile(game, function(moveEvents){
 	    game.events = moveEvents;
 	    if (moveEvents.error) {
 		RPG.Error.notify(moveEvents.error);
-		this.characterMoving = false;
+		this.gameWaiting = false;
 		return;
 	    } else {
 		this.getServerEvents(game,'/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+game.character.database.characterID+'&dir='+game.dir,function(){
 		    this.refreshMap();
-		    this.characterMoving = false;
+		    this.gameWaiting = false;
 		}.bind(this));
 	    }
 	}.bind(this));
     },
 
     activateTile : function() {
-	if (this.tileActivating) return;
+	if (this.gameWaiting) return;
 
 	var game = {
 	    universe : this.options.universe,
@@ -445,24 +447,24 @@ RPG.Map = new Class({
 	    moveTo : this.options.character.location.point
 	};
 
-	this.tileActivating = true;
+	this.gameWaiting = true;
 	RPG.activateTile(game, function(activateEvents){
 	    game.events = activateEvents;
 	    if (activateEvents.error) {
 		RPG.Error.notify(activateEvents.error);
-		this.tileActivating = false;
+		this.gameWaiting = false;
 		return;
 	    } else {
 		if (Object.keys(activateEvents.activate).length == 0 && Object.keys(activateEvents.activateComplete).length == 0) {
 		    //no event data to send.. ignore
 		    RPG.Error.notify('Nothing Happened.');
-		    this.tileActivating = false;
+		    this.gameWaiting = false;
 		    return;
 		}
 
 		this.getServerEvents(game,'/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+game.character.database.characterID,function(){
 		    this.refreshMap();
-		    this.tileActivating = false;
+		    this.gameWaiting = false;
 		}.bind(this));
 	    }
 	}.bind(this));

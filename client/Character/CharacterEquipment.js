@@ -46,7 +46,7 @@ RPG.CharacterEquipment = new Class({
 	    maximizable : false,
 	    closable : true,
 	    height : (25*20),
-	    width : 24*19,
+	    width : 24*30,
 	    require : {
 		css : ['/client/mochaui/themes/charcoal/css/Character/CharacterEquipment.css'],
 		js :['/common/Character/CharacterSlots.js'],

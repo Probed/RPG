@@ -53,7 +53,7 @@ RPG.Tiles.traverse.onEnter = function(options,callback) {
 		    callback(character);
 		    return;
 		}
-		options.game.character = character;
+		Object.merge(options.game.character,character);
 		callback();
 	    });
 	} else {

@@ -65,7 +65,7 @@ RPG.TileType.Property = function(options) {
  * options :
  *	warn : true/false. Warn the user they are about to be teleported.
  *	mapName : the name of the map we teleporting to
- *	generator : the name of the Generator (from RPG.Generators) that will be used to build the map if no mapName is provided
+ *	generator : the name of the Generator (from RPG.Generators.Map) that will be used to build the map if no mapName is provided
  *	point : [x,y] location on the map where the character will be teleported to
  */
 RPG.TileType.Teleport = function(options) {
@@ -73,7 +73,7 @@ RPG.TileType.Teleport = function(options) {
 	teleportTo : Object.merge({
 	    warn : [true],
 	    mapName : [],
-	    generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators)),
+	    generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators.Map)),
 	    point : []
 	},options)
     };
@@ -236,6 +236,7 @@ RPG.TileType.Roam = function(options) {
     };
 }
 
+
 /**
  * Container
  *
@@ -243,7 +244,23 @@ RPG.TileType.Roam = function(options) {
 RPG.TileType.Container = function(options) {
     return {
 	container : Object.merge({
-	    items : []
+	    items : [{}]//@todo this will not display correctly in the Map Editor. need to fix optionsConfig to handle array of objects
+	}
+	,options||{})
+    };
+}
+
+/**
+ * Item
+ *
+ */
+RPG.TileType.Item = function(options) {
+    return {
+	item : Object.merge({
+	    generator : [''].append(Object.keys(require('../Generators/Generators.js').Generators.Item)),
+	    level : [0,100,0],
+	    cost : [0,99999999999,0],
+	    weight : [-100,100,0]
 	}
 	,options||{})
     };

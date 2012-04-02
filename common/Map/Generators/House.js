@@ -7,11 +7,13 @@ if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../Tiles/Tiles.js'));
     Object.merge(RPG,require('./Words.js'));
     Object.merge(RPG,require('./Generators.js'));
+    Object.merge(RPG,require('./Equipment.js'));
+    Object.merge(RPG,require('./Consumable.js'));
     module.exports = RPG;
 }
 
 RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
-    Extends : RPG.GeneratorBaseClass,
+    Extends : RPG.MapGeneratorBaseClass,
     Implements : [Options],
     constraints : {
 	properties : {
@@ -378,20 +380,25 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    }
 				}));
 			}
-			if (rand.random() <= 0.025) {
-			    RPG.pushTile(house.tiles, point,
-				RPG.createTile(['world','earth','container'],house.cache,{
-				    property : {
-					tileName : point.join(''),
-					folderName : options.properties.name
-				    },
-				    lockable : RPG.optionCreator.random(RPG.Tiles.world.earth.container.options.lockable,rand)
+			if (rand.random() <= 0.15) {
+			    var randGen = Object.getSRandom(RPG.Generators.Item,rand);
+			    var results = RPG.Generator[randGen.key].generate({
+				properties : {
+				    name : options.properties.name,
+				    seed : rand.seed,
+				    Difficulty : options.properties.Difficulty,
+				    level : options.properties.level,
+				    point : point
+				}
+			    },rand);
 
-				}));
+			    Object.merge(house.cache,results.cache);
+			    RPG.pushTile(house.tiles,point,results.path);
+
 			}
 			if (rand.random() <= 0.05) {
 			    RPG.pushTile(house.tiles, point,
-				RPG.createTile(['npc','earth','animal'],house.cache,{
+				RPG.createTile(['npc','earth','monster'],house.cache,{
 				    property : {
 					tileName : RPG.Generator.Name.generate({
 					    name : {
@@ -401,7 +408,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 					},rand),
 					folderName : options.properties.name,
 					image : {
-					    name : RPG.getRandomTileImage('npc.earth.animal',rand).image
+					    name : RPG.getRandomTileImage('npc.earth.monster',rand).image
 					}
 				    },
 				    npc : RPG.optionCreator.random(RPG.Tiles.npc.options.npc,rand),

@@ -675,6 +675,10 @@ String.implement({
 			if (match.charAt(0) == '\\') return match.slice(1);
 			return (object[name] != null) ? object[name] : '';
 		});
+	},
+	
+	repeat: function(times){
+		return new Array(times + 1).join(this);
 	}
 
 });

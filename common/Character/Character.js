@@ -57,6 +57,23 @@ RPG.Difficulty = {
 		    size : 32//must be power of 2
 		}
 	    }
+	},
+	//Items
+	item : {
+	    equip : {
+		maxStats : function(level){
+		    //maximum allowed stats on an item
+		    return Math.floor(level / 10) || 1;
+		},
+		statMods : function(level,stat,statNum) {
+		    var statMods = {
+			maxStat : Math.floor(level / 10) || 1,//maximum size of the stat being modified
+			negChance : 0.005, //chance the stat will become negative
+			roundMod : 0.05 //modify the pre-rounded value down this amount to make rounding up less likely (should be between 0 and 1
+		    };
+		    return statMods;
+		}
+	    }
 	}
     },
     Medium : {
@@ -80,6 +97,23 @@ RPG.Difficulty = {
 	    Terrain : {
 		terrain : {
 		    size : 64//must be power of 2
+		}
+	    }
+	},
+	//Items
+	item : {
+	    equip : {
+		maxStats : function(level){
+		    //maximum allowed stats on an item
+		    return Math.floor(level / 11) || 1;
+		},
+		statMods : function(level,stat,statNum) {
+		    var statMods = {
+			maxStat : Math.floor(level / 11) || 1,//maximum size of the stat being modified
+			negChance : 0.01, //chance the stat will become negative
+			roundMod : 0.1 //modify the pre-rounded value down this amount to make rounding up less likely (should be between 0 and 1
+		    };
+		    return statMods;
 		}
 	    }
 	}
@@ -107,6 +141,23 @@ RPG.Difficulty = {
 		    size : 128//must be power of 2
 		}
 	    }
+	},
+	//Items
+	item : {
+	    equip : {
+		maxStats : function(level){
+		    //maximum allowed stats on an item
+		    return Math.floor(level / 13) || 1;
+		},
+		statMods : function(level,stat,statNum) {
+		    var statMods = {
+			maxStat : Math.floor(level / 13) || 1,//maximum size of the stat being modified
+			negChance : 0.05, //chance the stat will become negative
+			roundMod : 0.15 //modify the pre-rounded value down this amount to make rounding up less likely (should be between 0 and 1
+		    };
+		    return statMods;
+		}
+	    }
 	}
     },
     Impossible : {
@@ -130,6 +181,23 @@ RPG.Difficulty = {
 	    Terrain : {
 		terrain : {
 		    size : 256//must be power of 2
+		}
+	    }
+	},
+	//Items
+	item : {
+	    equip : {
+		maxStats : function(level){
+		    //maximum allowed stats on an item
+		    return Math.floor(level / 15) || 1;
+		},
+		statMods : function(level,stat,statNum) {
+		    var statMods = {
+			maxStat : Math.floor(level / 15) || 1,//maximum size of the stat being modified
+			negChance : 0.1, //chance the stat will become negative
+			roundMod : 0.25 //modify the pre-rounded value down this amount to make rounding up less likely (should be between 0 and 1
+		    };
+		    return statMods;
 		}
 	    }
 	}

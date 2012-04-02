@@ -34,7 +34,7 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
 
     generate : function(options,rand,callback){
         rand = rand || RPG.Random;
-        rand.seed = Number.from(options.example.seed) || Math.floor((Math.random() * (99999999999 - 1);
+        rand.seed = Number.from(options.example.seed) || Math.floor((Math.random() * (99999999999 - 1)));
 
         //create the minimum required object to be returned
         var exampleObj = {
@@ -76,7 +76,7 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
             //paint floor tiles
             'interior.all' : RPG.createTile(['floor'],example.cache,{
                 property : {
-                    tileName : 'Floor'
+                    tileName : 'Floor',
                     folderName : options.example.name,
                     image : {
                         name : 'floor.png'
@@ -91,5 +91,5 @@ RPG.Generator.Example = new (RPG.Generator.ExampleClass = new Class({
         //finally callback with the exampleObj
         callback(exampleObj);
     }
-}
+}))();
 ```

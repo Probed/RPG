@@ -22,7 +22,12 @@ if (typeof exports != 'undefined') {
 Object.extend({
     getSRandom : function(source,rand,ignore) {
 	var keys = Object.keys(source);
-	keys.erase(ignore);
+	if (ignore) {
+	    ignore = Array.from(ignore);
+	    ignore.each(function(ign){
+		keys.erase(ign);
+	    });
+	}
 	var key = keys[Math.floor((rand || RPG.Random).random(0,keys.length))];
 	return {
 	    key : key,
@@ -39,6 +44,17 @@ Object.extend({
 Array.extend({
     getSRandom : function(source,rand) {
 	return source[Math.floor((rand || RPG.Random).random(0,source.length))];
+    }
+});
+
+Array.implement({
+    shuffleS : function(rand){
+	for (var i = this.length; i && --i;){
+	    var temp = this[i], r = Math.floor((rand || RPG.Random).random() * ( i + 1 ));
+	    this[i] = this[r];
+	    this[r] = temp;
+	}
+	return this;
     }
 })
 

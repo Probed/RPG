@@ -9,7 +9,7 @@ if (typeof exports != 'undefined') {
 }
 
 RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
-    Extends : RPG.GeneratorBaseClass,
+    //Extends : RPG.WordsGeneratorBaseClass,
     Implements : [Options],
 
     name : 'Name',
@@ -111,7 +111,7 @@ RPG.wordPatterns = {
  * and randomly constructs a sentance from the avaiable words
  */
 RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
-    Extends : RPG.GeneratorBaseClass,
+    //Extends : RPG.WordsGeneratorBaseClass,
     Implements : [Options],
 
     name : 'Words',

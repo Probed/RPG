@@ -86,7 +86,7 @@ RPG.Tiles.lockable.activate = RPG.Tiles.lockable.onBeforeEnter = function(option
 				return;
 			    }
 
-			    options.game.character = character;
+			    Object.merge(options.game.character,character);
 
 			    //finally callback
 			    callback({

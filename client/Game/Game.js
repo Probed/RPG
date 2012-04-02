@@ -10,6 +10,7 @@ RPG.Game = new Class({
     initialize : function(options) {
 	this.setOptions(options);
 	Object.erase(this.options,'require');
+
 	this.options.Character = new RPG.Character(this.options);
 
 	this.gameDiv = new Element('div',{
@@ -17,9 +18,6 @@ RPG.Game = new Class({
 	}).store('instance',this).adopt(
 	    (this.map = new RPG.Map(this.options)).toElement()
 	    );
-
-
-
     },
     toElement : function() {
 	return this.gameDiv;

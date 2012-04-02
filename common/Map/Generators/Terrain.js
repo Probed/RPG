@@ -11,7 +11,7 @@ if (typeof exports != 'undefined') {
 }
 
 RPG.Generator.Terrain = new (RPG.Generator.TerrainClass = new Class({
-    Extends : RPG.GeneratorBaseClass,
+    Extends : RPG.MapGeneratorBaseClass,
     Implements : [Options],
     name : 'Terrain',
     constraints : {

@@ -10,7 +10,7 @@ if (typeof exports != 'undefined') {
 }
 
 RPG.Generator.Maze = new (RPG.Generator.MazeClass = new Class({
-    Extends : RPG.GeneratorBaseClass,
+    Extends : RPG.MapGeneratorBaseClass,
     Implements : [Options],
 
     name : 'Maze',
