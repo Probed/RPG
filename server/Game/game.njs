@@ -129,6 +129,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	if (typeof game == 'object') {
 	    Object.each(game,function(content,key,source){
+		if ((typeOf(content) == 'object') && Object.keys(content||{}).length == 0) {
+		    Object.erase(source,key);
+		    return;
+		}
 		if (key == 'secret') {
 		    Object.erase(source,key);
 		} else {

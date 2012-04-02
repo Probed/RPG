@@ -36,7 +36,9 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		'/common/Map/TileTypes/lockable.js',//@todo dynamicize this
 		'/common/Map/TileTypes/trap.js',//@todo dynamicize this\
 		'/common/Map/TileTypes/switch.js',//@todo dynamicize this
-
+		'/common/Map/TileTypes/container.js',//@todo dynamicize this
+		'/common/Map/TileTypes/item.js',//@todo dynamicize this
+		
 		'/common/Random.js',
 		'/common/Map/Generators/Words.js',
 		'/client/Character/CreateCharacter.js',

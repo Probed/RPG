@@ -152,7 +152,8 @@ RPG.TileType.Trap = function(options) {
 	    Difficulty : Object.keys(RPG.Difficulty),
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
 	    attempts : [1,999,10],
-	    attempt : 0
+	    attempt : 0,
+	    secret : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))]
 	},options||{})
     };
 }

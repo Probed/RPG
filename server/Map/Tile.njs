@@ -516,6 +516,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 				path : JSON.decode(path,true)
 			    });
 			    Object.erase(source,path);
+			    return;
 
 			} else if (db.renamed) {
 			//rename does nothing in invenory
@@ -585,6 +586,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 				path : JSON.decode(path,true)
 			    });
 			    Object.erase(source,path);
+			    return;
 
 			} else if (db.renamed) {
 			    var oldPath = Array.clone(options.path)
@@ -652,7 +654,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 		    if (db && db.tilesetCacheID) {
 
 			if (!Number.from(db.tilesetCacheID)) {
-			    options.errors.push('The Map Cache ID for "'+ path.join('.')+'" must be numeric.');
+			    options.errors.push('The Tileset Cache ID for "'+ path.join('.')+'" must be numeric.');
 			    db = null;
 			    return;
 			}
@@ -666,6 +668,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 				path : JSON.decode(path,true)
 			    });
 			    Object.erase(source,path);
+			    return;
 
 			} else if (db.renamed) {
 			    var oldPath = Array.clone(JSON.decode(path,true))
@@ -736,7 +739,7 @@ RPG.Tile = new (RPG.TileClass = new Class({
 
 	var cacheChain = new Chain();
 
-	RPG.Log('info','TileCache: Remove: ' + remove.length + ' - Update: ' + update.length + ' - Insert: ' + insert.length);
+	RPG.Log('info',options.tableId+'Cache: Remove: ' + remove.length + ' - Update: ' + update.length + ' - Insert: ' + insert.length);
 
 	//go through all the actions and perform their sql statments in sequence
 	[remove,update,insert].each(function(action,index){

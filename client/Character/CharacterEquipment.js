@@ -417,7 +417,7 @@ RPG.CharacterEquipment = new Class({
 			},styles)
 		    },
 		    content : '&nbsp;'
-		})
+		});
 	    }
 	    rows.push(row);
 	}
