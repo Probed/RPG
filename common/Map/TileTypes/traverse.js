@@ -39,9 +39,11 @@ RPG.TileTypes.traverse.onBeforeEnter = function(options,callback) {
 //}
 
 RPG.TileTypes.traverse.onEnter = function(options,callback) {
-    if (options.events.onBeforeEnter.traverse) {
-	if (typeof exports != 'undefined') {
-	    //Server-Side
+    if (typeof exports != 'undefined') {
+
+	//Server-Side
+	if (options.events.onBeforeEnter.traverse) {
+
 	    options.game.character.location.point = options.game.moveTo;
 	    options.game.character.location.dir = options.game.dir.charAt(0);
 
@@ -57,11 +59,18 @@ RPG.TileTypes.traverse.onEnter = function(options,callback) {
 		callback();
 	    });
 	} else {
-	    callback();
+	    callback();//do nothing
+	    return;
 	}
     } else {
-	callback({
-	    error : 'Cannot move to that tile.'
-	});
+
+	//client-side
+	if (options.events.onBeforeEnter.traverse) {
+	    callback();
+	} else {
+	    callback({
+		error : 'Cannot move to that tile.'
+	    });
+	}
     }
 }

@@ -193,10 +193,12 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 			//merge the new character data into the cached character.
 			Object.merge(options.game.character,updateCharacter);
 
-			//callback with the events:
-			callback({
-			    traverse : false//stop a traverse if it is ocuring. no need since we are being teleported
-			});
+			//stop a traverse :
+			if (!options.events.onBeforeEnter) options.events.onBeforeEnter = {};
+			options.events.onBeforeEnter.traverse = false;
+
+			//callback
+			callback();
 		    });
 		});
 	    });
@@ -250,10 +252,12 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 			//merge the new character data into the cached character.
 			Object.merge(options.game.character,updateCharacter);
 
-			//callback with the events:
-			callback({
-			    traverse : false//stop a traverse if it is ocuring. no need since we are being teleported
-			});
+			//stop a traverse :
+			if (!options.events.onBeforeEnter) options.events.onBeforeEnter = {};
+			options.events.onBeforeEnter.traverse = false;
+
+			//callback
+			callback();
 
 		    });//end save character
 		});//end save universe

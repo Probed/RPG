@@ -93,18 +93,6 @@ RPG.TileType.Traversable = function(options) {
 	traverse : Object.merge({
 	    foot : {
 		cost : [-100,100,100]
-	    },
-	    steed : {
-		cost : [-100,100,100]
-	    },
-	    vehicle : {
-		cost : [-100,100,100]
-	    },
-	    boat : {
-		cost : [-100,100,100]
-	    },
-	    spaceship : {
-		cost : [-100,100,100]
 	    }
 	},options||{})
     };
@@ -124,6 +112,7 @@ RPG.TileType.Lockable = function(options) {
 	    level : [1,100,1],  //how difficult it is to unlock the tile
 	    Difficulty : Object.keys(RPG.Difficulty), //difficulty setting
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))], //seed used to generate puzzle
+	    secret : '',
 	    preventTraverse : [true], //stop the character from entering tiles that are locked
 	    collectable : [false] //allow the character to collect this locked tile into thier inventory
 	},options||{})
@@ -151,9 +140,9 @@ RPG.TileType.Trap = function(options) {
 	    level : [1,100,1],
 	    Difficulty : Object.keys(RPG.Difficulty),
 	    seed : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))],
+	    secret : '',
 	    attempts : [1,999,10],
-	    attempt : 0,
-	    secret : [0,99999999999,Math.floor((Math.random() * (99999999999 - 1) + 1))]
+	    attempt : 0
 	},options||{})
     };
 }

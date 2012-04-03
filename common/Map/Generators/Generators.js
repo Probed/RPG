@@ -153,6 +153,16 @@ RPG.Generators.Map = {
 	require :{
 	    js : ['/common/Map/Generators/Maze.js','/common/Map/Generators/Words.js']
 	}
+    },
+    Example : {
+	require :{
+	    js : ['/common/Map/Generators/Example.js','/common/Map/Generators/Words.js']
+	}
+    },
+    Test : {
+	require :{
+	    js : ['/common/Map/Generators/Test.js','/common/Map/Generators/Words.js','/common/Map/Generators/Equipment.js','/common/Map/Generators/Consumable.js','/common/Map/Generators/NPC.js']
+	}
     }
 }
 

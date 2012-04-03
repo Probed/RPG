@@ -138,6 +138,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 		} else {
 		    RPG.Game.removeSecrets(content,internal);
 		}
+		if ((typeOf(content) == 'object') && Object.keys(content||{}).length == 0) {
+		    Object.erase(source,key);
+		    return;
+		}
 	    });
 	}
 	return game;

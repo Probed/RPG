@@ -119,7 +119,7 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	RPG.pushTile(equipmentObj.tiles, options.properties.point,
 	    equipmentObj.path = RPG.createTile(options.properties.type,equipmentObj.cache,{
 		property : {
-		    tileName : 'Level ' + equipmentObj.itemOptions.level + ' ' + equipmentObj.itemOptions.type,
+		    tileName : 'Level ' + equipmentObj.itemOptions.level + ' ' + equipmentObj.itemOptions.type + ' ' +options.properties.point.join(),
 		    folderName : options.properties.name,
 		    image : {
 			name : randImg && randImg.image || '',

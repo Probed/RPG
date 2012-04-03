@@ -47,20 +47,9 @@ RPG.TileTypes.item.activate = function(options,callback) {
 
     } else if (typeof exports != 'undefined') {
 	//server-side
-	callback();
-    }
-}
-
-RPG.TileTypes.item.activateComplete = function(options,callback) {
-    if (typeof exports == 'undefined') {
-	//client-side
-	callback();
-
-    } else if (typeof exports != 'undefined') {
-	//server-side
 	var item = Object.getFromPath(options,'game.clientEvents.activate.item');
 
-	if (item == 'all') {
+	if (item) {
 
 	    var cachedMap = options.game.universe.maps[options.game.character.location.mapName];
 	    var tmpMap = null;
@@ -91,12 +80,12 @@ RPG.TileTypes.item.activateComplete = function(options,callback) {
 		    //put a copy of this tile in our temporary universe
 		    RPG.cloneTile(cachedMap.cache,tilePath,tmpMap.cache,opts);
 
-		    //remove the path from the cached map
-		    RPG.removeTile(cachedMap.tiles,tilePath,point);
-
 		    //ensure all other tiles get updated
 		    if (!tmpMap.tiles[point[0]]) tmpMap.tiles[point[0]] = {};
-		    tmpMap.tiles[point[0]][point[1]] = cachedMap.tiles[point[0]][point[1]];
+		    tmpMap.tiles[point[0]][point[1]] = Array.clone(cachedMap.tiles[point[0]][point[1]]);
+
+		    //remove the item from the temp map
+		    RPG.removeTile(tmpMap.tiles,tilePath,point);
 
 		    items++;
 		}
@@ -131,18 +120,34 @@ RPG.TileTypes.item.activateComplete = function(options,callback) {
 			    callback(universe);
 			    return;
 			}
-
-			//remove all the tiles from the cache so that the client will receive new ones
-			RPG.removeAllTiles(cachedMap.tiles,options.game.character.location.point);
-			callback();
+			callback({
+			    item : item
+			});
 		    });
 		});
 
-	    }
-
+	    };
 	} else {
 	    callback();
 	}
+    }
+}
+
+RPG.TileTypes.item.activateComplete = function(options,callback) {
+    if (typeof exports == 'undefined') {
+	//client-side
+	callback();
+
+    } else if (typeof exports != 'undefined') {
+	RPG.Log('item','Activate Complete');
+	//server-side
+	var item = options.events.activate && options.events.activate.item;
+	RPG.Log('item',item);
+	if (item) {
+	    //remove all the tiles from the cache so that the client will receive new ones
+	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles,options.game.character.location.point);
+	}
+	callback();
     }
 }
 
@@ -182,7 +187,7 @@ RPG.ItemList = new (new Class({
 	if ($('itemWindow')) {
 	    MUI.closeWindow($('itemWindow'));
 	}
-
+	var itemCount = 0;
 	new MUI.Window({
 	    id : 'itemWindow',
 	    title : 'What do you want to take?',
@@ -258,6 +263,7 @@ RPG.ItemList = new (new Class({
 			if (tile && tile.options && tile.options.item) {
 			    //push the item to our tmp map for display
 			    RPG.pushTile(tmp.tiles,[r,c],RPG.createTile(RPG.trimPathOfNameAndFolder(tilePath),tmp.cache,tile.options));
+			    itemCount++;
 			    r++;
 			    if ((r % 3) == 0) {
 				r = 0;
@@ -299,6 +305,20 @@ RPG.ItemList = new (new Class({
 		})()
 	    }).toElement()
 	});
+
+	if (itemCount == 1) {
+	    //automatically take all
+	    callbacks.success({
+		item : 'all'
+	    });
+	    callbacks.fail = null;//set to null so onClose does not call again
+	    $('itemWindow').retrieve('instance').close();
+	} else if (itemCount == 0) {
+
+	    callbacks.fail();
+	    callbacks.fail = null;//set to null so onClose does not call again
+	    $('itemWindow').retrieve('instance').close();
+	}
     }
 
 }));

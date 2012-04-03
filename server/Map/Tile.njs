@@ -435,7 +435,10 @@ RPG.Tile = new (RPG.TileClass = new Class({
 	    }
 	});
 	sql = sql.substr(0,sql.length-1);
-	if (args && args.length < 1) options.tilesChain.callChain();
+	if (args && args.length < 1) {
+	    options.tilesChain.callChain();
+	    return;
+	}
 
 	require('../Database/mysql.njs').mysql.query(sql,args,
 	    function(err,info) {
@@ -760,11 +763,12 @@ RPG.Tile = new (RPG.TileClass = new Class({
 			    } else {
 				switch (index) {
 				    case 0 : //remove
-					//RPG.Log('database delete','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.') +'" id:'+(results && results.insertId)+'');
+					//RPG.Log('database delete','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.'));
 					if (results.affectedRows) {
 					    var pathName = sqlStuff.path.pop();
 					    Object.erase(Object.getFromPath(options.map.cache,sqlStuff.path),pathName);
 					} else {
+					    //RPG.Log('0 deleted','"'+(options.tableId)+'" cache "'+ sqlStuff.path.join('.'));
 					    options.errors.push('Could not delete Cache item "'+ sqlStuff.path.join('.')+'" :(');
 					}
 					break;

@@ -132,6 +132,8 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
     //no suitable handler
     }
     });
+    triggers = triggers.reverse();//top down
+    //reverse the call chain
     triggers.push(function(){
 	callback(results);
     });
@@ -163,7 +165,10 @@ RPG.moveCharacterToTile = function(options,callback) {
     //check to see if we can leave the current tile:
     RPG.triggerTileTypes(options,curLocTiles,'onBeforeLeave',moveEvents,function(beforeLeaveResults){
 	if (beforeLeaveResults && beforeLeaveResults.error) {
-	    callback(beforeLeaveResults);
+	    callback({
+		error : beforeLeaveResults.error,
+		game : beforeLeaveResults.game//allow game details to be sent back
+	    });
 	    return;
 	}
 	if (beforeLeaveResults) {
@@ -174,7 +179,10 @@ RPG.moveCharacterToTile = function(options,callback) {
 	//check to see if we can enter the new tile
 	RPG.triggerTileTypes(options,newLocTiles,'onBeforeEnter',moveEvents,function(beforeEnterResults){
 	    if (beforeEnterResults && beforeEnterResults.error) {
-		callback(beforeEnterResults);
+		callback({
+		    error : beforeEnterResults.error,
+		    game : beforeEnterResults.game//allow game details to be sent back
+		});
 		return;
 	    }
 	    if (beforeEnterResults) {
@@ -182,7 +190,7 @@ RPG.moveCharacterToTile = function(options,callback) {
 		    onBeforeEnter : beforeEnterResults
 		});
 	    }
-	    if (!beforeEnterResults.traverse) {
+	    if (!beforeEnterResults || !beforeEnterResults.traverse) {
 		callback({
 		    error : 'Cannot move to that tile.'
 		});
@@ -191,7 +199,10 @@ RPG.moveCharacterToTile = function(options,callback) {
 	    //actually leave the current tile
 	    RPG.triggerTileTypes(options,curLocTiles,'onLeave',moveEvents,function(leaveResults){
 		if (leaveResults && leaveResults.error) {
-		    callback(leaveResults);
+		    callback({
+			error : beforeLeaveResults.error,
+			game : beforeLeaveResults.game//allow game details to be sent back
+		    });
 		    return;
 		}
 		if (leaveResults) {
@@ -202,7 +213,10 @@ RPG.moveCharacterToTile = function(options,callback) {
 		//now enter the new tile
 		RPG.triggerTileTypes(options,newLocTiles,'onEnter',moveEvents,function(enterResults){
 		    if (enterResults && enterResults.error) {
-			callback(enterResults);
+			callback({
+			    error : enterResults.error,
+			    game : enterResults.game//allow game details to be sent back
+			});
 			return;
 		    }
 		    if (enterResults) {
@@ -238,22 +252,32 @@ RPG.activateTile = function(options,callback) {
 
     //Trigger the Activate Event
     RPG.triggerTileTypes(options,curLocTiles,'activate',activateEvents,function(activateResults){
-	if (activateResults && activateResults.error) {
-	    callback(activateResults);
-	    return;
+	if (activateResults) {
+	    Object.merge(activateEvents,{
+		activate : activateResults
+	    });
 	}
-	Object.merge(activateEvents,{
-	    activate : activateResults
-	});
 	//trigger the Activate Complete event to wrap up and
 	RPG.triggerTileTypes(options,curLocTiles,'activateComplete',activateEvents,function(activateCompleteResults){
-	    if (activateCompleteResults && activateCompleteResults.error) {
-		callback(activateCompleteResults);
+	    if (activateResults && activateResults.error) {
+		callback({
+		    error : activateResults.error,
+		    game : activateResults.game//allow game details to be sent back
+		});
 		return;
 	    }
-	    Object.merge(activateEvents,{
-		activateComplete : activateCompleteResults
-	    });
+	    if (activateCompleteResults && activateCompleteResults.error) {
+		callback({
+		    error : activateCompleteResults.error,
+		    game : activateResults.game//allow game details to be sent back
+		});
+		return;
+	    }
+	    if (activateCompleteResults) {
+		Object.merge(activateEvents,{
+		    activateComplete : activateCompleteResults
+		});
+	    }
 	    callback(activateEvents);
 	});
     });
