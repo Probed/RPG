@@ -1,3 +1,4 @@
+if (!RPG) RPG = {};
 /*
 
 The window which displays the characters equippable slots and handles drag-drop
@@ -13,104 +14,6 @@ RPG.CharacterEquipment = new Class({
     initialize : function(game) {
 	this.game = game;
 
-	/**
-	 * Create MUI window to hold the content
-	 */
-	this.characterEquipmentWindow = new MUI.Window({
-	    id : 'characterEquipmentWindow',
-	    title : '<span class="Character">Character Equipment</span>',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : (new HtmlTable({
-		zebra : false,
-		selectable : false,
-		useKeyboard : false,
-		properties : {
-		    id : '',
-		    cellpadding : 0,
-		    cellspacing : 2
-		},
-		headers : [],
-		rows  :[
-		[
-		{
-		    content : (this.characterEquipmentTable = new HtmlTable({
-			zebra : false,
-			selectable : false,
-			useKeyboard : false,
-			properties : {
-			    id : 'CharacterEquipmentTable',
-			    cellpadding : 0,
-			    cellspacing : 2
-			},
-			headers : [],
-			rows  :[[]],
-			footers : []
-		    })).toElement()
-		},
-		{
-		    properties : {
-			'class' : 'vTop'
-		    },
-		    content : (this.characterInventoryTable = new HtmlTable({
-			zebra : false,
-			selectable : false,
-			useKeyboard : false,
-			properties : {
-			    id : 'CharacterInventoryTable',
-			    cellpadding : 0,
-			    border : 0,
-			    align : 'center',
-			    styles : {
-				'border-spacing' : '8px',
-				'border-collapse' : 'separate'
-			    }
-			},
-			headers : [],
-			rows  :[[]],
-			footers : []
-		    })).toElement()
-		}
-		]
-		],
-		footers : []
-	    })).toElement(),
-	    collapsible : false,
-	    storeOnClose : true,
-	    resizable : false,
-	    maximizable : false,
-	    closable : true,
-	    height : (25*20),
-	    width : (24*18) + 310,
-	    require : {
-		css : ['/client/mochaui/themes/charcoal/css/Character/CharacterEquipment.css'],
-		js :['/common/Character/CharacterSlots.js'],
-		onloaded : function() {
-		    this.refresh();
-		    $('characterEquipmentWindow').adopt(
-			RPG.elementFactory.buttons.actionButton({
-			    'class' : 'WinFootRight',
-			    'html' : '<span class="textLarge Refresh">Refresh</span>',
-			    events : {
-				click : function(event) {
-				    this.refresh();
-				}.bind(this)
-			    }
-			}),
-			RPG.elementFactory.buttons.cancelButton({
-			    'class' : 'textLarge WinFootLeft',
-			    'html' : '<span class="textLarge Cancel">Cancel</span>',
-			    events : {
-				click : function(event) {
-				    MUI.closeWindow($('characterEquipmentWindow'));
-				}
-			    }
-			})
-			);
-		}.bind(this)
-	    }
-	});
-
 	this.tips = new Tips([],{
 	    showDelay: 100,
 	    fixed : true,
@@ -119,8 +22,112 @@ RPG.CharacterEquipment = new Class({
 		x : -20
 	    }
 	});
+
+	this.refresh();
     },
     refresh : function() {
+
+	/**
+	 * Create MUI window to hold the content
+	 */
+	if (!$('characterEquipmentWindow')) {
+	    new MUI.Window({
+		id : 'characterEquipmentWindow',
+		title : '<span class="Character">Character Equipment</span>',
+		type : 'window',
+		loadMethod : 'html',
+		content : (new HtmlTable({
+		    zebra : false,
+		    selectable : false,
+		    useKeyboard : false,
+		    properties : {
+			id : '',
+			cellpadding : 0,
+			cellspacing : 2
+		    },
+		    headers : [],
+		    rows  :[
+		    [
+		    {
+			content : (this.characterEquipmentTable = new HtmlTable({
+			    zebra : false,
+			    selectable : false,
+			    useKeyboard : false,
+			    properties : {
+				id : 'CharacterEquipmentTable',
+				cellpadding : 0,
+				cellspacing : 2
+			    },
+			    headers : [],
+			    rows  :[[]],
+			    footers : []
+			})).toElement()
+		    },
+		    {
+			properties : {
+			    'class' : 'vTop'
+			},
+			content : (this.characterInventoryTable = new HtmlTable({
+			    zebra : false,
+			    selectable : false,
+			    useKeyboard : false,
+			    properties : {
+				id : 'CharacterInventoryTable',
+				cellpadding : 0,
+				border : 0,
+				align : 'center',
+				styles : {
+				    'border-spacing' : '8px',
+				    'border-collapse' : 'separate'
+				}
+			    },
+			    headers : [],
+			    rows  :[[]],
+			    footers : []
+			})).toElement()
+		    }
+		    ]
+		    ],
+		    footers : []
+		})).toElement(),
+		collapsible : false,
+		storeOnClose : false,
+		minimizable : false,
+		resizable : false,
+		maximizable : false,
+		closable : true,
+		height : (25*20),
+		width : (24*18) + 310,
+		require : {
+		    css : ['/client/mochaui/themes/charcoal/css/Character/CharacterEquipment.css'],
+		    js :['/common/Character/CharacterSlots.js'],
+		    onloaded : function() {
+			this.refresh();
+			$('characterEquipmentWindow').adopt(
+			    RPG.elementFactory.buttons.actionButton({
+				'class' : 'WinFootRight',
+				'html' : '<span class="textLarge Refresh">Refresh</span>',
+				events : {
+				    click : function(event) {
+					this.refresh();
+				    }.bind(this)
+				}
+			    }),
+			    RPG.elementFactory.buttons.cancelButton({
+				'class' : 'textLarge WinFootLeft',
+				'html' : '<span class="textLarge Cancel">Cancel</span>',
+				events : {
+				    click : function(event) {
+					MUI.closeWindow($('characterEquipmentWindow'));
+				    }
+				}
+			    })
+			    );
+		    }.bind(this)
+		}
+	    });
+	    return;
+	}
 
 	var rows = new Array();
 	for(var r=0;r<=19;r++) {
@@ -257,17 +264,6 @@ RPG.CharacterEquipment = new Class({
 	this.refreshInfo();
 	this.refreshInventory();
     },
-    restore : function() {
-	MUI.updateContent({
-	    id : $('characterEquipmentWindow'),
-	    loadMethod : 'html',
-	    content : this.characterEquipmentTable.toElement()
-	});
-	this.characterEquipmentWindow.minimize();
-	this.characterEquipmentWindow.restore();
-	this.refreshInfo();
-	this.refreshInventory();
-    },
 
     refreshInfo : function() {
 	$('RightInfo').empty();
@@ -398,32 +394,42 @@ RPG.CharacterEquipment = new Class({
 	for (r=0;r<11;r++) {
 	    row = [];
 	    for (c=0;c<7;c++) {
-
-
-
+		var inv = this.game.inventory.character;
 		var styles = RPG.getMapTileStyles({
-		    map : this.game.inventory.character,
+		    map : inv,
 		    row : r,
 		    col : c,
 		    rowOffset : 0,
 		    colOffset : 0,
 		    zoom : 32
 		});
+		var tiles = inv.tiles[r] && inv.tiles[r][c];
+		var tileCount = 0;
+		if (tiles) {
+		    tileCount = tiles.length;
+		}
 
 		row.push({
 		    properties : {
-			'class' : 'textTiny',
+			'class' : 'CharacterInventory textTiny'
+		    },
+		    content : (new RPG.Item(inv.cache,tiles && tiles[0])).attachToolTip(this.tips,new Element('div',{
+			html : (tileCount > 1 && tileCount) || '&nbsp;',
 			styles : Object.merge(styles,{
 			    border : '1px solid white',
 			    'background-size' : '100% 100%',
 			    'background-position' : '0% 0%'
 			})
-		    },
-		    content : '&nbsp;'
+		    }))
 		});
+
+		styles = null;
 	    }
 	    rows.push(row);
 	}
 	this.characterInventoryTable.pushMany(rows);
+	$$('CharacterInventory').each(function(elm){
+
+	    });
     }
 });

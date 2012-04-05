@@ -20,6 +20,7 @@ RPG.tipFactory = {
 	    options.tips.attach(element);
 
 	}
+	return element;
     }
 };
 

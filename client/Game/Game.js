@@ -17,5 +17,8 @@ RPG.Game = new Class({
     },
     toElement : function() {
 	return this.gameDiv;
+    },
+    update : function() {
+	this.map.refreshMap();
     }
 });

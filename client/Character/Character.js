@@ -109,7 +109,7 @@ RPG.Character = new Class({
 			    });
 			} else {
 			    if (this.characterEquipment) {
-				this.characterEquipment.restore();
+				this.characterEquipment.refresh();
 			    }
 			}
 		    }.bind(this)

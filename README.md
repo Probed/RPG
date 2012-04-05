@@ -3,7 +3,7 @@ Javascript Tile Based RPG
 
 The goal of this project is to create an Infinite Randomish Universe within which the player explores, quests, fights, loots, equips, levels and more.
 
-Demo Available thanks to [Passcod](https://github.com/passcod) at [rpg.passcod.net](http://rpg.passcod.net)
+Demo Available at [wastedpaper.sytes.net](http://wastedpaper.sytes.net:50014/)
 
 ### Server Side Javascript
 --------------------------

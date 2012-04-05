@@ -64,12 +64,12 @@ RPG.getMapTileStyles = function(options) {
 }
 RPG.getMapTileCursor = function(path,tile) {
     return {
-	'cursor' : 'url("'+RPG.getMapTileImage(path,tile)+'"), pointer'
+	'cursor' : 'url("'+escape(RPG.getMapTileImage(path,tile))+'"), pointer'
     };
 }
 
 RPG.getMapTileImage = function(path,tile) {
-    return '/common/Game/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+escape(tile.options.property.image.name)+'';
+    return escape('/common/Game/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+tile.options.property.image.name);
 }
 
 /**
@@ -154,9 +154,9 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
  */
 RPG.moveCharacterToTile = function(options,callback) {
 
-//    if (typeof exports != 'undefined') {
-//	RPG.Log('MoveEvent Universe',options.universe);
-//    }
+    //    if (typeof exports != 'undefined') {
+    //	RPG.Log('MoveEvent Universe',options.universe);
+    //    }
     var map = options.universe.maps[options.character.location.mapName];
     if (!map) callback({});
     var newLocTiles = map.tiles && map.tiles[options.moveTo[0]] && map.tiles[options.moveTo[0]][options.moveTo[1]];

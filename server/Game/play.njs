@@ -24,7 +24,9 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		css : ['/client/mochaui/themes/charcoal/css/Character/Character.css'],
 		js : [
 		'/common/Character/Character.js',
+		'/client/Game/Item.js',
 		'/common/Game/Generators/Generators.js',
+		'/common/Game/Generators/Utilities.js',
 		'/client/Game/play.js',
 		'/common/optionConfig.js',
 

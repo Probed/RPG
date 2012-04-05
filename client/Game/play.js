@@ -80,9 +80,8 @@ RPG.Play = new Class({
 			if (this.gamesCache[game.character.database.characterID]) {
 			    this.gameDiv.adopt(this.gamesCache[game.character.database.characterID].toElement());
 			} else {
-			    this.gameDiv.adopt(
-				(this.gamesCache[game.character.database.characterID] = new RPG.Game(game)).toElement()
-				);
+			    this.gameDiv.adopt((this.gamesCache[game.character.database.characterID] = new RPG.Game(game)).toElement());
+			    this.gamesCache[game.character.database.characterID].update();
 			}
 		    }.bind(this)
 		},game.require));

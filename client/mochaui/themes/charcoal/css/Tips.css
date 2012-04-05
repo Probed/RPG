@@ -1,25 +1,13 @@
 .tip-wrap {
-    color: white;
     z-index: 13000;
-    -moz-box-shadow: 0 0 5px 5px #3e3e3e;
-    -webkit-box-shadow: 0 0 5px 5px #3e3e3e;
-    box-shadow: 0 0 5px 5px #3e3e3e;
 }
 
 .tip-title {
     font-weight: bold;
-    font-size: 11px;
     margin: 0;
-    padding: 5px 5px 4px;
-    background-color : #3e3e3e;
-    background: -webkit-gradient(linear, left top, left bottom, from(#3e3e3e), to(#666666));
-    background: -moz-linear-gradient(top,  #3e3e3e,  #666666);
+
 }
 
 .tip-text {
-    font-size: 11px;
-    padding: 4px 8px 8px;
-    background-color : #666666;
-    background: -webkit-gradient(linear, left top, left bottom, from(#666666), to(#3e3e3e));
-    background: -moz-linear-gradient(top,  #666666,  #3e3e3e);
+    margin: 0;
 }
