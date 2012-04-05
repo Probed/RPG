@@ -90,7 +90,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    /**
 	     * @Attempt to find the user in the database based on the hash:
 	     */
-	    require('../Database/mysql.njs').mysql.query(
+	    RPG.Mysql.query(
 		'SELECT '+this.userColumnsToSelectList('u')+
 		'FROM user u ' +
 		'WHERE apiKey = ? ',
@@ -217,7 +217,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	/**
 	 * Attempt lookup of user in database:
 	 */
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT '+ this.userColumnsToSelectList('u')+
 	    'FROM user u ' +
 	    'WHERE u.email = ? ' +
@@ -268,7 +268,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	/**
 	 * Update the users last logged in info and apiKey to make sure it is up to date
 	 */
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'UPDATE user '+
 	    'SET lastLogin = NOW(), apiKey = ? '+
 	    'WHERE userID = ?',
@@ -421,7 +421,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 				var apiKey = (request.url.query.email + request.url.query.passwordHash + this.APIKEY_SALT).toMD5();
 				var verifyKey = (passwordHash + apiKey + this.VERIFY_SALT).toMD5();
 
-				require('../Database/mysql.njs').mysql.query(
+				RPG.Mysql.query(
 				    'INSERT INTO user '+
 				    'SET name = ?,'+
 				    'email = ?,'+
@@ -486,7 +486,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
      * Checks for Duplicate Display Names
      */
     checkDupeDisplayName : function(name,callback) {
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT u.name ' +
 	    'FROM user u ' +
 	    'WHERE u.name = ?',
@@ -517,7 +517,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
      * Checks for Duplicate Display Names
      */
     checkDupeEmail : function(email,callback) {
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT u.email ' +
 	    'FROM user u ' +
 	    'WHERE u.email = ?',
@@ -560,7 +560,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	/**
 	 * @Attempt to find the user in the database based on the key:
 	 */
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT '+this.userColumnsToSelectList('u')+
 	    'FROM user u ' +
 	    'WHERE verifyKey = ? ',
@@ -570,7 +570,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    function(err,results,fields) {
 		if (!err) {
 		    if (results && results[0]) {
-			require('../Database/mysql.njs').mysql.query(
+			RPG.Mysql.query(
 			    'UPDATE user SET verifyKey = null '+
 			    'WHERE verifyKey = ? ',
 			    [
@@ -620,7 +620,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	/**
 	 * @Attempt to find the user in the database based on the key:
 	 */
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT email '+
 	    'FROM user u ' +
 	    'WHERE email = ? ',
@@ -675,7 +675,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	/**
 	 * @Attempt to find the user in the database based on the userID:
 	 */
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT u.userID, u.email '+
 	    'FROM user u ' +
 	    'WHERE userID = ? ',
@@ -696,7 +696,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			    var newPassword = 'NewPassword';
 			    var passwordHash = (results[0].name + newPassword + this.PASSWORD_SALT);
 
-			    require('../Database/mysql.njs').mysql.query(
+			    RPG.Mysql.query(
 				'UPDATE user '+
 				'SET passwordHash = ?' +
 				'WHERE userID = ? ',

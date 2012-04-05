@@ -47,12 +47,12 @@ A Simple `map.cache` might look like this:
 ```javascript
 var cache = {
     'terrain' : {
-        options : { /* read more in /common/Map/Tiles */ }
+        options : { /* read more in /common/Game/Tiles */ }
         'grass' : {
-            options : { /* read more in /common/Map/Tiles */ }
+            options : { /* read more in /common/Game/Tiles */ }
         },
         'dirt' : {
-            options : { /* read more in /common/Map/Tiles */ }
+            options : { /* read more in /common/Game/Tiles */ }
         }
     }
 };

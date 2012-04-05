@@ -1,11 +1,13 @@
 var RPG = module.exports = {};
 Object.merge(RPG,
     require('./init.njs'),
-    require('../Map/Universe.njs')
+    require('./Universe.njs'),
+    require('./Map.njs'),
+    require('./Tileset.njs'),
+    require('./Inventory.njs')
     );
 
 RPG.Game = new (RPG.GameClass = new Class({
-    Implements : [Events,Options],
     routeAccepts : ['PlayCharacter','MoveCharacter','ActivateTile'],
 
     require : {
@@ -17,15 +19,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 	'/client/Game/Game.js',
 	'/client/Character/Character.js',
 	'/client/Character/CharacterEquipment.js',
-	'/common/Map/Tiles/Utilities.js',
-	'/common/Map/Generators/Utilities.js',
-	'/client/Map/Map.js'
+	'/common/Game/Tiles/Utilities.js',
+	'/common/Game/Generators/Utilities.js',
+	'/client/Game/Map.js'
 	]
-    },
-
-    options : {},
-    initialize : function(options) {
-	this.setOptions(options);
     },
 
     /**
@@ -39,23 +36,28 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    return;
 	}
 
+	//RPG.Log('BeforeInit',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 	RPG.InitGame.startGame({
 	    user : request.user,
 	    characterID : request.url.query.characterID
-	}, function(character) {
-	    if (!character || character.error) {
-		response.onRequestComplete(response,character);
+	}, function(game) {
+
+	    if (!game || game.error) {
+		response.onRequestComplete(response,{
+		    error : game.error
+		});
 		return;
 	    }
 
-	    this.loadGame({
-		user : request.user,
-		character : character
-	    },function(game) {
+	    //RPG.Log('BeforeLoad',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
+	    RPG.Game.loadGame(game,function(game) {
 		if (game.error) {
-		    response.onRequestComplete(response,game);
+		    response.onRequestComplete(response,{
+			error : game.error
+		    });
 		    return;
 		}
+		//RPG.Log('AfterLoad',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 		switch (true) {
 		    //process game commands:
 
@@ -68,12 +70,8 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    case request.url.query.m == 'MoveCharacter' :
 			game.dir = request.url.query.dir;
 			game.clientEvents = JSON.decode(request.data,true);
-			this.moveCharacter(game, function(changes){
-			    if (changes.error) {
-				response.onRequestComplete(response,changes);
-				return;
-			    }
-			    response.onRequestComplete(response,RPG.Game.removeSecrets(changes));
+			RPG.Game.moveCharacter(game, function(events){
+			    RPG.Game.requestComplete(game,events,response);
 			});
 			break;
 
@@ -83,37 +81,44 @@ RPG.Game = new (RPG.GameClass = new Class({
 		     */
 		    case request.url.query.m == 'ActivateTile' :
 			game.clientEvents = JSON.decode(request.data,true);
-			this.activateTile(game, function(changes){
-			    if (changes.error) {
-				response.onRequestComplete(response,changes);
-				return;
-			    }
-			    response.onRequestComplete(response,RPG.Game.removeSecrets(changes));
+			game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
+			RPG.activateTile(game, function(events){
+			    RPG.Game.requestComplete(game,events,response);
 			});
 			break;
 
 		    default :
+			/**
+			 * This gets called at the start of playing
+			 *
+			 *  returns the full contents of the cached game.
+			 */
 			RPG.Game.getViewableTiles(game,function(universe){
+			    //RPG.Log('AfterGetViewable',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 			    if (universe.error) {
 				response.onRequestComplete(response,universe);
 				return;
 			    }
 			    Object.merge(game.universe,universe);
+
+			    //remove some options that get set in load/save/etc that we don't want to send to the client
 			    Object.erase(game,'mapID');
-			    Object.erase(game,'mapOrTileset');
 			    Object.erase(game,'universeID');
+			    Object.erase(game,'characterID');
+			    Object.erase(game,'inventoryID');
 			    Object.erase(game,'user');
 			    Object.erase(game,'tilePoints');
+
 			    //send out the loaded game
-			    game.require = this.require;
+			    game.require = RPG.Game.require;
 			    response.onRequestComplete(response,RPG.Game.removeSecrets(game));
 			    Object.erase(game,'require');
-			}.bind(this));
+			});
 			break
 		}
 
-	    }.bind(this));
-	}.bind(this));
+	    });
+	});
 
     },
 
@@ -148,21 +153,77 @@ RPG.Game = new (RPG.GameClass = new Class({
     },
 
     /**
+     * All Game responses are handled here
+     *
+     * All TileTypes may modify the 'game' object to remove tiles etc then getViewableTiles will reload thoes tiles for sending to the client
+     */
+    requestComplete : function(game, events, response) {
+	Object.erase(game,'bypassCache');//incease it is here..
+	//RPG.Log('debug',''+Object.keys(game));
+	RPG.Game.getViewableTiles(game, function(universeChanges) {
+
+	    //create an object that will get sent back to the cliend
+	    var toClient = {};
+	    if (events) {
+		//merge any events[event].game objects into the client response
+		Object.each(events,function(event,name,source){
+		    if (event && event.game) {
+			//RPG.Log('Game',name + ' ' + JSON.encode(event.game));
+			Object.merge(toClient,event.game);
+			Object.erase(source,name);//remove it so the client does not recive a dupe
+		    }
+		});
+
+		//merge any events.game objects into the client response
+		if (events.game) {
+		    //RPG.Log('Game','Events ' + JSON.encode(events.game));
+		    Object.merge(toClient,events.game);
+		    Object.erase(events,'game');
+		}
+		toClient.events = events;
+	    }
+	    if (universeChanges && !universeChanges.error && universeChanges.maps) {
+		//merge loaded universe tile data which will override any event universe data
+		if (!toClient.universe) toClient.universe = {};
+		if (!toClient.universe.maps) toClient.universe.maps = {};
+		Object.each(universeChanges.maps,function(map,mapName){
+
+		    if (!toClient.universe.maps[mapName]) toClient.universe.maps[mapName] = {};
+		    if (!toClient.universe.maps[mapName].tiles) toClient.universe.maps[mapName].tiles = {};
+		    if (!toClient.universe.maps[mapName].cache) toClient.universe.maps[mapName].cache = {};
+
+		    //merge all but options since getViewable does not change map options
+		    Object.merge(toClient.universe.maps[mapName].tiles,map.tiles);
+		    Object.merge(toClient.universe.maps[mapName].cache,map.cache);
+		});
+	    }
+	    //RPG.Log('toClient',toClient);
+	    Object.merge(game,toClient);
+
+	    //and send the cleaned up resonse back to the client
+	    response.onRequestComplete(response,RPG.Game.removeSecrets(toClient));
+	});
+
+    },
+
+    /**
      * Required options:
      * user
      * character
      *
      * callback(game || error)
      */
-    loadGame : function(options,callback) {
-
-	RPG.Universe.load(options,function(universe) {
+    loadGame : function(game,callback) {
+	//RPG.Log('LoadGame','Loading Game Universe');
+	RPG.Universe.load(game,function(universe) {
 	    if (!universe || universe.error) {
 		callback(universe);
 		return;
 	    }
-	    options.universe = universe;
-	    callback(options);
+
+	    game.universe = universe;
+	    callback(game);
+
 	});
     },
 
@@ -173,23 +234,26 @@ RPG.Game = new (RPG.GameClass = new Class({
      * character,
      * universe
      *
-     * returns : object from RPG.Tile.loadTiles excluding cached tiles
+     * returns : object from RPG.Map.loadMap excluding cached tiles
      */
-    getViewableTiles : function(options,callback) {
+    getViewableTiles : function(game,callback) {
 
-	var radius = RPG.calcSightRadius(options.character);
-	if (!radius || radius < 2) {
-	    radius = 1;
-	}
-	var circle = RPG.getCircleArea(options.character.location.point,radius);
-
-	Object.merge(options,{
+	var circle = RPG.Game.getViewableArea(game);
+	Object.merge(game,{
 	    tilePoints : circle.area
 	});
 
-	RPG.Tile.load(options,function(universe){
+	RPG.Map.loadMap(game,function(universe){
 	    callback(universe,circle);
 	});
+    },
+
+    getViewableArea : function(game) {
+	var radius = RPG.calcSightRadius(game.character);
+	if (!radius || radius < 2) {
+	    radius = 1;
+	}
+	return RPG.getCircleArea(game.character.location.point,radius);
     },
 
     /**
@@ -208,73 +272,20 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	game.moveTo = RPG[game.dir](game.character.location.point,1);
 
-	//before changes
-	var beforeCharacter = Object.clone(game.character);
-	var beforeUniOptions = Object.clone(game.universe.options);
 
+	//RPG.Log('MoveEnvent','MoveEnvent Start');
 	RPG.moveCharacterToTile(game,function(moveEvents) {
+	    //RPG.Log('MoveEnvent','MoveEnvent End');
 	    if (moveEvents.error) {
 		callback(moveEvents);
 		return;
 	    }
 
+	    //RPG.Log('Tick','Tick Start');
 	    RPG.Game.tick(game, function(universe){
-		Object.erase(game,'user');
-		Object.erase(game,'mapID');
-		Object.erase(game,'mapOrTileset');
-		Object.erase(game,'universeID');
-		Object.merge(game.universe,universe);
-
-		//remove universe/map options to reduce amount sent back to client
-		//@todo make Object.diff-able incase things changed
-		Object.each(universe.maps,function(map){
-		    Object.erase(map,'options');
-		});
-
-		//only send back the difference in options:
-		universe.options = Object.diff(beforeUniOptions,game.universe.options);
-
-		callback({
-		    game : {
-			universe : universe,//only send back the new stuff
-			character : Object.diff(beforeCharacter,game.character)
-		    },
-		    events : Object.cleanEmpty(moveEvents)
-		});
-		beforeCharacter = null;
-		beforeUniOptions = null;
+		//RPG.Log('Tick','Tick End');
+		callback(moveEvents);
 	    });
-	});
-    },
-
-    /**
-     * Activate Tile
-     *
-     */
-    activateTile : function(game,callback) {
-	game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
-
-	var beforeCharacter = Object.clone(game.character);
-	var beforeUniOptions = Object.clone(game.universe.options);
-
-	RPG.activateTile(game, function(events){
-	    RPG.Game.getViewableTiles(Object.merge({
-		bypassCache : true
-	    },game), function(viewableUniverse) {
-
-		viewableUniverse.options = Object.diff(beforeUniOptions,game.universe.options);
-
-		Object.merge(game.universe,viewableUniverse);
-		callback({
-		    game : {
-			universe : viewableUniverse,
-			character : Object.diff(beforeCharacter, game.character)
-		    },
-		    events : events
-		});
-	    });
-
-
 	});
     },
 
@@ -426,79 +437,73 @@ RPG.Game = new (RPG.GameClass = new Class({
 	}
     },
 
-    tick : function(options,callback) {
+    tick : function(game,callback) {
 
 	//find out what the character can see:
-	RPG.Game.getViewableTiles(options,function(universe,circle){
-	    //RPG.Log('Viewable',''+circle.area.length);
-	    var tickEvents = {};//results of tick events
-	    var tickChain = new Chain();
-	    var tickCompleteChain = new Chain();
+	var circle = RPG.Game.getViewableArea(game);
+	//RPG.Log('Viewable',''+circle.area.length);
+	var tickEvents = {};//results of tick events
+	var tickChain = new Chain();
+	var tickCompleteChain = new Chain();
 
-	    //go through all visable tiles
-	    circle.area.each(function(point){
-		//get the map for the character
-		var map = options.universe.maps[options.character.location.mapName];
-		if (!map) return;
+	//go through all visable tiles
+	circle.area.each(function(point){
+	    //get the map for the character
+	    var map = game.universe.maps[game.character.location.mapName];
+	    if (!map) return;
 
-		//get the tile at the location of the circle point
-		var tiles = map.tiles && map.tiles[point[0]] && map.tiles[point[0]][point[1]];
-		if (!tiles) return
+	    //get the tile at the location of the circle point
+	    var tiles = map.tiles && map.tiles[point[0]] && map.tiles[point[0]][point[1]];
+	    if (!tiles) return
 
-		//add it to the chain
-		tickChain.chain(function(){
-
-		    options.point = point;
-
-		    //RPG.Log('tick Chain',point+''+tiles);
-		    //trigger a tick event on each tile
-		    RPG.triggerTileTypes(options,tiles,'tick',tickEvents,function(tickResults) {
-			if (tickResults) {
-			    Object.merge(tickEvents,tickResults);
-			}
-			//move to the next tile
-			tickChain.callChain();
-		    });
-		});
-
-		//add it to the complete chain
-		tickCompleteChain.chain(function(){
-		    options.point = point;
-		    //RPG.Log('tick Chain complete',''+tiles);
-		    //trigger a tick event on each tile
-		    RPG.triggerTileTypes(options,tiles,'tickComplete',tickEvents,function(tickResults) {
-			if (tickResults) {
-			    Object.merge(tickEvents,tickResults);
-			}
-			//move to the next tile
-			tickCompleteChain.callChain();
-		    });
-		});
-	    });
-
-	    //Called Last when all triggers are complete
+	    //add it to the chain
 	    tickChain.chain(function(){
-		//RPG.Log('tick Chain','Complete');
-		//RPG.Log('tick Chain Complete','Started');
-		//start the complete chain
-		tickCompleteChain.callChain();
+
+		game.point = point;
+
+		//RPG.Log('tick Chain',point+''+tiles);
+		//trigger a tick event on each tile
+		RPG.triggerTileTypes(game,tiles,'tick',tickEvents,function(tickResults) {
+		    if (tickResults) {
+			Object.merge(tickEvents,tickResults);
+		    }
+		    //move to the next tile
+		    tickChain.callChain();
+		});
 	    });
 
-	    //All Finished. Finally callback
+	    //add it to the complete chain
 	    tickCompleteChain.chain(function(){
-		//RPG.Log('tick Chain Complete','Complete');
-
-		if (tickEvents.universe) {
-		    //merge the tick events with the universe so the client will receive any updates
-		    Object.merge(universe,tickEvents.universe);
-		}
-		callback(universe);
+		game.point = point;
+		//RPG.Log('tick Chain complete',''+tiles);
+		//trigger a tick event on each tile
+		RPG.triggerTileTypes(game,tiles,'tickComplete',tickEvents,function(tickResults) {
+		    if (tickResults) {
+			Object.merge(tickEvents,tickResults);
+		    }
+		    //move to the next tile
+		    tickCompleteChain.callChain();
+		});
 	    });
-
-	    //start triggering
-	    //RPG.Log('tick Chain','Started');
-	    tickChain.callChain();
 	});
+
+	//Called Last when all triggers are complete
+	tickChain.chain(function(){
+	    //RPG.Log('tick Chain','Complete');
+	    //RPG.Log('tick Chain Complete','Started');
+	    //start the complete chain
+	    tickCompleteChain.callChain();
+	});
+
+	//All Finished. Finally callback
+	tickCompleteChain.chain(function(){
+	    callback(tickEvents);
+	//RPG.Log('tick Chain Complete','Complete');
+	});
+
+	//start triggering
+	//RPG.Log('tick Chain','Started');
+	tickChain.callChain();
     }
 
 }))();

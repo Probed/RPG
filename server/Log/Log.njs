@@ -1,7 +1,6 @@
 var RPG = module.exports = {};
-Object.merge(RPG,
-    require('../../common/appInfo.js')
-    );
+Object.merge(RPG,require('../Database/mysql.njs'));
+Object.merge(RPG,require('../../common/appInfo.js'));
 
 RPG.logID = 0;
 

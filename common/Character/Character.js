@@ -370,7 +370,12 @@ RPG.character_options = {
     lives : {
 	max : Infinity,
 	cur : Infinity
-    }
+    },
+    RightGrowthLeg : [false],
+    LeftGrowthLeg : [false],
+    RightGrowthArm : [false],
+    LeftGrowthArm : [false],
+    GrowthHead : [false]
 }
 
 /**

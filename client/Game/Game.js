@@ -1,22 +1,18 @@
 RPG.Game = new Class({
     Implements : [Events,Options],
 
-    options : {
-    /**
-     * options received from the erver RPG.Game.loadGame
-     */
-    },
+    game : {},
 
-    initialize : function(options) {
-	this.setOptions(options);
-	Object.erase(this.options,'require');
+    initialize : function(game) {
+	this.game = game;
+	Object.erase(this.game,'require');
 
-	this.options.Character = new RPG.Character(this.options);
+	this.game.Character = new RPG.Character(this.game);
 
 	this.gameDiv = new Element('div',{
 	    id : 'Game'
 	}).store('instance',this).adopt(
-	    (this.map = new RPG.Map(this.options)).toElement()
+	    (this.map = new RPG.Map(this.game)).toElement()
 	    );
     },
     toElement : function() {

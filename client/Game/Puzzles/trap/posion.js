@@ -8,11 +8,9 @@ if (!RPG.Puzzles) RPG.Puzzles = {};
 if (!RPG.Puzzles.trap) RPG.Puzzles.trap = {};
 
 RPG.Puzzles.trap.posion = new Class({
-    Implements : [Options],
     solution : '',//contains the user completed solution. this is returned to the server for verification
-    options : {},
     initialize : function(options) {
-	this.setOptions(options);
+	this.options = options;
 	var rand = Object.clone(RPG.Random);
 	rand.seed = options.contents.seed || Math.floor((Math.random() * (99999999999 - 1) + 1));
 	this.table = new HtmlTable({

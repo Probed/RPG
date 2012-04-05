@@ -45,7 +45,7 @@ RPG.Generator.Test = new (RPG.Generator.TestClass = new Class({
 	options.properties.height = Math.ceil(Number.from(options.properties.height));
 	options.properties.width = Math.ceil(Number.from(options.properties.width));
 
-	//Create a room area - /common/Map/Generators/Utilities.js
+	//Create a room area - /common/Game/Generators/Utilities.js
 	var room = RPG.getRectangleArea([0,0],[options.properties.height,options.properties.width]);
 
 	//Select some random images for the room:
@@ -56,7 +56,7 @@ RPG.Generator.Test = new (RPG.Generator.TestClass = new Class({
 	var bottom = RPG.getRandomTileImage('world.earth.room.house.b.wall',rand);
 
 
-	//Paint the room onto the map.tiles - /common/Map/Tiles/Utilities.js
+	//Paint the room onto the map.tiles - /common/Game/Tiles/Utilities.js
 	RPG.paintRoomArea(test.tiles, room, {
 
 	    //paint wall tiles

@@ -130,9 +130,20 @@ CREATE TABLE `tilesettiles` (
   CONSTRAINT `TilesetTiles_tilesetID` FOREIGN KEY (`tilesetID`) REFERENCES `tilesets` (`tilesetID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+CREATE TABLE `inventory` (
+  `inventoryID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `characterID` int(10) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `options` text CHARACTER SET latin1 NOT NULL,
+  PRIMARY KEY (`inventoryID`),
+  KEY `Inventory_characterID` (`characterID`),
+  KEY `Inventory_name` (`name`),
+  CONSTRAINT `Inventory_characterID` FOREIGN KEY (`characterID`) REFERENCES `characters` (`characterID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 CREATE TABLE `inventorycache` (
   `inventoryCacheID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `characterID` int(10) UNSIGNED NOT NULL,
+  `inventoryID` int(10) UNSIGNED NOT NULL,
   `folderName` varchar(20) NOT NULL,
   `path` varchar(255) NOT NULL,
   `tileName` varchar(100) NOT NULL,
@@ -141,8 +152,21 @@ CREATE TABLE `inventorycache` (
   KEY `InventoryCache_tileName` (`tileName`),
   KEY `InventoryCache_path` (`path`),
   KEY `InventoryCache_folderName` (`folderName`),
-  KEY `InventoryCache_characterID` (`characterID`),
-  CONSTRAINT `InventoryCache_characterID` FOREIGN KEY (`characterID`) REFERENCES `characters` (`characterID`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `InventoryCache_inventoryID` (`inventoryID`),
+  CONSTRAINT `InventoryCache_inventoryID` FOREIGN KEY (`inventoryID`) REFERENCES `inventory` (`inventoryID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `inventorytiles` (
+  `tileID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `inventoryID` int(10) UNSIGNED NOT NULL,
+  `tiles` text CHARACTER SET latin1 NOT NULL,
+  `point` point NOT NULL,
+  PRIMARY KEY (`tileID`),
+  KEY `inventoryTiles_inventoryIDIndex` (`inventoryID`),
+  KEY `InventoryTiles_point_index` (point),
+/*SPATIAL INDEX `InventoryTiles_point` (point),
+  FULLTEXT INDEX `inventoryTiles_tiles` (`tiles`),*/
+  CONSTRAINT `InventoryTiles_inventoryID` FOREIGN KEY (`inventoryID`) REFERENCES `inventory` (`inventoryID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*
@@ -169,4 +193,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `characters` TO 'rpg_player'@'localhost'
 GRANT SELECT, INSERT, UPDATE, DELETE ON `tilesets` TO 'rpg_player'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `tilesetscache` TO 'rpg_player'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `tilesettiles` TO 'rpg_player'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `inventory` TO 'rpg_player'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `inventorycache` TO 'rpg_player'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `inventorytiles` TO 'rpg_player'@'localhost';
 /*GRANT SELECT, INSERT, UPDATE, DELETE ON `visitedtiles` TO 'rpg_player'@'localhost';*/

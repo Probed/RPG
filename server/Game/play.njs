@@ -24,23 +24,23 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		css : ['/client/mochaui/themes/charcoal/css/Character/Character.css'],
 		js : [
 		'/common/Character/Character.js',
-		'/common/Map/Generators/Generators.js',
+		'/common/Game/Generators/Generators.js',
 		'/client/Game/play.js',
 		'/common/optionConfig.js',
 
-		'/common/Map/Tiles/Tiles.js',
+		'/common/Game/Tiles/Tiles.js',
 
-		'/common/Map/TileTypes/property.js',//@todo dynamicize this
-		'/common/Map/TileTypes/traverse.js',//@todo dynamicize this
-		'/common/Map/TileTypes/teleportTo.js',//@todo dynamicize this
-		'/common/Map/TileTypes/lockable.js',//@todo dynamicize this
-		'/common/Map/TileTypes/trap.js',//@todo dynamicize this\
-		'/common/Map/TileTypes/switch.js',//@todo dynamicize this
-		'/common/Map/TileTypes/container.js',//@todo dynamicize this
-		'/common/Map/TileTypes/item.js',//@todo dynamicize this
-		
+		'/common/Game/TileTypes/property.js',//@todo dynamicize this
+		'/common/Game/TileTypes/traverse.js',//@todo dynamicize this
+		'/common/Game/TileTypes/teleportTo.js',//@todo dynamicize this
+		'/common/Game/TileTypes/lockable.js',//@todo dynamicize this
+		'/common/Game/TileTypes/trap.js',//@todo dynamicize this\
+		'/common/Game/TileTypes/switch.js',//@todo dynamicize this
+		'/common/Game/TileTypes/container.js',//@todo dynamicize this
+		'/common/Game/TileTypes/item.js',//@todo dynamicize this
+
 		'/common/Random.js',
-		'/common/Map/Generators/Words.js',
+		'/common/Game/Generators/Words.js',
 		'/client/Character/CreateCharacter.js',
 		'/client/Character/ListCharacters.js',
 		],

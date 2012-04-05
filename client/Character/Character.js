@@ -1,11 +1,10 @@
 RPG.Character = new Class({
-    Implements : [Options, Events],
     topNav : [],
-    options : {
 
-    },
-    initialize : function(options) {
-	this.setOptions(options);
+    game : {},
+
+    initialize : function(game) {
+	this.game = game;
 	/*
 	 * Map
 	 */
@@ -73,20 +72,20 @@ RPG.Character = new Class({
 		//@todo Fix Description
 		events : {
 		    click : function(event) {
-//			if (!this.inventory) {
-//			    new MUI.Require({
-//				js : ['/client/Character/CharacterEquipment.js'],
-//				onloaded : function() {
-//				    this.inventory = new RPG.Inventory({
-//					character : this.options.character
-//				    });
-//				}.bind(this)
-//			    });
-//			} else {
-//			    if (this.inventory) {
-//				this.inventory.restore();
-//			    }
-//			}
+		    //			if (!this.inventory) {
+		    //			    new MUI.Require({
+		    //				js : ['/client/Character/CharacterEquipment.js'],
+		    //				onloaded : function() {
+		    //				    this.inventory = new RPG.Inventory({
+		    //					character : this.game.character
+		    //				    });
+		    //				}.bind(this)
+		    //			    });
+		    //			} else {
+		    //			    if (this.inventory) {
+		    //				this.inventory.restore();
+		    //			    }
+		    //			}
 		    }
 		}
 	    })
@@ -105,9 +104,7 @@ RPG.Character = new Class({
 			    new MUI.Require({
 				js : ['/client/Character/CharacterEquipment.js'],
 				onloaded : function() {
-				    this.characterEquipment = new RPG.CharacterEquipment({
-					character : this.options.character
-				    });
+				    this.characterEquipment = new RPG.CharacterEquipment(this.game);
 				}.bind(this)
 			    });
 			} else {
@@ -122,7 +119,7 @@ RPG.Character = new Class({
 
 	this.characterDiv = new Element('div',{
 	    'class' : 'M_tileHolder',
-	    styles : RPG.getCharacterStyles(this.options.character)
+	    styles : RPG.getCharacterStyles(this.game.character)
 	})
 
     },
@@ -131,8 +128,8 @@ RPG.Character = new Class({
     },
 
     changeDirection : function(dir) {
-	this.options.character.location.dir = dir;
-	this.characterDiv.setStyles(RPG.getCharacterStyles(this.options.character));
+	this.game.character.location.dir = dir;
+	this.characterDiv.setStyles(RPG.getCharacterStyles(this.game.character));
     }
 
 })

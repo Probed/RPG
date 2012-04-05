@@ -1,43 +1,57 @@
 var RPG = module.exports = {};
 
 Object.merge(RPG,
-    require('../Map/Universe.njs'),
+    require('./Universe.njs'),
     require('../Character/Character.njs'),
-    require('../../common/Map/Generators/Dungeon.js'),
-    require('../../common/Map/Generators/House.js'),
-    require('../../common/Map/Generators/Terrain.js')
+    require('../../common/Game/Generators/Dungeon.js'),
+    require('../../common/Game/Generators/House.js'),
+    require('../../common/Game/Generators/Terrain.js')
     );
 
 RPG.InitGame = new (RPG.InitGameClass = new Class({
-    Implements : [Events,Options],
-    options : {},
-    initialize : function(options) {
-	this.setOptions(options);
-    },
-
     /**
      * required options
      * user,
      * characterID
      */
-    startGame : function(options, callback) {
+    startGame : function(game, callback) {
 
 	/**
 	 *
 	 */
-	RPG.Character.load(options,function(character) {
-	    if (!character || character.error) callback(character);
-
-	    /**
-	     * Determine if we need to generate a new game
-	     */
-	    options.character = character;
-	    if (!character.location) {
-		this.newGame(options, callback);
-	    } else {
+	RPG.Character.load(game,function(character) {
+	    if (!character || character.error) {
 		callback(character);
+		return;
 	    }
-	}.bind(this));
+
+	    game.character = character;
+
+	    game.tilePoints = 'all';
+	    RPG.Inventory.loadInventory({
+		user : game.user,
+		character : game.character,
+		name : 'character'
+	    }, function(inventory){
+		Object.erase(game,'tilePoints');
+		if (!inventory || inventory.error) {
+		    callback(inventory);
+		    return;
+		}
+
+		game.inventory = inventory;
+
+		/**
+		 * Determine if we need to generate a new game
+		 */
+		game.character = character;
+		if (!character.location) {
+		    RPG.InitGame.newGame(game, callback);
+		} else {
+		    callback(game);
+		}
+	    });
+	});
     },
 
     /**
@@ -45,12 +59,12 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
      * user,
      * character
      */
-    newGame : function(options, callback) {
+    newGame : function(game, callback) {
 	var mapName = 'StartMap';
 	var universe = {
 	    options : {
 		property : {
-		    universeName :options.character.name + "'s Universe",
+		    universeName :game.character.name + "'s Universe",
 		    author : 'Generated',
 		    startMap : mapName
 		},
@@ -75,23 +89,24 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 
 	RPG.Generator.Terrain.random(mapName,{
 	    properties : {
-		Difficulty : options.character.Difficulty,
-		level : options.character.level
+		Difficulty : game.character.Difficulty,
+		level : game.character.level
 	    }
 	},rand,function(random){
 	    Object.merge(universe,random.universe);
 	    var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 
-	    options.universe = universe;
-	    options.bypassCache = true;
+	    game.universe = universe;
+	    game.bypassCache = true;
 
-	    RPG.Universe.store(options, function(universe) {
+	    RPG.Universe.store(game, function(universe) {
 		if (!universe || universe.error) {
 		    callback(universe);
 		    return;
 		}
+		Object.erase(game,'bypassCache');
 
-		options.character.location = {
+		game.character.location = {
 		    universeID : universe.options.database.universeID,
 		    mapID : universe.maps[mapName].options.database.mapID,
 		    mapName : mapName,
@@ -99,8 +114,12 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 		    dir : 's'
 		};
 
-		RPG.Character.store(options,function(character) {
-		    callback(character);
+		RPG.Character.store(game,function(character) {
+		    if (character && character.error) {
+			callback(character);
+			return;
+		    }
+		    callback(game);
 		});
 	    });
 	});

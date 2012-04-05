@@ -1,6 +1,5 @@
 var RPG = module.exports = {};
 
-
 Object.merge(RPG,
     require('../common/pages.js'),
     require('./User/Users.njs')
@@ -204,7 +203,7 @@ RPG.App = new (RPG.AppClass = new Class({
 
 	    case url.query.a == 'MapEditor' :
 		if (!RPG.MapEditor) {
-		    Object.merge(RPG,require('./Map/MapEditor.njs'));
+		    Object.merge(RPG,require('./Game/MapEditor.njs'));
 		}
 		RPG.MapEditor.onRequest(request,response);
 		handled = true;
@@ -261,7 +260,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	 * Throw error to cause node to restart
 	 */
 	if (error) {
-	   //throw output;
-	}
+    //throw output;
+    }
     }
 }))().start();

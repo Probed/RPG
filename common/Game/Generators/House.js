@@ -15,6 +15,7 @@ if (typeof exports != 'undefined') {
 RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
     Extends : RPG.MapGeneratorBaseClass,
     Implements : [Options],
+    name : 'House',
     constraints : {
 	properties : {
 	    name : ["/^[a-zA-Z0-9_.]+$/",1,15,'g'],

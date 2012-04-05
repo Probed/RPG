@@ -1,6 +1,7 @@
 var RPG = module.exports = {};
 Object.merge(RPG,
     require('../Log/Log.njs'),
+    require('../Game/Inventory.njs'),
     require('../../common/optionConfig.js'),
     require('../../common/Character/Character.js')
     );
@@ -23,7 +24,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(error || null) (null == not a dupe)
      */
     checkDupeName : function(options, callback) {
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT name ' +
 	    'FROM characters ' +
 	    'WHERE name = ? ' +
@@ -75,6 +76,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    max : 1,
 	    cur : 1
 	};
+	options.character.RightGrowthLeg = false;
+	options.character.LeftGrowthLeg = false;
+	options.character.RightGrowthArm = false;
+	options.character.LeftGrowthArm = false;
+	options.character.GrowthHead = false;
 
 	//validate the incoming character
 	var errors = [];
@@ -128,8 +134,36 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		callback(dupeName);
 		return;
 	    }
+
 	    this.store(options,function(storedCharacter){
-		callback(storedCharacter);
+		if (storedCharacter && storedCharacter.error) {
+		    callback(storedCharacter);
+		    return;
+		}
+
+		//Create an inventory for this character
+		RPG.Inventory.storeInventory({
+		    user : options.user,
+		    character : storedCharacter,
+		    inventory : {
+			character : {//a characters inventory
+			    options : {//options for the character inventory
+				property : {
+				    name : 'character', //needs a name that is the same as above
+				    maxRows : 11, //max number of slots
+				    maxCols : 7 //max number of slots
+				}
+			    }
+			}
+		    }
+		},function(storedInventory) {
+		    if (storedInventory && storedInventory.error) {
+			callback(storedInventory);
+			return;
+		    }
+		    callback(storedCharacter);
+		});
+
 	    });
 	}.bind(this));
     },
@@ -157,7 +191,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    /**
 	     * Update
 	     */
-	    require('../Database/mysql.njs').mysql.query(
+	    RPG.Mysql.query(
 		'UPDATE characters ' +
 		'SET name = ?, ' +
 		'options = ? ' +
@@ -170,7 +204,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		options.user.options.userID
 		],
 		function(err,info) {
-		    RPG.Log('database update','Updated Character: '+db.characterID);
+		    //RPG.Log('database update','Updated Character: '+db.characterID);
 		    if (err) {
 			callback({
 			    error : err
@@ -199,7 +233,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	    /**
 	     * Insert
 	     */
-	    require('../Database/mysql.njs').mysql.query(
+	    RPG.Mysql.query(
 		'INSERT INTO characters ' +
 		'SET name = ?, ' +
 		'options = ?,' +
@@ -211,7 +245,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		options.user.options.userID
 		],
 		function(err,info) {
-		    RPG.Log('database insert','Inserted Character: '+info.insertId);
+		    //RPG.Log('database insert','Inserted Character: '+info.insertId);
 		    if (err) {
 			callback({
 			    error : err
@@ -245,7 +279,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(list || error)
      */
     list : function(options,callback) {
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT characterID, name, options, created, updated '+
 	    'FROM characters c ' +
 	    'WHERE c.userID = ? '+
@@ -316,7 +350,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	/**
 	 * Last resort load from database
 	 */
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT characterID, name, options, created, updated '+
 	    'FROM characters c ' +
 	    'WHERE c.userID = ? '+
@@ -366,7 +400,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
     'delete' : function(options, callback) {
 	options.characterID = options.characterID || (options.character && options.character.characterID);
 
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'DELETE FROM characters ' +
 	    'WHERE userID = ? '+
 	    'AND characterID = ?',

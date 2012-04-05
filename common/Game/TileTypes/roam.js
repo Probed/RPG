@@ -27,11 +27,9 @@ if (typeof exports != 'undefined') {
 RPG.TileTypes.roam.tick = function(options,callback) {
     if (typeof exports != 'undefined' && options.contents.can) {
 	//server side
-
 	RPG.Game.moveGameTile(options,{
 	    tileType : 'roam',
 	    tileOptions : function(tile,currentMap,tilePath) {
-
 		var dir = Array.getSRandom(RPG.dirs);
 		var newLoc = RPG[dir](options.game.point,1);
 		var homeLoc = tile.options.roam.home;
@@ -74,7 +72,10 @@ RPG.TileTypes.roam.tick = function(options,callback) {
 		return;
 	    }
 	    callback({
-		universe : universe
+		game : {
+		    universe : universe//send to client
+		},
+		universe : universe//for saving
 	    });
 	})
 
@@ -84,16 +85,22 @@ RPG.TileTypes.roam.tick = function(options,callback) {
 }
 
 RPG.TileTypes.roam.tickComplete = function(options,callback) {
-    if (!options.events.universeStored && options.events.universe && Object.keys(options.events.universe).length > 0) {
+
+    if (typeof exports != 'undefined' && !options.events.universeStored) {
+	var uni = Object.getFromPath(options,'events.tick.universe');
+	if (!uni) {
+	    options.events.universeStored = true;
+	    callback();
+	    return;
+	}
+	Object.erase(options.events.tick.universe);
 	options.events.universeStored = true;
 	RPG.Universe.store({
 	    user : options.game.user,
-	    universe : options.events.universe
+	    universe : uni
 	}, function(universe){
-	    callback({
-		universe : universe
-	    });
-	})
+	    callback();
+	});
     } else {
 	callback();
     }

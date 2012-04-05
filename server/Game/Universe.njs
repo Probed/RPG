@@ -27,14 +27,25 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
     load : function(options,callback) {
 
 	//check to see if we should attempt to load the universe specified by the characters current location
-	if (!options.bypassCache && options.character) {
+	if (options.character) {
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
-	    var universe = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID);
-	    if (universe) {
-		//RPG.Log('cached','Universe: '+options.character.location.universeID);
-		callback(universe);
-		return;
+	    if (!options.bypassCache) {
+		var universe = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID);
+		if (universe) {
+		    options.universe = universe;
+		    //RPG.Log('Retrieved from Cache','Universe: ' + JSON.encode(universe));
+		    RPG.Map.loadMap(options,function(mapUni){
+			if (mapUni.error) {
+			    callback(mapUni);
+			    return;
+			}
+			Object.merge(universe,mapUni)
+			//RPG.Log('Cache Updated','Universe: ' + JSON.encode(universe));
+			callback(universe);
+		    });
+		    return;
+		}
 	    }
 	}
 
@@ -45,7 +56,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	    return;
 	}
 
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT universeID, universeName, options '+
 	    'FROM  universes un ' +
 	    'WHERE universe'+(options.universeID?'ID':'Name')+' = ? ' +
@@ -62,7 +73,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		} else if (universeResults && universeResults[0]) {
 		    var universe = {};
 		    var universeResult = universeResults[0];
-		    RPG.Log('database hit','Loaded Universe: '+universeResult['universeName']+' (#'+universeResult['universeID']+')');
+		    //RPG.Log('database hit','Loaded Universe: '+universeResult['universeName']+' (#'+universeResult['universeID']+')');
 
 		    universe.options = Object.merge({
 			database : {
@@ -70,23 +81,25 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 			}
 		    },JSON.decode(universeResult['options'],true));
 
-		    if (!options.bypassCache) {
-			require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+universeResult['universeID'],universe);
-		    }
+
 		    if (!options.mapID && !options.mapName && options.tilePoints) {
 			options.mapName = universe.options.settings.activeMap;
 		    }
-		    if (options.mapID || options.mapName) {
-			RPG.Map.load(options,function(mapUni){
-			    if (mapUni.error) {
-				callback(mapUni);
-				return;
-			    }
-			    callback(Object.merge(universe,mapUni));
-			});
-		    } else {
-			callback(universe);
+		    options.universe = universe;
+
+		    if (!options.bypassCache) {
+			require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+universeResult['universeID'],Object.clone(universe));
+		    //RPG.Log('Merged into Cache','Universe: ' + JSON.encode(universe));
 		    }
+
+		    RPG.Map.loadMap(options,function(mapUni){
+			if (mapUni.error) {
+			    callback(mapUni);
+			    return;
+			}
+			universe = Object.merge(universe,mapUni);
+			callback(universe);
+		    });
 		} else {
 		    callback({
 			error : 'The universe '+ (options.universeID || options.universeName) +' could not be found for user: '+options.user.options.userID+'.'
@@ -140,7 +153,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		/**
 		 * Update
 		 */
-		require('../Database/mysql.njs').mysql.query(
+		RPG.Mysql.query(
 		    'UPDATE universes ' +
 		    'SET universeName = ?, ' +
 		    'options = ? ' +
@@ -166,7 +179,8 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 				    require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+db.universeID,options.universe);
 				}
 				if (options.universe.maps) {
-				    RPG.Map.store(options, function(universe) {
+				    //RPG.Log('database hit','Updating Universe Maps: '+Object.keys(options.universe.maps));
+				    RPG.Map.storeMap(options, function(universe) {
 					options.user.storingUniverse = false;
 					callback(universe);
 				    });
@@ -189,7 +203,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		/**
 		 * Insert
 		 */
-		require('../Database/mysql.njs').mysql.query(
+		RPG.Mysql.query(
 		    'INSERT INTO universes ' +
 		    'SET universeName = ?, ' +
 		    'options = ?,' +
@@ -218,7 +232,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 				    require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+info.insertId,options.universe);
 				}
 				if (options.universe.maps) {
-				    RPG.Map.store(options, function(universe) {
+				    RPG.Map.storeMap(options, function(universe) {
 					options.user.storingUniverse = false;
 					callback(universe);
 				    });
@@ -260,7 +274,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	    uName = options.universe.options.property.universeName;
 	}
 
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT un.universeName ' +
 	    'FROM universes un ' +
 	    'WHERE un.universeName = ? ' +
@@ -302,7 +316,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      *
      */
     list : function(options, callback) {
-	require('../Database/mysql.njs').mysql.query(
+	RPG.Mysql.query(
 	    'SELECT universeID, universeName, options, created, updated, '+
 	    '   (SELECT count(1) FROM maptiles WHERE mapID in (SELECT mapID FROM maps WHERE universeID = un.universeID)) as totalArea, ' +
 	    '   (SELECT count(1) FROM mapscache WHERE mapID in (SELECT mapID FROM maps WHERE universeID = un.universeID)) as totalObjects, ' +

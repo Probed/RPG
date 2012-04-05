@@ -1,14 +1,14 @@
 /**
- * These are tiles that can locked/unlocked
- * locked tiles prevent a character from entering them unil unlocked.
+ * These are tiles that can armed/unarmed
+ * armed tiles prevent a character from entering them unil unarmed.
  */
 
 if (!RPG) var RPG = {};
 if (!RPG.TileTypes) RPG.TileTypes = {};
-if (!RPG.TileTypes.lockable) RPG.TileTypes.lockable = {};
+if (!RPG.TileTypes.trap) RPG.TileTypes.trap = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
-    Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
@@ -26,39 +26,38 @@ if (typeof exports != 'undefined') {
  * callback : MUST CALLBACK game will appear to hang if callback is not called.
  */
 
-//RPG.TileTypes.lockable.onBeforeLeave = function(options,callback) {
+
+//RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 //    callback();
 //}
 
-RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = function(options,callback) {
-    if (options.contents.locked) {
-
-	//prompt the client when they activate the tile, or when the lock prevents traversal and the character is attempting to enter the tile:
-	if (typeof exports == 'undefined' && ((options.event == 'activate') || (options.contents.preventTraverse && options.event == 'onBeforeEnter'))) {
+RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
+    if (options.contents.armed) {
+	if (typeof exports == 'undefined') {
 	    //client
-	    //@todo unlock attempt
-	    RPG.Unlock.show(options,{
+	    //@todo disarm attempt
+	    RPG.Disarm.show(options,{
 		success : function(solution){
 		    callback(solution);
 		},
 		fail : function() {
 		    callback({
-			traverse : !options.contents.preventTraverse,
-			error : 'Locked'
+			traverse : false,
+			error : 'Trap still Armed.'
 		    });
 		}
 	    });
 
-	} else if (typeof exports != 'undefined' && options.game.clientEvents && options.game.clientEvents[options.event] && options.game.clientEvents[options.event][options.contents.type]) {
-
+	} else {
 	    //server
-	    if (RPG.Unlock.checkSolution(options)) {
+	    if (RPG.Disarm.checkSolution(options)) {
 
+		//update the tile to make it disarmed.
 		RPG.Game.updateGameTile(options,{
-		    tileType : 'lockable',
+		    tileType : 'trap',
 		    tileOptions : {
-			lockable : {
-			    locked : false
+			trap : {
+			    armed : false
 			}
 		    }
 		},function(universe){
@@ -69,7 +68,7 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 		    var oldXp = options.game.character.xp;
 
 		    //Calculate XP:
-		    var baseXP = RPG.Unlock.calcXP(options);
+		    var baseXP = RPG.Disarm.calcXP(options);
 
 		    //apply XP modifiers
 		    RPG.calcXP(baseXP,options,function(xp){
@@ -90,35 +89,73 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 
 			    //finally callback
 			    callback({
-				lockable : 'Unlock attempt Successful. xp: '+xp
+				trap : 'Disarm attempt Successful. xp: '+xp,
+
+				game : {
+				    character : {
+					xp : xp
+				    }
+				}
+
 			    });
 
 			});//end store character
 		    });//end calcXP
 		});//end store universe
 	    } else {
+		//increment the attempt counter
+		options.contents.attempt = (Number.from(options.contents.attempt) || 0) + 1;
+		options.contents.attempts = Number.from(options.contents.attempts);
+		var newOpts = {
+		    armed : true,
+		    attempt : options.contents.attempt
+		};
+		if (newOpts.attempt >= options.contents.attempts) {
+		    //@todo damage them
+		    newOpts.armed = false;
+		}
 
-		callback({
-		    traverse : false,
-		    error : 'Locked'
+		RPG.Game.updateGameTile(options,{
+		    tileType : 'trap',
+		    tileOptions : {
+			trap : newOpts
+		    }
+		},function(universe){
+		    if (universe.error) {
+			callback(universe);
+			return;
+		    }
+		    if (newOpts.armed) {
+			var out = Object.clone(universe);
+			Object.erase(out,'options');
+			Object.erase(out.maps[options.game.character.location.mapName],'options');
+			callback({
+			    traverse : false,
+			    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
+			    game : {
+				universe : out //send the updated tile info back to the client
+			    }
+			});
+		    } else {
+			callback({
+			    trap : 'Trap Sprung!'
+			});
+		    }
 		});
 	    }
-	} else {
-	    callback();
 	}
     } else {
 	callback();
     }
-
 }
 
-//RPG.TileTypes.lockable.onLeave = function(options,callback) {
+//RPG.TileTypes.trap.onLeave = function(options,callback) {
 //    callback();
 //}
 
-RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = function(options,callback) {
+RPG.TileTypes.trap.onEnter = function(options,callback) {
     //server
-    if (typeof exports != 'undefined' && options.events && ((options.events.activate && options.events.activate.lockable) || (options.events.onBeforeEnter && options.events.onBeforeEnter.lockable))) {
+    if (typeof exports != 'undefined' && options.events.onBeforeEnter.trap) {
 
 	//remove the tile from the current Universe so it will get reloaded from the database
 	//and the client should receive the the cloned tile created above.
@@ -126,13 +163,13 @@ RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = funct
 	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
     }
     callback();
-
 }
 
+
 /**
- * Client side unlock window
+ * Client side disarm window
  */
-RPG.Unlock = new (new Class({
+RPG.Disarm = new (new Class({
 
     /**
      * required options:
@@ -144,13 +181,13 @@ RPG.Unlock = new (new Class({
      *
      */
     show : function(options,callbacks) {
-	if ($('unlockWindow')) {
-	    MUI.closeWindow($('unlockWindow'));
+	if ($('disarmWindow')) {
+	    MUI.closeWindow($('disarmWindow'));
 	}
 
 	new MUI.Window({
-	    id : 'unlockWindow',
-	    title : 'This needs unlocking...',
+	    id : 'disarmWindow',
+	    title : 'This needs disarming...',
 	    type : 'window',
 	    loadMethod : 'html',
 	    content : this.contentDiv = new Element('div'),
@@ -166,28 +203,28 @@ RPG.Unlock = new (new Class({
 		callbacks.fail && callbacks.fail();
 	    },
 	    require : {
-		css : ['/client/Game/Puzzles/lockable/'+options.contents.type+'.css'],
-		js : ['/client/Game/Puzzles/lockable/'+options.contents.type+'.js'],
+		css : ['/client/Game/Puzzles/trap/'+options.contents.type+'.css'],
+		js : ['/client/Game/Puzzles/trap/'+options.contents.type+'.js'],
 		onloaded : function() {
-		    this.puzzle = new RPG.Puzzles.lockable[options.contents.type](options,callbacks);
+		    this.puzzle = new RPG.Puzzles.trap[options.contents.type](options,callbacks);
 		    this.contentDiv.adopt(this.puzzle.toElement());
 		}.bind(this)
 	    },
 	    onContentLoaded : function() {
-		$('unlockWindow').adopt(RPG.elementFactory.buttons.actionButton({
+		$('disarmWindow').adopt(RPG.elementFactory.buttons.actionButton({
 		    'class' : 'WinFootRight',
-		    html : 'Attempt Unlock',
+		    html : 'Attempt Disarm',
 		    events : {
 			click : function() {
 			    if (this.puzzle && this.puzzle.isSolved()) {
 				callbacks.success({
-				    tumbler : {
+				    trap : {
 					solution : this.puzzle.solution
 				    }
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();
-				$('unlockWindow').retrieve('instance').close();
+				$('disarmWindow').retrieve('instance').close();
 
 			    } else {
 				MUI.notification('Attempt Failed. Try again.');
@@ -196,13 +233,13 @@ RPG.Unlock = new (new Class({
 		    }
 		}));
 
-		$('unlockWindow').adopt(RPG.elementFactory.buttons.closeButton({
+		$('disarmWindow').adopt(RPG.elementFactory.buttons.closeButton({
 		    'class' : 'WinFootLeft',
 		    events : {
 			click : function() {
 			    callbacks.fail();
 			    callbacks.fail = null;//set to null so onClose does not call again
-			    $('unlockWindow').retrieve('instance').close();
+			    $('disarmWindow').retrieve('instance').close();
 			}
 		    }
 		}));
@@ -214,10 +251,12 @@ RPG.Unlock = new (new Class({
     checkSolution : function(options) {
 	var rand = Object.clone(RPG.Random);
 	rand.seed = Number.from(options.contents.seed);
+	var solution = Object.getFromPath(options,'game.clientEvents.onBeforeEnter.trap.solution');
+
 	switch (options.contents.type) {
-	    case  'tumbler' :
+	    case  'posion' :
 		var code = Math.floor(rand.random(100,999));
-		if (Number.from(options.game.clientEvents[options.event].tumbler.solution) == code) {
+		if (Number.from(solution) == code) {
 		    return true;
 		} else {
 		    return false;
@@ -229,8 +268,8 @@ RPG.Unlock = new (new Class({
 
     calcXP : function(options) {
 	switch (options.contents.type) {
-	    case  'tumbler' :
-		return 100 * options.contents.level * (RPG.difficultyVal(options.contents.Difficulty,'Puzzle.lockable.tumbler') || 1);
+	    case  'posion' :
+		return 100 * options.contents.level * (RPG.difficultyVal(options.contents.Difficulty,'Puzzle.trap.posion') || 1);
 		break;
 	}
 	return 0;

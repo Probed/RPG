@@ -8,11 +8,9 @@ if (!RPG.Puzzles) RPG.Puzzles = {};
 if (!RPG.Puzzles['switch']) RPG.Puzzles['switch'] = {};
 
 RPG.Puzzles['switch'].lever = new Class({
-    Implements : [Options],
     solution : '',//contains the user completed solution. this is returned to the server for verification
-    options : {},
     initialize : function(options) {
-	this.setOptions(options);
+	this.options = options;
 	this.startState = options.contents.state;
 	this.table = new HtmlTable({
 	    zebra : true,

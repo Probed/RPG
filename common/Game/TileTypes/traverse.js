@@ -7,7 +7,7 @@ if (!RPG) var RPG = {};
 if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.Traverse) RPG.TileTypes.traverse = {};
 if (typeof exports != 'undefined') {
-    Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
 }
@@ -56,7 +56,18 @@ RPG.TileTypes.traverse.onEnter = function(options,callback) {
 		    return;
 		}
 		Object.merge(options.game.character,character);
-		callback();
+
+		//send the back to the client
+		callback({
+		    game : {
+			character : {
+			    location : {
+				point : options.game.moveTo,
+				dir : options.game.dir.charAt(0)
+			    }
+			}
+		    }
+		});
 	    });
 	} else {
 	    callback();//do nothing

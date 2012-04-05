@@ -8,7 +8,7 @@ if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes['switch']) RPG.TileTypes['switch'] = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
-    Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
@@ -78,9 +78,10 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 	});
 
 	//make a call to the database since we cannot be assured the tiles will be in the cache
-	RPG.Tile.loadTilesCache({
+	RPG.Map.loadCache({
 	    user : options.game.user,
 	    character: options.game.character,
+	    universe : options.game.universe,
 	    paths : paths,
 	    bypassCache : true
 	}, function(cache) {
@@ -100,16 +101,19 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 	    //now store updated tiles
 	    RPG.Game.updateGameTile(options,{
 		cache : cache
-	    },function(universe) {
-		if (universe.error) {
+	    },function(newUniverse) {
+		if (newUniverse.error) {
 		    callback({
-			error : universe.error
+			error : newUniverse.error
 		    });
 		    return;
 		}
 		//finally callback with the paths so that 'activateComplete' can use the list to remove tiles from the cache
 		callback({
-		    switchPaths : paths
+		    switchPaths : paths,
+		    game : {
+			universe : newUniverse
+		    }
 		});
 	    });
 	});

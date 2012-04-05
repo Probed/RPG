@@ -4,20 +4,14 @@ The window which displays the characters equippable slots and handles drag-drop
 of items
  */
 RPG.CharacterEquipment = new Class({
-    Implements : [Options, Events],
-    options : {
-	RightGrowthLeg : false,
-	LeftGrowthLeg : false,
-	RightGrowthArm : false,
-	LeftGrowthArm : false,
-	GrowthHead : false,
-	character : null//@todo some reason RPG.Character class has a clone which isn't getting updated. it should not be a clone
-    },
+
+    game : {},
+
     /**
      * Init Character Equipment
      */
-    initialize : function(options) {
-	this.setOptions(options);
+    initialize : function(game) {
+	this.game = game;
 
 	/**
 	 * Create MUI window to hold the content
@@ -93,6 +87,26 @@ RPG.CharacterEquipment = new Class({
 		js :['/common/Character/CharacterSlots.js'],
 		onloaded : function() {
 		    this.refresh();
+		    $('characterEquipmentWindow').adopt(
+			RPG.elementFactory.buttons.actionButton({
+			    'class' : 'WinFootRight',
+			    'html' : '<span class="textLarge Refresh">Refresh</span>',
+			    events : {
+				click : function(event) {
+				    this.refresh();
+				}.bind(this)
+			    }
+			}),
+			RPG.elementFactory.buttons.cancelButton({
+			    'class' : 'textLarge WinFootLeft',
+			    'html' : '<span class="textLarge Cancel">Cancel</span>',
+			    events : {
+				click : function(event) {
+				    MUI.closeWindow($('characterEquipmentWindow'));
+				}
+			    }
+			})
+			);
 		}.bind(this)
 	    }
 	});
@@ -120,7 +134,7 @@ RPG.CharacterEquipment = new Class({
 			},
 			content : this.characterName = new Element('div', {
 			    'class' : 'textCenter textLarge',
-			    'html' : 'Level ' + this.options.character.level + ' ' + this.options.character.Race +  ' ' + this.options.character.Class +  ' ' + this.options.character.name
+			    'html' : 'Level ' + this.game.character.level + ' ' + this.game.character.Race +  ' ' + this.game.character.Class +  ' ' + this.game.character.name
 			})
 		    });
 		    c=15;
@@ -177,12 +191,12 @@ RPG.CharacterEquipment = new Class({
 		html : 'Slot Empty'
 	    });
 	    if (/Growth/.test(key)) {
-		if ((slot.partOf && this.options[slot.partOf]) || (this.options[slot.id])) {
+		if ((slot.partOf && this.game[slot.partOf]) || (this.game[slot.id])) {
 		    add = true;
 		}
 	    } else {
 		//fix rows where we need to colspan certain items for astetics
-		if (!this.options.GrowthHead && (/Head/.test(slot.partOf) || /Head/.test(key) || /^Neck$/.test(key) || /^LeftArm$/.test(key) || /^LeftHand$/.test(key) || /^LeftFinger3$/.test(key))) {
+		if (!this.game.character.GrowthHead && (/Head/.test(slot.partOf) || /Head/.test(key) || /^Neck$/.test(key) || /^LeftArm$/.test(key) || /^LeftHand$/.test(key) || /^LeftFinger3$/.test(key))) {
 		    if (/LeftEar/.test(key)) {
 			colOffset = 2;
 		    } else if (/^LeftArm$/.test(key) || /^LeftHand$/.test(key) || /^LeftFinger3$/.test(key)) {
@@ -220,21 +234,21 @@ RPG.CharacterEquipment = new Class({
 	    this.characterEquipmentTable.push(row);
 	}.bind(this));
 	var bgUrls = '';
-	if (this.options.RightGrowthLeg) {
+	if (this.game.character.RightGrowthLeg) {
 	    bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character_rlg.png),';
 	}
-	if (this.options.LeftGrowthLeg) {
+	if (this.game.character.LeftGrowthLeg) {
 	    bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character_llg.png),';
 	}
-	if (this.options.GrowthHead) {
+	if (this.game.character.GrowthHead) {
 	    bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character_hg.png),';
 	} else {
 	    bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character_h.png),';
 	}
-	if (this.options.LeftGrowthArm) {
+	if (this.game.character.LeftGrowthArm) {
 	    bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character_lag.png),';
 	}
-	if (this.options.RightGrowthArm) {
+	if (this.game.character.RightGrowthArm) {
 	    bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character_rag.png),';
 	}
 	bgUrls+='url(/client/mochaui/themes/charcoal/images/Character/m_bg_character.png)'
@@ -252,6 +266,7 @@ RPG.CharacterEquipment = new Class({
 	this.characterEquipmentWindow.minimize();
 	this.characterEquipmentWindow.restore();
 	this.refreshInfo();
+	this.refreshInventory();
     },
 
     refreshInfo : function() {
@@ -271,7 +286,7 @@ RPG.CharacterEquipment = new Class({
 
 	var rows = [];
 	['hp','mana','lives'].each(function(stat){
-	    var width = this.options.character[stat].max == null?100:Math.round((((Number.from(this.options.character[stat].cur)) /  Number.from(this.options.character[stat].max)) * 100));
+	    var width = this.game.character[stat].max == null?100:Math.round((((Number.from(this.game.character[stat].cur)) /  Number.from(this.game.character[stat].max)) * 100));
 	    rows.push([
 	    {
 		properties : {
@@ -292,7 +307,7 @@ RPG.CharacterEquipment = new Class({
 			'background-color' : width==0?'none':stat=='mana'?'blue':stat=='hp'?'red':'purple'
 		    },
 		    'class' : 'textLarge NoWrap',
-		    html :  this.options.character[stat].max == null?'Infinite':this.options.character[stat].cur + " / " + this.options.character[stat].max + ' ' + width.formatPercentage(0)
+		    html :  this.game.character[stat].max == null?'Infinite':this.game.character[stat].cur + " / " + this.game.character[stat].max + ' ' + width.formatPercentage(0)
 		})
 
 	    }
@@ -315,7 +330,7 @@ RPG.CharacterEquipment = new Class({
 	    },
 	    content : new Element('div',{
 		'class' : 'textLarge NoWrap',
-		html :  (Number.from(this.options.character.xp) || 0).format({
+		html :  (Number.from(this.game.character.xp) || 0).format({
 		    group : ',',
 		    decimals : 0
 		})
@@ -360,7 +375,7 @@ RPG.CharacterEquipment = new Class({
 			width : '20px'
 		    }
 		},
-		content : this.options.character.Stats[stat].value
+		content : this.game.character.Stats[stat].value
 	    }
 	    ]);
 	}.bind(this));
@@ -375,10 +390,6 @@ RPG.CharacterEquipment = new Class({
 
     refreshInventory : function() {
 	this.characterInventoryTable.empty();
-	var temp = {
-	    tiles : {},
-	    cache : {}
-	};
 
 	var rows = [];
 	var row = null;
@@ -388,20 +399,10 @@ RPG.CharacterEquipment = new Class({
 	    row = [];
 	    for (c=0;c<7;c++) {
 
-		RPG.pushTile(temp.tiles,[r,c],
-		    RPG.createTile('item.earth.equip.weapon',temp.cache,{
-			property : {
-			    tileName : [r,c].join(),
-			    folderName : 'inv',
-			    image : {
-				name : RPG.getRandomTileImage('item.earth.equip.weapon',RPG.Random).image
-			    }
-			}
-		    })
-		    );
+
 
 		var styles = RPG.getMapTileStyles({
-		    map : temp,
+		    map : this.game.inventory.character,
 		    row : r,
 		    col : c,
 		    rowOffset : 0,
@@ -412,9 +413,11 @@ RPG.CharacterEquipment = new Class({
 		row.push({
 		    properties : {
 			'class' : 'textTiny',
-			styles : Object.merge({
-			    border : '1px solid white'
-			},styles)
+			styles : Object.merge(styles,{
+			    border : '1px solid white',
+			    'background-size' : '100% 100%',
+			    'background-position' : '0% 0%'
+			})
 		    },
 		    content : '&nbsp;'
 		});

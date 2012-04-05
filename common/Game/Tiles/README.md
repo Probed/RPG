@@ -3,13 +3,13 @@
 
 <a name="Tiles"></a>
 
-## `RPG.Tiles` - [Tiles.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/Tiles.js)
+## `RPG.Tiles` - [Tiles.js](https://github.com/Probed/RPG/tree/master/common/Game/Tiles/Tiles.js)
 
-The Tiles.js file is **generated** on the server from within `/server/Map/MapEditor.njs` so don't manually modify unless you expect your changes to get overwritten.
+The Tiles.js file is **generated** on the server from within `/server/Game/MapEditor.njs` so don't manually modify unless you expect your changes to get overwritten.
 
 #### What is the Tiles.js file?
 
-The Tiles.js file is created by recursivly traversing the `/common/Map/Tiles/` directory to generate the list of available tiles and tile `options`.
+The Tiles.js file is created by recursivly traversing the `/common/Game/Tiles/` directory to generate the list of available tiles and tile `options`.
 
 The resulting object is one that is identical in structure to the directory structure.
 
@@ -21,13 +21,13 @@ Example:
 
 ```javascript
     var tiles = {
-        options : { /* loaded from /common/Map/Tiles/options.js */ },
+        options : { /* loaded from /common/Game/Tiles/options.js */ },
         'terrain' : {
             'grass' : {
-                options : { /* loaded from /common/Map/Tiles/terrain/grass/options.js if it exists */ }
+                options : { /* loaded from /common/Game/Tiles/terrain/grass/options.js if it exists */ }
             },
             'dirt' : {
-                options : { /* loaded from /common/Map/Tiles/terrain/dirt/options.js if it exists */ }
+                options : { /* loaded from /common/Game/Tiles/terrain/dirt/options.js if it exists */ }
             }
         }
     }
@@ -36,7 +36,7 @@ Example:
 
 <a name="TileTypes"></a>
 
-## `RPG.TileType` - [TileTypes.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/TileTypes.js)
+## `RPG.TileType` - [TileTypes.js](https://github.com/Probed/RPG/tree/master/common/Game/Tiles/TileTypes.js)
 
 #### A TileType is how we define what `options` a tile has.
 
@@ -45,7 +45,7 @@ Each TileType returns a `option_constraints` object which can be merged into a t
 ### Simple TileType example:
 
 ---
-##### 1. Define the TileType `Teleport` in [TileTypes.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/TileTypes.js)
+##### 1. Define the TileType `Teleport` in [TileTypes.js](https://github.com/Probed/RPG/tree/master/common/Game/Tiles/TileTypes.js)
 
 ```javascript
     RPG.TileType.Teleport = function(options) {
@@ -66,7 +66,7 @@ Each TileType returns a `option_constraints` object which can be merged into a t
 ```
 
 ---
-##### 2. Create the file `/common/Map/Tiles/teleportTo.js` to handle `teleportTo` events.
+##### 2. Create the file `/common/Game/Tiles/teleportTo.js` to handle `teleportTo` events.
 
 Events executed in this order:
 
@@ -78,7 +78,7 @@ Events executed in this order:
 ---
 ##### 3. Create an `options.js` file in the tile folder you want to give `teleportTo` properties to.
 
- ex: `/common/Map/Tiles/world/stair/options.js`
+ ex: `/common/Game/Tiles/world/stair/options.js`
 
 ---
 ##### 4. Inside the `options.js` file you just created we need to import the TileType and specify any overriding options:
@@ -122,10 +122,10 @@ Using [RPG.createTile](#createTile) and [RPG.pushTile](#pushTile) we can easily 
 
 <a name="Utilities"></a>
 
-#[Utilities.js](https://github.com/Probed/RPG/tree/master/common/Map/Tiles/Utilities.js)
+#[Utilities.js](https://github.com/Probed/RPG/tree/master/common/Game/Tiles/Utilities.js)
 ---
 
-This file adds a number of necessary functions for manipulating individual [Tiles](#Tiles), [Map.tiles](https://github.com/Probed/RPG/tree/master/common/Map/) and [Map.cache](https://github.com/Probed/RPG/tree/master/common/Map/)
+This file adds a number of necessary functions for manipulating individual [Tiles](#Tiles), [Map.tiles](https://github.com/Probed/RPG/tree/master/common/Game/) and [Map.cache](https://github.com/Probed/RPG/tree/master/common/Game/)
 
 * `Map.cache`
     * [RPG.createTile](#createTile) - use the given tile `options` to create a tile `path` in the given `cache` and return the new `path`

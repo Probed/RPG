@@ -1,6 +1,5 @@
 
 RPG.Map = new Class({
-    Implements : [Events,Options],
 
     rowOffset : 0,
     colOffset : 0,
@@ -9,13 +8,10 @@ RPG.Map = new Class({
     rows : 1,
     cols : 1,
 
-    options : {
-	Character : null,//the RPG.Character class
-	character : null,//the actual character
-	universe : null
-    },
-    initialize : function(options) {
-	this.setOptions(options);
+    game : {},
+
+    initialize : function(game) {
+	this.game = game;
 
 	this.mapDiv = new Element('div',{
 	    id : 'GameMap',
@@ -172,7 +168,7 @@ RPG.Map = new Class({
 	if (this.refreshingMap) return;
 	this.refreshingMap = true;
 
-	var map = this.options.universe.maps[this.options.character.location.mapName];
+	var map = this.game.universe.maps[this.game.character.location.mapName];
 
 	var bounds = RPG.getMapBounds(map.tiles);
 	var cols = bounds.maxCol - bounds.minCol;
@@ -207,13 +203,13 @@ RPG.Map = new Class({
 		}.bind(this);
 		img.src = RPG.getMapTileImage(tilePath,tile);
 
-		if (tileLoc.row == this.options.character.location.point[0] && tileLoc.col == this.options.character.location.point[1]) {
+		if (tileLoc.row == this.game.character.location.point[0] && tileLoc.col == this.game.character.location.point[1]) {
 		    var ch = new Image();
 		    ch.onload = function(){
 			context.drawImage(ch,tileLoc.colIndex*this.mapZoom,tileLoc.rowIndex*this.mapZoom,this.mapZoom,this.mapZoom);
 			ch = null;
 		    }.bind(this);
-		    ch.src = RPG.getCharacterImage(this.options.character);
+		    ch.src = RPG.getCharacterImage(this.game.character);
 		}
 	    }.bind(this));
 	}.bind(this));
@@ -237,20 +233,19 @@ RPG.Map = new Class({
 	var newCols = this.calcCols();
 	var newRows = this.calcRows();
 
-	this.options.Character.toElement().setStyle('height',this.mapZoom);
-	this.options.Character.toElement().setStyle('width',this.mapZoom);
-	//Object.merge(this.options.Character.options.character,this.options.character);
-	this.options.Character.changeDirection(this.options.character.location.dir);
+	this.game.Character.toElement().setStyle('height',this.mapZoom);
+	this.game.Character.toElement().setStyle('width',this.mapZoom);
+	this.game.Character.changeDirection(this.game.character.location.dir);
 
-	var map = this.options.universe.maps[this.options.character.location.mapName];
+	var map = this.game.universe.maps[this.game.character.location.mapName];
 	$$('#GameMap .teleportToLabel').each(function(elm) {
 	    elm.hide();
 	});
 	if (newCols == this.cols && newRows == this.rows) {
 
 	    if (!this.draggingMap) {
-		this.rowOffset = this.options.character.location.point[0] - Math.floor(this.rows/2);
-		this.colOffset = this.options.character.location.point[1] - Math.floor(this.cols/2);
+		this.rowOffset = this.game.character.location.point[0] - Math.floor(this.rows/2);
+		this.colOffset = this.game.character.location.point[1] - Math.floor(this.cols/2);
 	    }
 
 	    var tileHolders = $$('#GameMap td.M_tileHolder');
@@ -300,8 +295,8 @@ RPG.Map = new Class({
 		} else {
 		    elm.style.backgroundImage = 'none';
 		}
-		if (this.options.character.location.point[0] == (row + this.rowOffset) && this.options.character.location.point[1] == (col + this.colOffset)) {
-		    elm.empty().adopt(this.options.Character.toElement());
+		if (this.game.character.location.point[0] == (row + this.rowOffset) && this.game.character.location.point[1] == (col + this.colOffset)) {
+		    elm.empty().adopt(this.game.Character.toElement());
 		} else {
 		    elm.empty();
 		}
@@ -315,8 +310,8 @@ RPG.Map = new Class({
 	    this.rows = newRows;
 	}
 
-	this.rowOffset = this.options.character.location.point[0] - Math.floor(this.rows/2);
-	this.colOffset = this.options.character.location.point[1] - Math.floor(this.cols/2);
+	this.rowOffset = this.game.character.location.point[0] - Math.floor(this.rows/2);
+	this.colOffset = this.game.character.location.point[1] - Math.floor(this.cols/2);
 
 	if (this.mapTable) {
 	    $(this.mapTable).getElements('div').destroy();
@@ -379,7 +374,7 @@ RPG.Map = new Class({
 		row : options.row,
 		col : options.col
 	    },
-	    content : this.options.character.location.point[0] == options.row + options.rowOffset && this.options.character.location.point[1] == options.col + options.colOffset ? this.options.Character.toElement() : '&nbsp;'
+	    content : this.game.character.location.point[0] == options.row + options.rowOffset && this.game.character.location.point[1] == options.col + options.colOffset ? this.game.Character.toElement() : '&nbsp;'
 	};
 	styles = null;
 
@@ -415,22 +410,18 @@ RPG.Map = new Class({
     moveCharacter : function(dir) {
 	if (this.gameWaiting) return;
 
-	var game = {
-	    universe : this.options.universe,
-	    character : this.options.character,
-	    moveTo : RPG[dir](this.options.character.location.point,1),
-	    dir : dir
-	};
+	this.game.moveTo = RPG[dir](this.game.character.location.point,1),
+	this.game.dir = dir;
 
 	this.gameWaiting = true;
-	RPG.moveCharacterToTile(game, function(moveEvents){
-	    game.events = moveEvents;
+	RPG.moveCharacterToTile(this.game, function(moveEvents){
+	    this.game.events = moveEvents;
 	    if (moveEvents.error) {
 		RPG.Error.notify(moveEvents.error);
 		this.gameWaiting = false;
 		return;
 	    } else {
-		this.getServerEvents(game,'/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+game.character.database.characterID+'&dir='+game.dir,function(){
+		this.getServerEvents(this.game,'/index.njs?xhr=true&a=Play&m=MoveCharacter&characterID='+this.game.character.database.characterID+'&dir='+this.game.dir,function(){
 		    this.refreshMap();
 		    this.gameWaiting = false;
 		}.bind(this));
@@ -441,15 +432,11 @@ RPG.Map = new Class({
     activateTile : function() {
 	if (this.gameWaiting) return;
 
-	var game = {
-	    universe : this.options.universe,
-	    character : this.options.character,
-	    moveTo : this.options.character.location.point
-	};
+	this.game.moveTo =  this.game.character.location.point;
 
 	this.gameWaiting = true;
-	RPG.activateTile(game, function(activateEvents){
-	    game.events = activateEvents;
+	RPG.activateTile(this.game, function(activateEvents){
+	    this.game.events = activateEvents;
 	    if (activateEvents.error) {
 		RPG.Error.notify(activateEvents.error);
 		this.gameWaiting = false;
@@ -462,7 +449,7 @@ RPG.Map = new Class({
 		    return;
 		}
 
-		this.getServerEvents(game,'/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+game.character.database.characterID,function(){
+		this.getServerEvents(this.game,'/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+this.game.character.database.characterID,function(){
 		    this.refreshMap();
 		    this.gameWaiting = false;
 		}.bind(this));
@@ -481,14 +468,19 @@ RPG.Map = new Class({
 		RPG.Error.notify(results);
 		if (results.responseText) {
 		    var resp = JSON.decode(results.responseText,true);
-		    if (resp.game) {
-			Object.merge(game,resp.game);
+		    if (resp) {
+			game.events = resp.events;//make sure this isn't merged
+			Object.merge(game,resp);
 		    }
 		}
 		callback();
 	    },
 	    onSuccess : function(results) {
-		results.game && Object.merge(game,results.game);
+		if (results && results.events && results.events.error) {
+		    RPG.Error.show(results.events.error);
+		}
+		game.events = results.events;//make sure this isn't merged
+		results && Object.merge(game,results);
 		callback();
 	    }
 	}).post(JSON.encode(game.events));//send the results of the clientside events to the server for validation

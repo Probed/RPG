@@ -321,7 +321,7 @@ RPG.optionCreator = {
 				click : function(event) {
 				    var n = null;
 				    if (typeof exports != 'undefined') {
-					n = require('./Map/Generators/Words.js').Generator.Name;
+					n = require('./Game/Generators/Words.js').Generator.Name;
 				    } else {
 					n = RPG.Generator.Name;
 				    }
@@ -527,7 +527,7 @@ RPG.optionCreator = {
 		case (type0 == 'string' && Number.from(con1)!=null && Number.from(con2) !=null  && content.length <= 4) :
 		    var n = null;
 		    if (typeof exports != 'undefined') {
-			n = require('./Map/Generators/Words.js').Generator.Name
+			n = require('./Game/Generators/Words.js').Generator.Name
 		    } else {
 			n = RPG.Generator.Name;
 		    }

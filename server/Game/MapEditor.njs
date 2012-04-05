@@ -4,8 +4,9 @@
 var RPG = module.exports = {};
 Object.merge(RPG,
     require('./Universe.njs'),
-    require('../../common/Map/universe.js'),
-    require('../../common/Map/Generators/Utilities.js'),
+    require('./Tileset.njs'),
+    require('../../common/Game/universe.js'),
+    require('../../common/Game/Generators/Utilities.js'),
     require("../pages/pageBase.njs")
     );
 
@@ -22,16 +23,16 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    requires : {
 		'css' : ['/client/mochaui/themes/charcoal/css/Map/MapEditor.css','/client/mochaui/themes/charcoal/css/Map/Tile.css'],
 		'js' : [
-		'/client/Map/MapEditor.js',
+		'/client/Game/MapEditor.js',
 		'/common/Character/Character.js',
-		'/common/Map/Tiles/Tiles.js',
-		'/common/Map/universe.js',
-		'/common/Map/Generators/Generators.js',
+		'/common/Game/Tiles/Tiles.js',
+		'/common/Game/universe.js',
+		'/common/Game/Generators/Generators.js',
 		'/common/optionConfig.js',
 		'/common/Random.js',
-		'/common/Map/Generators/Utilities.js',
-		'/common/Map/Tiles/Utilities.js',
-		'/common/Map/Generators/Words.js',
+		'/common/Game/Generators/Utilities.js',
+		'/common/Game/Tiles/Utilities.js',
+		'/common/Game/Generators/Words.js',
 		],
 		exports :'MapEditor'
 	    },
@@ -39,22 +40,22 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    options : {}
 	};
 
-	var constraints = this.buildTileConstraints(['./common','Map','Tiles']);
-	var str = '/*This File is Generated in /server/Map/MapEditor.njs*/if (!RPG) var RPG = {};RPG.Tiles=';
+	var constraints = this.buildTileConstraints(['./common','Game','Tiles']);
+	var str = '/*This File is Generated in /server/Game/MapEditor.njs*/if (!RPG) var RPG = {};RPG.Tiles=';
 	str += JSON.encode(constraints);
 	str += ';if (typeof exports != "undefined") {module.exports = RPG;}';
-	require('fs').writeFileSync('./common/Map/Tiles/Tiles.js',str,'utf8');
+	require('fs').writeFileSync('./common/Game/Tiles/Tiles.js',str,'utf8');
 	Object.merge(RPG,{
 	    Tiles : constraints
 	});
 
 	//only after we have created RPG.Tiles can we merge in the Utilities which requires RPG.Tiles
-	Object.merge(RPG,require('../../common/Map/Tiles/Utilities.js'));
+	Object.merge(RPG,require('../../common/Game/Tiles/Utilities.js'));
 	constraints = null;
     },
 
     /**
-     * buildTileConstraints Here we recursivly traverse the /common/Map/Tiles  directory and build up the RPG.Tiles object
+     * buildTileConstraints Here we recursivly traverse the /common/Game/Tiles  directory and build up the RPG.Tiles object
      * Each folder can have an options.js file which will be imported and merged into the tile to give the tile it's unique abilities.
      * option.js files will reference TileTypes.js for the different types available
      *
@@ -111,7 +112,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		break;
 
 	    case 'listTilesets' :
-		RPG.Map.listTilesets({},function(tilesets){
+		RPG.Tileset.listTilesets({},function(tilesets){
 		    response.onRequestComplete(response, tilesets);
 		});
 		break;
@@ -139,7 +140,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 
 
 	    case 'checkDupeTilesetName' :
-		RPG.Map.checkDupeTilesetName({
+		RPG.Tileset.checkDupeTilesetName({
 		    user : request.user,
 		    name  : request.url.query.name,
 		    category : request.url.query.category,
@@ -197,7 +198,8 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		//Store the universe in the database:
 		RPG.Universe.store({
 		    user : request.user,
-		    universe : uni
+		    universe : uni,
+		    bypassCache : true
 		},function(universe){
 		    //remove all tiles since the clinet should have these already
 		    Object.each(universe.maps,function(map,mapName){
@@ -226,7 +228,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    user : request.user,
 	    universeID : options.universeID,
 	    tilePoints : RPG.getRectangleArea(options.start,options.end).area,
-	    mapEditor : true
+	    bypassCache : true
 	},function(universe){
 	    if (universe.error) {
 		response.onRequestComplete(response,universe);
@@ -234,7 +236,8 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    }
 	    RPG.Map.listMaps({
 		user : request.user,
-		universeID : options.universeID
+		universeID : options.universeID,
+		bypassCache : true
 	    },function(maplist) {
 		if (maplist.error) {
 		    response.onRequestComplete(response,maplist);
@@ -262,7 +265,9 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	var options = {
 	    user : request.user,
 	    mapID : Number.from(request.url.query.mapID) || 0,
-	    tilePoints : []
+	    universeID : request.url.query.universeID,
+	    tilePoints : [],
+	    bypassCache : true
 	};
 
 	var tileLookup = JSON.decode(request.data,true);
@@ -284,7 +289,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    }
 	});
 
-	RPG.Tile.load(options, function(universe){
+	RPG.Map.loadMap(options, function(universe){
 	    if (universe.error) {
 		response.onRequestComplete(response,{
 		    error : universe.error
@@ -312,22 +317,25 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		    });
 		    return;
 		}
+		var uni = {
+		    tilesets : {}
+		};
+		uni.tilesets[tileset.options.property.name] = tileset;
 
-		RPG.Map.storeTileset({
+		RPG.Tileset.storeTileset({
 		    user : request.user,
-		    tilesetMap : JSON.decode(request.data),
-		    mapOrTileset : 'tileset'
-		}, function(tilesetUniverse){
-		    if (tilesetUniverse.error) {
+		    universe : uni
+		}, function(universe){
+		    if (universe.error) {
 			response.onRequestComplete(response,{
-			    error : tilesetUniverse.error
+			    error : universe.error
 			});
 			return;
 		    }
 
 		    response.onRequestComplete(response,{
-			options : tilesetUniverse.maps[Object.keys(tilesetUniverse.maps)[0]].options,
-			cache : tilesetUniverse.maps[Object.keys(tilesetUniverse.maps)[0]].cache
+			options : universe.tilesets[tileset.options.property.name].options,
+			cache : universe.tilesets[tileset.options.property.name].cache
 		    });
 		});
 	    }
@@ -344,18 +352,17 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	var options = {
 	    user : request.user,
 	    tilesetID : Number.from(request.url.query.tilesetID),
-	    mapOrTileset : 'tileset',
 	    tilePoints : 'all'
 	};
 
-	RPG.Map.load(options,function(universe){
-	    if (universe.error) {
+	RPG.Tileset.loadTileset(options,function(tilesetUniverse){
+	    if (tilesetUniverse.error) {
 		response.onRequestComplete(response,{
-		    error : universe.error
+		    error : tilesetUniverse.error
 		});
 		return;
 	    }
-	    response.onRequestComplete(response,universe.maps[Object.keys(universe.maps)[0]]);
+	    response.onRequestComplete(response,tilesetUniverse.maps[Object.keys(tilesetUniverse.maps)[0]]);
 	});
     }
 }))();

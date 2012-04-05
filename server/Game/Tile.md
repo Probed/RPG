@@ -30,7 +30,7 @@ A `universe` object is returned for easy merging into an existing universe.
 *Example*
 
 ```javascript
-RPG.Tile.storeTiles({
+RPG.Map.storeTiles({
     user : request.user,
     universe : myUniverse
 }, function(universe) {
@@ -64,7 +64,7 @@ RPG.Tile.storeTiles({
 *Example* Load map #1 and tile [0,0]
 
 ```javascript
-RPG.Tile.load({
+RPG.Map.loadMap({
     user : request.user,
     mapID : 1,
     tilePoints : [[0,0]]

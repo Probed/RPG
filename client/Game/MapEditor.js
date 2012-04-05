@@ -1193,7 +1193,7 @@ RPG.MapEditor = new Class({
 		(content && content.options &&  content.options.property && content.options.property.image && typeOf(content.options.property.image.name) == 'string'?
 		    new Element('img',{
 			id : 'imageCache__'+path.toMD5(),
-			src : '/common/Map/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+content.options.property.image.name,
+			src : '/common/Game/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+content.options.property.image.name,
 			styles : {
 			    width : '16px',
 			    height : '16px'
@@ -1872,7 +1872,7 @@ RPG.MapEditor = new Class({
 		'class' : 'mapTileImage' + (selectedImage == img?' mapTileImageSelected':''),
 		html :'&nbsp;',
 		styles : {
-		    'background-image': 'url(/common/Map/Tiles/'+path.join('/')+'/'+escape(img)+')'
+		    'background-image': 'url(/common/Game/Tiles/'+path.join('/')+'/'+escape(img)+')'
 		},
 		events : {
 		    click : function(event) {
@@ -2421,7 +2421,7 @@ RPG.MapEditor = new Class({
 	    }
 
 	    new Request.JSON({
-		url : '/index.njs?xhr=true&a=MapEditor&m=loadTiles&mapID='+currenMapDatabaseOpts.mapID+'&minRow='+currenMapDatabaseOpts.minRow+'&maxRow='+currenMapDatabaseOpts.maxRow+'&minCol='+currenMapDatabaseOpts.minCol+'&maxCol='+currenMapDatabaseOpts.maxCol,
+		url : '/index.njs?xhr=true&a=MapEditor&m=loadTiles&universeID='+this.currentUniverse.options.database.universeID+'&mapID='+currenMapDatabaseOpts.mapID+'&minRow='+currenMapDatabaseOpts.minRow+'&maxRow='+currenMapDatabaseOpts.maxRow+'&minCol='+currenMapDatabaseOpts.minCol+'&maxCol='+currenMapDatabaseOpts.maxCol,
 		onFailure : function(error) {
 		    //ignore errors
 		    //RPG.Error.notify(error);
@@ -2466,7 +2466,7 @@ RPG.MapEditor = new Class({
 		    //console.log('Tile missing: ' + JSON.encode(options)+' ' + t + '\n');
 		    continue;
 		}
-		styles['background-image'] = 'url("/common/Map/Tiles/'+t.slice(1,t.length-1).join('/')+'/'+escape(theTile.options.property.image.name)+'"),' + styles['background-image'];
+		styles['background-image'] = 'url("/common/Game/Tiles/'+t.slice(1,t.length-1).join('/')+'/'+escape(theTile.options.property.image.name)+'"),' + styles['background-image'];
 		styles['background-position'] = (theTile.options.property.image.left?theTile.options.property.image.left+'% ':'0% ') + (theTile.options.property.image.top?theTile.options.property.image.top+'%,':'0%,') + styles['background-position'];
 		styles['background-size'] = (theTile.options.property.image.size?theTile.options.property.image.size+'%,':'100%,') + styles['background-size'];
 		styles['background-repeat'] = (theTile.options.property.image.repeat?theTile.options.property.image.repeat+',':'no-repeat,') + styles['background-repeat'];
@@ -2628,7 +2628,7 @@ RPG.MapEditor = new Class({
 				cursor : 'move',
 				'width' : '32px',
 				'height' : '32px',
-				'background-image' : 'url(/common/Map/Tiles/'+t.slice(1,t.length-1).join('/')+'/'+escape(theTile.options.property.image.name)+')'
+				'background-image' : 'url(/common/Game/Tiles/'+t.slice(1,t.length-1).join('/')+'/'+escape(theTile.options.property.image.name)+')'
 			    }
 			},
 			content : '&nbsp;'
@@ -2764,7 +2764,7 @@ RPG.MapEditor = new Class({
 	tiles.each(function(tp) {
 	    imgs.push(new Element('img',{
 		'class' : 'tilePicker',
-		src : '/common/Map/Tiles/'+tp.slice(1,tp.length-1).join('/')+'/'+Object.getFromPath(currentTileCache,tp.join('.')+'.options.property.image.name'),
+		src : '/common/Game/Tiles/'+tp.slice(1,tp.length-1).join('/')+'/'+Object.getFromPath(currentTileCache,tp.join('.')+'.options.property.image.name'),
 		styles : {
 		    width : zoom,
 		    height : zoom

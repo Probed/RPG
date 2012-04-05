@@ -20,7 +20,7 @@
  *	The final object would look somthing like this:
  *	{
  *	    property : {
- *		...(all tiles receive the property object from /common/Map/Tiles/options.js)...
+ *		...(all tiles receive the property object from /common/Game/Tiles/options.js)...
  *	    },
  *	    traversable : {
  *		...
@@ -32,7 +32,7 @@
  *
  *	All Newly created tiles (using RPG.createTile) will be populated with default values then merged with their final values overwriting any defaults
  *
- *	A corrpsponding file needs to be created in /common/Map/Tiles where the fileName = options_constraint name ie: teleportTo.js or  traverse.js  (not the TileType name
+ *	A corrpsponding file needs to be created in /common/Game/Tiles where the fileName = options_constraint name ie: teleportTo.js or  traverse.js  (not the TileType name
  *	this file will be used to perform the actions associated with the tiletype
  */
 if (!RPG) var RPG = {};

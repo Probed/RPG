@@ -6,8 +6,8 @@ if (!RPG) var RPG = {};
 if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.teleportTo) RPG.TileTypes.teleportTo = {};
 if (typeof exports != 'undefined') {
-    Object.merge(RPG,require('../../../server/Map/Universe.njs'));
-    Object.merge(RPG,require('../../../server/Map/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/Universe.njs'));
+    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     Object.merge(RPG,require('../Generators/Dungeon.js'));
     Object.merge(RPG,require('../Generators/House.js'));
@@ -89,6 +89,7 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    level : options.game.character.level
 		}
 	    },rand,function(random){
+
 		Object.merge(newUniverse,random.universe);
 		var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 		newUniverse.options.settings.activeMap = mapName;
@@ -131,12 +132,11 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    }
 		});
 
-		/**
-		 * Update the current map tile cache with the newly generated map name so it knows what to load next time
-		 */
+		//this puts the current map into the new universe for saving purposes
 		newUniverse.maps[options.game.character.location.mapName] = {
-		    options : options.game.universe.maps[options.game.character.location.mapName].options
-		};//make an entry in the new universe for the current maps cached tiles
+		    options : Object.clone(options.game.universe.maps[options.game.character.location.mapName].options)
+		};
+		//make an entry in the new universe for the current maps cached tiles
 		var newCache = newUniverse.maps[options.game.character.location.mapName].cache = {};
 		var curCache = options.game.universe.maps[options.game.character.location.mapName].cache;
 
@@ -165,7 +165,6 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    universe : newUniverse,
 		    bypassCache : true
 		};
-
 		RPG.Universe.store(storeoptions,function(universe) {
 		    if (!universe || universe.error) {
 			callback(universe);
@@ -175,7 +174,8 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    //now that the universe is successfully in the database we can update the character to
 		    //start at a point in that universe.
 		    var updateCharacter = Object.clone(options.game.character);
-		    Object.merge(updateCharacter.location,{
+		    var newLoc = null;
+		    Object.merge(updateCharacter.location,newLoc ={
 			universeID : universe.options.database.universeID,
 			mapID : universe.maps[mapName].options.database.mapID,
 			mapName : mapName,
@@ -197,8 +197,30 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 			if (!options.events.onBeforeEnter) options.events.onBeforeEnter = {};
 			options.events.onBeforeEnter.traverse = false;
 
+			var toClient = {
+			    game : {
+				character : {
+				    location : newLoc
+				},
+				universe : {
+				    options : {
+					settings : {
+					    activateMap : mapName
+					}
+				    },
+				    maps : (function(){
+					var maps = {};
+					maps[newLoc.mapName] = {
+					    options : Object.clone(newUniverse.maps[newLoc.mapName].options)
+					}
+					return maps;
+				    }())
+				}
+			    }
+			}
+			//RPG.Log('teleporTo',toClient);
 			//callback
-			callback();
+			callback(toClient);
 		    });
 		});
 	    });
@@ -208,34 +230,34 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 	    //Handle teleportation requests to existing maps
 	    //Server-Side:
 	    //load the map :
-	    RPG.Universe.load({
+	    RPG.Map.loadMap({
 		user : options.game.user,
 		mapName : options.contents.mapName,
-		universeID : options.game.character.location.universeID,
-		tilePoints : [options.contents.point],
-		bypassCache : true
+		character : options.game.character,
+		universe : options.game.universe
 	    }, function(universe){
 		if (universe.error) {
 		    callback(universe);
 		    return;
 		}
-
 		var updateCharacter = Object.clone(options.game.character);
-		Object.merge(updateCharacter.location,{
-		    mapID : universe.maps[options.contents.mapName].options.database.mapID,
+		var newLoc = null;
+		Object.merge(updateCharacter.location,newLoc = {
+		    mapID : options.game.universe.maps[options.contents.mapName].options.database.mapID,
 		    mapName : options.contents.mapName,
 		    point : options.contents.point
 		});
 
 		var updateUniverse = {
-		    options : Object.clone(universe.options)
+		    options : Object.clone(options.game.universe.options)
 		};
 		updateUniverse.options.settings.activeMap = options.contents.mapName;
 
 		var storeoptions = {
 		    user : options.game.user,
 		    universe : updateUniverse,
-		    character : updateCharacter
+		    character : updateCharacter,
+		    bypassCache : true
 		};
 		RPG.Universe.store(storeoptions,function(universe) {
 		    if (!universe || universe.error) {
@@ -257,7 +279,21 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 			options.events.onBeforeEnter.traverse = false;
 
 			//callback
-			callback();
+			callback({
+			    teleportTo : 'Teleported to ' + mapName + ' Location: ' + options.contents.point,
+			    game : {
+				character : {
+				    location : newLoc
+				},
+				universe : {
+				    options : {
+					settings : {
+					    activateMap : mapName
+					}
+				    }
+				}
+			    }
+			});
 
 		    });//end save character
 		});//end save universe

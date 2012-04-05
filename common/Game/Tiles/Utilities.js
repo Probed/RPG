@@ -69,7 +69,7 @@ RPG.getMapTileCursor = function(path,tile) {
 }
 
 RPG.getMapTileImage = function(path,tile) {
-    return '/common/Map/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+escape(tile.options.property.image.name)+'';
+    return '/common/Game/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+escape(tile.options.property.image.name)+'';
 }
 
 /**
@@ -100,8 +100,8 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
     Object.each(mergedTileOptions.options,function(content,key,source){
 	//if there exists a function to handle this trigger; create a function wrapper, push it onto the stack then execute each one after the other.
 	if (typeof exports != 'undefined' && (!RPG.TileTypes || !RPG.TileTypes[key])) {
-	    RPG.Log('filesystem','TileType lookup: '+key+'.js');
-	    if (require('path').existsSync('./common/Map/TileTypes/'+key+'.js')) {
+	    //RPG.Log('filesystem','TileType lookup: '+key+'.js');
+	    if (require('path').existsSync('./common/Game/TileTypes/'+key+'.js')) {
 		Object.merge(RPG,require('../TileTypes/'+key+'.js'))
 	    } else {
 		RPG.TileTypes[key] = 'None';//skip future checks
@@ -154,6 +154,9 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
  */
 RPG.moveCharacterToTile = function(options,callback) {
 
+//    if (typeof exports != 'undefined') {
+//	RPG.Log('MoveEvent Universe',options.universe);
+//    }
     var map = options.universe.maps[options.character.location.mapName];
     if (!map) callback({});
     var newLocTiles = map.tiles && map.tiles[options.moveTo[0]] && map.tiles[options.moveTo[0]][options.moveTo[1]];
@@ -621,7 +624,7 @@ RPG.tilesContainsPath = function(tiles,path,point) {
  */
 RPG.tilesContainsPartialPath = function(tiles,path,point) {
     var paths = null;
-    if (!tiles[point[0]]) return false;
+    if (!tiles || !tiles[point[0]]) return false;
     var tilelist = tiles[point[0]][point[1]];
     if (!tilelist || (tilelist && (typeOf(tilelist) != 'string' && typeOf(tilelist) != 'array'))) return false;
     if (typeOf(tilelist) == 'string') {
@@ -944,6 +947,18 @@ RPG.expandFlatCache = function(flat) {
     var cache = {};
     Object.each(flat,function(options,path){
 	Object.pathToObject(cache,JSON.decode(path,true)).child.options = (typeof options == 'string'?JSON.decode(options,true):options);
+    });
+    return cache;
+}
+
+RPG.expandResultsCache = function(results,id) {
+    var cache = {};
+    results.each(function(result){
+	var dbOpts = {
+	    database : {}
+	};
+	dbOpts.database[id] = result[id];
+	Object.pathToObject(cache,JSON.decode(result['path'],true)).child.options = Object.merge(JSON.decode(result['options'],true),dbOpts);
     });
     return cache;
 }

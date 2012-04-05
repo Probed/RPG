@@ -18,7 +18,7 @@ RPG.MapGeneratorBaseClass = new Class({
      * The name of the generator for access
      * Should be added to the list RPG.Generators.Map to define available map generators
      */
-    name : '',
+    name : 'Base',
 
     /**
      * Option Constraints which are used to define what options this generator
@@ -136,32 +136,32 @@ RPG.MapGeneratorBaseClass = new Class({
 RPG.Generators.Map = {
     Terrain : {
 	require :{
-	    js : ['/common/Map/Generators/Terrain.js','/common/Map/Generators/diamond-square.js','/common/Map/Generators/Words.js']
+	    js : ['/common/Game/Generators/Terrain.js','/common/Game/Generators/diamond-square.js','/common/Game/Generators/Words.js']
 	}
     },
     Dungeon : {
 	require :{
-	    js : ['/common/Map/Generators/Dungeon.js','/common/Map/Generators/Maze.js','/common/Map/Generators/Words.js']
+	    js : ['/common/Game/Generators/Dungeon.js','/common/Game/Generators/Maze.js','/common/Game/Generators/Words.js']
 	}
     },
     House : {
 	require :{
-	    js : ['/common/Map/Generators/House.js','/common/Map/Generators/Words.js','/common/Map/Generators/Equipment.js','/common/Map/Generators/Consumable.js','/common/Map/Generators/NPC.js']
+	    js : ['/common/Game/Generators/House.js','/common/Game/Generators/Words.js','/common/Game/Generators/Equipment.js','/common/Game/Generators/Consumable.js','/common/Game/Generators/NPC.js']
 	}
     },
     Maze : {
 	require :{
-	    js : ['/common/Map/Generators/Maze.js','/common/Map/Generators/Words.js']
+	    js : ['/common/Game/Generators/Maze.js','/common/Game/Generators/Words.js']
 	}
     },
     Example : {
 	require :{
-	    js : ['/common/Map/Generators/Example.js','/common/Map/Generators/Words.js']
+	    js : ['/common/Game/Generators/Example.js','/common/Game/Generators/Words.js']
 	}
     },
     Test : {
 	require :{
-	    js : ['/common/Map/Generators/Test.js','/common/Map/Generators/Words.js','/common/Map/Generators/Equipment.js','/common/Map/Generators/Consumable.js','/common/Map/Generators/NPC.js']
+	    js : ['/common/Game/Generators/Test.js','/common/Game/Generators/Words.js','/common/Game/Generators/Equipment.js','/common/Game/Generators/Consumable.js','/common/Game/Generators/NPC.js']
 	}
     }
 }
@@ -260,12 +260,12 @@ RPG.ItemGeneratorBaseClass = new Class({
 RPG.Generators.Item = {
     Equipment : {
 	require :{
-	    js : ['/common/Map/Generators/Equipment.js']
+	    js : ['/common/Game/Generators/Equipment.js']
 	}
     },
     Consumable : {
 	require :{
-	    js : ['/common/Map/Generators/Consumable.js']
+	    js : ['/common/Game/Generators/Consumable.js']
 	}
     }
 }
@@ -366,7 +366,7 @@ RPG.NPCGeneratorBaseClass = new Class({
 RPG.Generators.NPC = {
     NPC : {
 	require :{
-	    js : ['/common/Map/Generators/NPC.js']
+	    js : ['/common/Game/Generators/NPC.js']
 	}
     }
 }

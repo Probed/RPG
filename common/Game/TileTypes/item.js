@@ -50,21 +50,37 @@ RPG.TileTypes.item.activate = function(options,callback) {
 	var item = Object.getFromPath(options,'game.clientEvents.activate.item');
 
 	if (item) {
-
 	    var cachedMap = options.game.universe.maps[options.game.character.location.mapName];
-	    var tmpMap = null;
+	    var updateMap = null;
 
-	    var tmpUni = {
+	    var updateUniverse = {
 		options : options.game.universe.options,
 		maps : {}
 	    };
-	    tmpUni.maps[options.game.character.location.mapName] = tmpMap = {
-		options : options.game.universe.maps[options.game.character.location.mapName].options,
+	    updateUniverse.maps[options.game.character.location.mapName] = updateMap = {
+		options : cachedMap.options,
 		tiles : {},
 		cache : {}
 	    }
 
+	    var cachedInv = options.game.inventory.character;
+	    var inv = null;
+	    var storeoptions = {
+		user : options.game.user,
+		character : options.game.character,
+		universe : updateUniverse,
+		bypassCache : false,
+		inventory : {
+		    character : inv = {
+			options : cachedInv.options,
+			tiles : {},
+			cache : {}
+		    }
+		}
+	    };
+
 	    var items = 0;
+	    var errors = [];
 	    //go through each of the tiles at the charcters current location
 	    options.tiles.each(function(tilePath){
 		var tile = Object.getFromPath(cachedMap.cache,tilePath);
@@ -74,55 +90,100 @@ RPG.TileTypes.item.activate = function(options,callback) {
 
 		    var opts = Object.clone(tile.options);
 
-		    //mark the item for deletion
-		    opts.database.deleted = true;
+		    //put a copy of this tile in our temporary universe - this will be marked for deletion
+		    RPG.cloneTile(cachedMap.cache,tilePath,updateMap.cache,Object.merge({
+			database : {
+			    deleted : true
+			}
+		    },opts));
 
-		    //put a copy of this tile in our temporary universe
-		    RPG.cloneTile(cachedMap.cache,tilePath,tmpMap.cache,opts);
+		    //make a copy of the tilecache and put it in thier inventory
+		    RPG.cloneTile(cachedMap.cache,tilePath,inv.cache,Object.clone(opts));
 
-		    //ensure all other tiles get updated
-		    if (!tmpMap.tiles[point[0]]) tmpMap.tiles[point[0]] = {};
-		    tmpMap.tiles[point[0]][point[1]] = Array.clone(cachedMap.tiles[point[0]][point[1]]);
+		    //when removing a tile we need to put the unchanged ones in the update map since it is all or nothing update with tiles
+		    if (!updateMap.tiles[point[0]]) updateMap.tiles[point[0]] = {};
+		    updateMap.tiles[point[0]][point[1]] = Array.clone(cachedMap.tiles[point[0]][point[1]]);
 
 		    //remove the item from the temp map
-		    RPG.removeTile(tmpMap.tiles,tilePath,point);
+		    RPG.removeTile(updateMap.tiles,tilePath,point);
 
-		    items++;
+		    //Push the item tile into the inventory map
+		    //@todo determine where
+		    var x = 0;
+		    var y = 0;
+		    var placed = false;
+		    var firstAvail = null;
+		    var used = 0;
+		    var cachedTiles = null;
+		    var invTile = null;
+		    for (x = 0; x<inv.options.property.maxRows; x++) {
+			for (y = 0; y<inv.options.property.maxCols; y++) {
+			    cachedTiles = cachedInv.tiles && cachedInv.tiles[x] && cachedInv.tiles[x][y];
+			    if (cachedTiles && cachedTiles.length > 0) {
+				used++;
+			    } else if (!firstAvail) {
+				firstAvail = [x,y];
+			    }
+			    //check to see if a tile of the type is already in the inventory
+			    if (RPG.tilesContainsPartialPath(cachedInv.tiles,RPG.trimPathOfNameAndFolder(tilePath),[x,y])) {
+				//lookup exact type based on image name:
+				invTile = Object.getFromPath(cachedInv.cache,cachedTiles[0]);
+				if (invTile) {
+				    var cacheImgName = Object.getFromPath(invTile,'options.property.image.name');
+				    var itemImgName = Object.getFromPath(opts,'property.image.name');
+				    if (cacheImgName === itemImgName) {
+					RPG.pushTiles(storeoptions.inventory.character.tiles,[x,y],Array.clone(cachedTiles).append([tilePath]));
+					items++;
+					placed = true;
+				    }
+				}
+			    }
+			}
+		    }
+		    if (!placed && firstAvail) {
+			RPG.pushTile(storeoptions.inventory.character.tiles,firstAvail,tilePath);
+			items++;
+		    } else if (!placed && !firstAvail) {
+			errors.push('Could not take item '+opts.property.tileName+'. Inventory Full.');
+		    }
 		}
 	    });
 	    if (items == 0) {
-		callback();
+		if (errors.length > 0) {
+		    callback({
+			error : errors
+		    });
+		} else {
+		    callback();
+		}
+
 	    } else {
-		var storeoptions = {
-		    user : options.game.user,
-		    character : options.game.character,
-		    universe : Object.clone(tmpUni),
-		    bypassCache : false
-		};
+
 		RPG.Universe.store(storeoptions,function(universe){
 		    if (universe.error) {
 			callback(universe);
 			return;
 		    }
-		    //now that the item has been successfully removed from the universe, we need to add it to the characters inventory
-		    options.tiles.each(function(tilePath){
-			//remove the 'database' option since we are now inserting
-			var tmpTile = Object.getFromPath(tmpMap.cache,tilePath);
-			if (tmpTile && tmpTile.options && tmpTile.options.item) {
-			    Object.erase(tmpTile.options,'database');//get rid of any database stuff so it will be inserted
-			}
-		    });
-
-		    storeoptions.tableId = 'inventory';
-		    storeoptions.map = tmpMap;
-		    RPG.Tile.storeCache(storeoptions,function(universe){
-			if (universe && universe.error) {
-			    callback(universe);
+		    RPG.Inventory.storeInventory(storeoptions,function(inventory){
+			if (inventory && inventory.error) {
+			    callback(inventory);
 			    return;
 			}
-			callback({
-			    item : item
+			universe.options = {};//no universe options changed
+			Object.each(universe.maps,function(map){
+			    map.options = {};//no map options changed
 			});
+			var toClient = {
+			    item : item,
+			    game : {
+				inventory : inventory,
+				universe : universe
+			    }
+			};
+			if (errors.length > 0) {
+			    toClient.error = errors;
+			}
+			callback(toClient);
 		    });
 		});
 
@@ -139,10 +200,10 @@ RPG.TileTypes.item.activateComplete = function(options,callback) {
 	callback();
 
     } else if (typeof exports != 'undefined') {
-	RPG.Log('item','Activate Complete');
+	//RPG.Log('item','Activate Complete');
 	//server-side
 	var item = options.events.activate && options.events.activate.item;
-	RPG.Log('item',item);
+	//RPG.Log('item',item);
 	if (item) {
 	    //remove all the tiles from the cache so that the client will receive new ones
 	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles,options.game.character.location.point);
