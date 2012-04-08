@@ -133,15 +133,56 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    /**
 	     * Guest User
 	     */
+	    /*
 	    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
 		name : 'Guest User #'+ (++this.userIDs),
 		id : this.userIDs
 	    }));
-	    /**
-	     * Return the user for this request session
-	     */
 	    user.logger.trace('User (guest) #' + user.options.userID);
 	    callback(user);
+	    */
+
+	    /**
+	    * @todo testing only. auto create user and log them in
+	    */
+	    var rand = Math.floor((Math.random() * (99999999999 - 1) + 1));
+	    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
+		name : 'Guest #'+ rand,
+		id : rand,
+		email : 'test@test.test',
+		apiKey : apiKey
+	    }));
+
+	    RPG.Mysql.query('INSERT INTO user '+
+		'SET name = ?,'+
+		'email = ?,'+
+		'passwordHash = ?,'+
+		'verifyKey = ?,'+
+		'apiKey = ?,'+
+		'role = ?,'+
+		'enabled = ?,'+
+		'emailUpdates = ?,'+
+		'settings = ?, ' +
+		'created = NOW()',
+		[user.options.name,user.options.email,'test','',apiKey,2,1,0,JSON.encode(this.options.defaultSettings)],
+		function(err,info) {
+		    if (err) {
+			callback({
+			    error : err
+			});
+		    } else {
+			if (info && info.insertId) {
+			    user.isLoggedIn = true;
+			    user.options.userID = info.insertId;
+			    require('../Cache.njs').Cache.merge('users',apiKey, user);
+			}
+			callback(user);
+		    }
+		});
+	/**
+	     * Return the user for this request session
+	     */
+
 	}
     },
 
@@ -172,7 +213,11 @@ RPG.Users = new (RPG.UsersClass = new Class({
 		break;
 
 	    case 'logout':
-		this.logout(request,response);
+		response.onRequestComplete(response,{
+		    error : 'Logout Disabled.'
+		});
+		//@ todo test only commented out
+		//this.logout(request,response);
 		break;
 	}
     },

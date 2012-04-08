@@ -9,6 +9,7 @@ if (!RPG.TileTypes.item) RPG.TileTypes.item = {};
 
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
+    Object.merge(RPG,require('../../../server/Game/Universe.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;

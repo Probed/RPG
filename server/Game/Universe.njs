@@ -149,7 +149,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	    Object.erase(options.universe.options,'database');//remove the database stuff from the incoming universe
 
 	    if (db && db.universeID) {
-		if (Number.from(db.universeID) > 0) {
+		if (Number.from(db.universeID) <= 0) {
 		    options.user.logger.fatal('Universe Store error for: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: universe.options.database.universeID must be > 0.');
 		    callback({
 			error : 'The universe ID must be numeric.'

@@ -181,6 +181,9 @@ RPG.rpgApplication = new Class({
 	} else {
 	    this.onLogout(this.options);
 	}
+	if (!self.location.hash) {
+	    this.browseTo('#Play');
+	}
     },
     toElement : function() {
 	return this.desktop;

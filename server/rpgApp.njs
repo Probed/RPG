@@ -118,7 +118,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	 */
 	if (!url.query.a) {
 	    request.user.logger.trace('Default: Home');
-	    url.query.a = 'Home';
+	    url.query.a = 'Play';
 	}
 
 	/**
