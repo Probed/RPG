@@ -4,10 +4,14 @@
  */
 var RPG = module.exports = {};
 
+Object.merge(RPG,require("../Log/Log.njs"));
+
+var logger = RPG.Log.getLogger('PageBase');
+
 RPG.PageBaseClass =  new Class({
     Implements : [Events,Options],
     page : {}, /*Page wrapper Object*/
-    pagesServed : 1,
+    pagesServed : 0,
     options : {
 
     },
@@ -20,6 +24,7 @@ RPG.PageBaseClass =  new Class({
 	this.page = {
 	    pagesServed : this.pagesServed
 	};
+	logger.trace('Initialized');
     },
     /**
      *
@@ -40,6 +45,7 @@ RPG.PageBaseClass =  new Class({
 	 * Finally Merge the clone with the incomming options
 	 * and return the new page object.
 	 */
+	logger.trace('Serving Page #'+this.pagesServed);
 	return Object.merge(clone,options);
     }
 });

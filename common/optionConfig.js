@@ -83,7 +83,6 @@ Object.extend({
 		path.push(k);
 		var u = Object.getFromPath(updated,path);
 		if (!u) {
-		    //RPG.Log('null',''+path + ' ' + JSON.encode(updated));
 		    path.pop();
 		    return;
 		}
@@ -92,7 +91,6 @@ Object.extend({
 		switch (typeOf(v)) {
 		    //recurse into objects
 		    case 'object' :
-			//RPG.Log('Object',''+path);
 			//push the object's key onto the path
 			Object.diff(v,updated,diff,path);
 			break;
@@ -100,7 +98,6 @@ Object.extend({
 		    case 'array' :
 		    case 'function' :
 			if (u && v && v.toString() != u.toString()) {
-			    //RPG.Log('arr/func',k + ' - ' + v + ' == '+ u);
 			    path.pop();
 			    Object.pathToObject(diff,path).child[k] = u;
 			    path.push(k);
@@ -110,7 +107,6 @@ Object.extend({
 		    //default (number/string/boolean)
 		    default :
 			if (v != u) {
-			    //RPG.Log('default',k + ' - ' + v + ' == '+ u);
 			    path.pop();
 			    Object.pathToObject(diff,path).child[k] = u;
 			    path.push(k);
@@ -120,21 +116,18 @@ Object.extend({
 	    });
 	}
 	//	else {
-	//	    RPG.Log('Orig',original+'');
 	//	    var u = Object.getFromPath(updated,path);
 	//	    if (!u) return diff;
 	//	    var last = path.pop();//pop off the last item so we can manually create it
 	//	    switch (typeOf(original)) {
 	//		case 'array' :
 	//		case 'function' :
-	//		    //RPG.Log('arr/func',original + ' - ' +u);
 	//		    if (original && u && original.toString() != u.toString()) {
 	//			Object.pathToObject(diff,path).child[last] = u;
 	//		    }
 	//		    break;
 	//
 	//		default ://(number/string/boolean)
-	//		    //RPG.Log('default',original + ' - ' +u);
 	//		    if (original != u) {
 	//			Object.pathToObject(diff,path).child[last] = u;
 	//		    }
@@ -559,7 +552,7 @@ RPG.optionCreator = {
 		/**
 		 * Boolean Value
 		 */
-		case (typeOf(content[0])) == 'boolean' || content === 'true' || content === 'false' :
+		case (typeof content == 'array' && typeOf(content[0]) == 'boolean') || content === 'true' || content === 'false' :
 		    opt.child[optName] = rand.random() > 0.5?true:false;
 		    break;
 

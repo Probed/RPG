@@ -13,7 +13,7 @@ rand.seed = 2271981.4012012;
 
 exports.options = RPG.TileType.Item({
     generator : ['Equipment'],
-    type : ['arm','chest','ear','foot','leg','head','neck','ring','waist'],
+    type : ['ammo','arm','chest','ear','foot','leg','hand', 'head','neck','ring','waist','weapon','sheild'],
     durability : [0,100,100],//%
     //    broken : [false],
     //    charges : [0,100,0],

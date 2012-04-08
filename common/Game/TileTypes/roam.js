@@ -27,57 +27,53 @@ if (typeof exports != 'undefined') {
 RPG.TileTypes.roam.tick = function(options,callback) {
     if (typeof exports != 'undefined' && options.contents.can) {
 	//server side
-	RPG.Game.moveGameTile(options,{
-	    tileType : 'roam',
-	    tileOptions : function(tile,currentMap,tilePath) {
-		var dir = Array.getSRandom(RPG.dirs);
-		var newLoc = RPG[dir](options.game.point,1);
-		var homeLoc = tile.options.roam.home;
-		var distance = Math.sqrt(((homeLoc[0]-newLoc[0])*(homeLoc[0]-newLoc[0])) - ((homeLoc[1]-newLoc[1])*(homeLoc[1]-newLoc[1])));
-		if (distance > tile.options.roam.radius) return null;
 
-		//cant move to to a tile if it is not in the current cache
-		var moveToTiles = currentMap.tiles && currentMap.tiles[newLoc[0]] && currentMap.tiles[newLoc[0]][newLoc[1]];
-		if (!moveToTiles) {
-		    return null;
-		}
-		var moveToOk = false;
+	var move = {};
 
-		//see if the new location tile is traversable
-		moveToTiles.each(function(moveToPath){
-		    var m = Object.getFromPath(currentMap.cache,moveToPath);
-		    if (m && m.options && m.options.traverse) {
-			moveToOk = true;
-		    }
-		});
-		//return if not traversable:
-		if (!moveToOk) {
-		    return null;
-		}
+	options.tiles.each(function(tilePath,index) {
 
-		//return new moveto info
-		return {
-		    point : newLoc,
-		    options : {
-			roam : {
-			    distance : distance
-			}
-		    }
-		};
-	    },
-	    storeWait : true
-	}, function(universe){
-	    if (!universe || Object.keys(universe).length == 0) {
-		callback();
+	    var currentMap = options.game.universe.maps[options.game.character.location.mapName];
+	    var tile = Object.getFromPath(currentMap.cache,tilePath);
+	    if (!tile || !tile.options || !tile.options.roam) return; //only care about roam tiles.
+
+	    var dir = Array.getSRandom(RPG.dirs);
+	    var newLoc = RPG[dir](options.game.point,1);
+	    var homeLoc = tile.options.roam.home;
+	    var distance = Math.sqrt(((homeLoc[0]-newLoc[0])*(homeLoc[0]-newLoc[0])) - ((homeLoc[1]-newLoc[1])*(homeLoc[1]-newLoc[1])));
+	    if (distance > tile.options.roam.radius) return;
+
+	    //cant move to to a tile if it is not in the current cache
+	    var moveToTiles = currentMap.tiles && currentMap.tiles[newLoc[0]] && currentMap.tiles[newLoc[0]][newLoc[1]];
+	    if (!moveToTiles) {
 		return;
 	    }
-	    callback({
-		game : {
-		    universe : universe//send to client
-		},
-		universe : universe//for saving
+	    var moveToOk = false;
+
+	    //see if the new location tile is traversable
+	    moveToTiles.each(function(moveToPath){
+		var m = Object.getFromPath(currentMap.cache,moveToPath);
+		if (m && m.options && m.options.traverse) {
+		    moveToOk = true;
+		}
 	    });
-	})
+	    //return if not traversable:
+	    if (!moveToOk) {
+		return;
+	    }
+
+	    move[JSON.encode(newLoc)] = {};
+	    move[JSON.encode(newLoc)][JSON.encode(tilePath)] = {
+		from : options.game.point,
+		dir : dir
+	    };
+	});
+	if (Object.keys(move).length > 0) {
+	    callback({
+		move : move //this will get merged with other 'tick' roams then in tick complete it is parsed and saved.
+	    });
+	} else {
+	    callback();
+	}
 
     } else {
 	callback();
@@ -85,23 +81,25 @@ RPG.TileTypes.roam.tick = function(options,callback) {
 }
 
 RPG.TileTypes.roam.tickComplete = function(options,callback) {
-
-    if (typeof exports != 'undefined' && !options.events.universeStored) {
-	var uni = Object.getFromPath(options,'events.tick.universe');
-	if (!uni) {
-	    options.events.universeStored = true;
+    if (typeof exports != 'undefined') {
+	//server
+	var move = Object.getFromPath(options,'events.tick.move');
+	if (!move) {
 	    callback();
 	    return;
 	}
-	Object.erase(options.events.tick.universe);
-	options.events.universeStored = true;
-	RPG.Universe.store({
-	    user : options.game.user,
-	    universe : uni
-	}, function(universe){
-	    callback();
+	RPG.Game.moveGameTiles(options,move,function(universe){
+	    var moveClone = Object.clone(move);//send back to the client
+	    Object.erase(options.events.tick,'move');//remove so we don't call RPG.moveGameTiles more than once.
+	    callback({
+		move : moveClone,
+		game : {
+		    universe : universe
+		}
+	    });
 	});
     } else {
+	//client
 	callback();
     }
 }

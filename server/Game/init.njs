@@ -8,16 +8,25 @@ Object.merge(RPG,
     require('../../common/Game/Generators/Terrain.js')
     );
 
+var logger = RPG.Log.getLogger('RPG.InitGame');
+
 RPG.InitGame = new (RPG.InitGameClass = new Class({
+
+    initialize : function() {
+	logger.info('Initialize.');
+    },
     /**
      * required options
      * user,
      * characterID
      */
     startGame : function(game, callback) {
-
+	if (!RPG.Log.requiredOptions(game,['characterID','user'],logger,callback)){
+	    return;
+	}
+	game.user.logger.info('Starting Game for characterID: ' + game.characterID);
 	/**
-	 *
+	 * Load Charater
 	 */
 	RPG.Character.load(game,function(character) {
 	    if (!character || character.error) {
@@ -27,13 +36,12 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 
 	    game.character = character;
 
-	    game.tilePoints = 'all';
-	    RPG.Inventory.loadInventory({
+	    RPG.Inventory.loadInventories({
 		user : game.user,
 		character : game.character,
-		name : 'character'
+		names : ['character','equipment'],
+		tilePoints : 'all'
 	    }, function(inventory){
-		Object.erase(game,'tilePoints');
 		if (!inventory || inventory.error) {
 		    callback(inventory);
 		    return;
@@ -60,6 +68,12 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
      * character
      */
     newGame : function(game, callback) {
+	if (!RPG.Log.requiredOptions(game,['character','user'],logger,callback)){
+	    return;
+	}
+
+	game.user.logger.info('New Game Detected for characterID: ' + game.character.database.characterID);
+
 	var mapName = 'StartMap';
 	var universe = {
 	    options : {
@@ -97,7 +111,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	    var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 
 	    game.universe = universe;
-	    game.bypassCache = true;
+	    game.bypassCache = true; //prevent the game from being saved into the cache since we do not want to send the client the full new universe.
 
 	    RPG.Universe.store(game, function(universe) {
 		if (!universe || universe.error) {
@@ -111,7 +125,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 		    mapID : universe.maps[mapName].options.database.mapID,
 		    mapName : mapName,
 		    point : charStartPoint,
-		    dir : 's'
+		    dir : Array.getSRandom(RPG.dirs,rand)
 		};
 
 		RPG.Character.store(game,function(character) {

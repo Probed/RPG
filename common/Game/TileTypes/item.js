@@ -6,6 +6,7 @@
 if (!RPG) var RPG = {};
 if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.item) RPG.TileTypes.item = {};
+
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
@@ -200,10 +201,8 @@ RPG.TileTypes.item.activateComplete = function(options,callback) {
 	callback();
 
     } else if (typeof exports != 'undefined') {
-	//RPG.Log('item','Activate Complete');
 	//server-side
 	var item = options.events.activate && options.events.activate.item;
-	//RPG.Log('item',item);
 	if (item) {
 	    //remove all the tiles from the cache so that the client will receive new ones
 	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles,options.game.character.location.point);
@@ -228,7 +227,252 @@ RPG.TileTypes.item.activateComplete = function(options,callback) {
 //    callback();
 //}
 
+RPG.TileTypes.item.inventorySwap = function(options,callback) {
+    var events = options.clientEvents;
+    //get the items in the 'to' and 'from' inventroies
+    var fromInv = options.game.inventory[events.fromInventory];
+    var toInv = options.game.inventory[events.toInventory];
 
+    //now grab the tiles that are going to be be swapped
+    var fromTiles = RPG.getTiles(fromInv.tiles,events.fromPoint);
+    var toTiles = RPG.getTiles(toInv.tiles,events.toPoint);
+    if (fromTiles && fromTiles.length == 0) {
+	fromTiles = null;
+    }
+    if (toTiles && toTiles.length == 0) {
+	toTiles = null;
+    }
+
+    if (!fromTiles && !toTiles) {
+	callback({
+	    error : 'Nothing to swap'
+	});
+	return;
+    }
+
+    var newInv = {};
+
+    newInv[events.fromInventory] = {
+	tiles : {},
+	cache : {}
+    };
+    newInv[events.toInventory] = Object.clone(newInv[events.fromInventory]);
+
+    //set the new invtory tiles to the current tiles so we can update them in the new inventory
+    // it is the new inventory that will be saved. so any changes to it will get stored.
+    //we will use it to verify and build our changes.
+    if (!RPG.setTiles(newInv[events.fromInventory].tiles,events.fromPoint, RPG.cloneTiles(fromInv.cache,fromTiles,newInv[events.fromInventory].cache))) {
+	errors.push('Unable to copy the "from" tiles ' + fromTiles + ' into newInv');
+    }
+    RPG.setTiles(newInv[events.toInventory].tiles,events.toPoint, RPG.cloneTile(toInv.cache,toTiles,newInv[events.toInventory].cache));
+
+    var moved = false;
+    var done = false;
+
+    var errors = [];
+
+    //Attempt to stack with the 'toTiles' first:
+    if (toTiles && toTiles.length > 0) {
+
+	var fromTile0 = Object.getFromPath(fromInv.cache,fromTiles[0]);
+	var toTile0 = Object.getFromPath(toInv.cache,toTiles[0]);
+
+
+	if (RPG.tilesContainsPartialPath(toInv.tiles,RPG.trimPathOfNameAndFolder(fromTiles[0]),events.fromPoint)) {
+
+	    //check to see if they are of the same type:
+	    var fromImgName = Object.getFromPath(fromTile0,'options.property.image.name');
+	    var toImgName = Object.getFromPath(toTile0,'property.image.name');
+
+	    //check to see if they are stackable:
+	    if (fromImgName == toImgName && Object.getFromPath(fromTile0,'item.stacksize') > 1 && Object.getFromPath(toTile0,'item.stacksize') > 1) {
+
+
+		//Stack the tiles one at a time until exausted or stacksize limit is reached
+		fromTiles.each(function(fromTile){
+		    if (done) return;
+		    if (RPG.getTiles(newInv[events.yoInventory].tiles,events.toPoint).length >= Object.getFromPath(toTile0,'item.stacksize')) {
+			done = true;
+
+		    } else {
+
+			//Push a copy of the 'fromTile' into the 'toPoint'
+			if (!RPG.pushTile(newInv[events.toInventory].tiles,events.toPoint,
+			    RPG.cloneTile(fromInv.cache,fromTile,newInv[events.toInventory].cache,
+				events.toInventory != events.fromInventory?{
+				    database : {
+					inventoryCacheID : 0//make sure this gets inserted if events.toInventory != events.fromInventory
+				    }
+				}:{}))) {
+			    errors.push('(stack) Failed to push a clone to newInv tile: "'+fromTile+'" from the toPoint: ' + events.toPoint);
+			}
+
+			if (events.toInventory != events.fromInventory) {
+
+			    //marks the cache for deletion and remove the tiles from the 'from' inventory
+			    if (!RPG.deleteTile(newInv,fromTile,events.fromPoint)) {
+				errors.push('Unable to delete newInv tile: "'+fromTile+'" from the fromPoint: ' + events.fromPoint);
+			    }
+			} else {
+			    if (!RPG.removeTile(newInv[events.fromInventory].tiles,fromTile,events.fromPoint)) {
+				errors.push('Unable to remove newInv tile: "'+fromTile+'" from the fromPoint: ' + events.fromPoint);
+			    }
+			}
+			moved = true;
+		    }
+		});
+	    }
+	}
+    }
+
+    //Ensure no other moves have occured in the code above. and make sure there is actually something to move.
+    if (!moved && !done && fromTiles && fromTiles.length > 0) {
+
+	//Push a copy of the item being moved (from) into the position where the 'toPoint' is
+	if (!RPG.pushTiles(newInv[events.toInventory].tiles,events.toPoint,
+	    RPG.cloneTiles(fromInv.cache,fromTiles,newInv[events.toInventory].cache,
+		events.toInventory != events.fromInventory?{
+		    database : {
+			inventoryCacheID : 0//make sure this gets inserted if events.toInventory != events.fromInventory
+		    }
+		}:{}))) {
+	    errors.push('Failed to push a clone to newInv tile: "'+fromTile+'" from the toPoint: ' + events.toPoint);
+
+	}
+
+	/**
+	 * Move the 'to' item into the 'from' position (if it exists)
+	 */
+	if (toTiles) {
+
+	    //Push a copy of the tile at the 'to' location, into the position where the 'fromPoint' is
+	    if (!RPG.pushTiles(newInv[events.fromInventory].tiles,events.fromPoint,
+		RPG.cloneTiles(toInv.cache,toTiles,newInv[events.fromInventory].cache,
+		    events.toInventory != events.fromInventory?{
+			database : {
+			    inventoryCacheID : null//makes sure this gets inserted if events.toInventory != events.fromInventory
+			}
+		    }:{}))){
+		errors.push('Failed to push a clone to newInv tiles: "'+fromTiles+'" from the fromPoint: ' + events.toPoint);
+	    }
+
+	    if (events.toInventory != events.fromInventory) {
+		//if the inventory containers are different, mark the item in the toInventory container for deletion
+		//marks the cache for deletion and remove the tiles from the 'to' inventory
+		if (!RPG.deleteTiles(newInv[events.toInventory],toTiles,events.toPoint)) {
+		    errors.push('Failed to delete newInv tiles: "'+toTiles+'" from the toPoint: ' + events.toPoint);
+		}
+
+	    } else {
+
+		//if the inventory containers are the same then no update of the 'tilecache' is necessary,
+		//just a removeal of this item tile at the 'toPoint' (since it has by now been placed in the fromPoint)
+		if (!RPG.removeTiles(newInv[events.toInventory].tiles,toTiles,events.toPoint)) {
+		    errors.push('Failed to remove newInv tiles: "'+toTiles+'" from the toPoint: ' + events.toPoint);
+		}
+	    }
+	}
+
+	/**
+	 * Move the 'from' items into the 'to' position
+	 */
+	if (!RPG.pushTiles(newInv[events.toInventory].tiles,events.toPoint,
+	    RPG.cloneTiles(fromInv.cache,fromTiles,newInv[events.toInventory].cache,
+		events.toInventory != events.fromInventory?{
+		    database : {
+			inventoryCacheID : 0//make sure this gets inserted only if events.toInventory != events.fromInventory
+		    }
+		}:{}))) {
+	    errors.push('Failed to push a clone to newInv tile: "'+fromTile+'" from the toPoint: ' + events.toPoint);
+
+	}
+
+	if (events.toInventory != events.fromInventory) {
+
+	    //actually marks the cache for deletion and remove the tiles from the 'from' inventory.
+	    if (!RPG.deleteTiles(newInv[events.fromInventory],fromTiles,events.fromPoint)) {
+		errors.push('Failed to delete newInv tiles: "'+fromTiles+'" from the fromPoint: ' + events.fromPoint);
+	    }
+
+	} else {
+	    //if the inventory containers are the same then no update of the 'tilecache' is necessary,
+	    //just a removeal of this item tile at the 'fromPoint' (since it has by now been placed in the toPoint)
+	    if (!RPG.removeTiles(newInv[events.fromInventory].tiles,fromTiles,events.fromPoint)) {
+		errors.push('Failed to remove newInv tiles: "'+fromTiles+'" from the fromPoint: ' + events.fromPoint);
+	    }
+
+	}
+	moved = true;
+    }
+
+    if (errors.length > 0) {
+	callback({
+	    error : errors
+	});
+	return;
+    }
+
+
+
+    //RPG.setTiles(newInv[toInv].tiles,events.toPoint,RPG.cloneTiles(fromInv.cache,fromTiles,newInv[toInv].cache,events.fromPoint));
+    //RPG.deleteTiles(newInv[fromInv],fromTiles);//marks the cache for deletion and remove the tiles from the inventory
+
+    if (typeof exports != 'undefined') {
+	//server
+	if (!moved && !done) {
+	    callback({
+		error : 'Inventory Swap Failed. Nothing Moved.'
+	    });
+	    return;
+	}
+	newInv[events.toInventory].options = options.game.inventory[events.toInventory].options;
+	newInv[events.fromInventory].options = options.game.inventory[events.fromInventory].options;
+
+	RPG.Inventory.storeInventory({
+	    user : options.game.user,
+	    character : options.game.character,
+	    inventory : newInv
+	}, function(inventory) {
+	    if (inventory && inventory.error) {
+		callback(inventory);
+		return;
+	    }
+	    callback({
+		inventory : moved
+	    });
+	});
+
+    } else {
+	new Request.JSON({
+	    url : '/index.njs?xhr=true&a=Play&m=InventorySwap&characterID='+options.game.character.database.characterID,
+	    onFailure : function(results) {
+		RPG.Error.notify(results);
+		if (results.responseText) {
+		    var resp = JSON.decode(results.responseText,true);
+		    if (resp) {
+			options.game.events = resp.events;//make sure this isn't merged
+			Object.merge(options.game,results);
+		    }
+		    callback(resp);
+		} else {
+		    callback();
+		}
+	    },
+	    onSuccess : function(results) {
+		if (Object.getFromPath(results,'events.error')) {
+		    RPG.Error.show(results.events.error);
+		}
+		if (Object.getFromPath(results,'events.inventory') && moved) {
+		    Object.merge(options.game.inventory,newInv);
+		}
+		options.game.events = results && results.events;
+		Object.merge(options.game,results);
+		callback(results);
+	    }
+	}).post(JSON.encode(options.clientEvents));
+    }
+
+}
 
 /**
  * Client Side Item List window

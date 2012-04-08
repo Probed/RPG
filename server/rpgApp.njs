@@ -1,9 +1,10 @@
 var RPG = module.exports = {};
 
-Object.merge(RPG,
-    require('../common/pages.js'),
-    require('./User/Users.njs')
-    );
+Object.merge(RPG,require('../common/pages.js'));
+Object.merge(RPG,require('./User/Users.njs'));
+
+var logger = RPG.Log.getLogger('RPG.App');
+var fs = require('fs');
 
 RPG.App = new (RPG.AppClass = new Class({
     Implements:[Options,Events],//mootools events and options
@@ -17,20 +18,13 @@ RPG.App = new (RPG.AppClass = new Class({
     initialize : function(options) {
 	this.setOptions(options);
 
-	/**
-	 * Load in the basic html template
-	 */
-	this.htmlTemplate = require('fs').readFileSync(this.options.htmlTemplate,'utf8');
+	// Load in the basic html template
+	this.htmlTemplate = fs.readFileSync(this.options.htmlTemplate,'utf8');
 
-	/**
-	 * Instantiate the user class to handle user sessions
-	 */
-
-
-	RPG.Log('init','RPG.App Initialized.');
+	logger.info('Initialized.');
     },
     start : function() {
-	RPG.Log('info','Starting Server...');
+	logger.info('Starting Server...');
 	var http = require('http');
 	this.server = http.createServer(this.onRequest.bind(this));
 	this.server.on('error', this.serverError.bind(this));
@@ -40,23 +34,20 @@ RPG.App = new (RPG.AppClass = new Class({
 	return this;
     },
     stop : function() {
-	RPG.Log('info','Server Stopping...');
+	logger.info('Server Stopping...');
 	this.server.close();
 	return this;
     },
     serverBound : function() {
-	RPG.Log('info','Server Bound.');
+	logger.info('Server Bound.');
 	return this;
     },
     serverError : function(exception) {
-	RPG.Log('error',{
-	    message : 'Server Error.',
-	    exception : JSON.stringify(exception)
-	});
+	logger.fatal('Server Error: %s', JSON.encode(exception));
 	return this;
     },
     serverClose : function() {
-	RPG.Log('info','Server Closed.');
+	logger.info('Server Closed.');
 	return this;
     },
     onRequest : function onRequest(request, response) {
@@ -74,8 +65,6 @@ RPG.App = new (RPG.AppClass = new Class({
 	    request.dataReceived = true;
 	}
 	var url = require('url').parse(request.url, true);
-	RPG.Log('request','Processing '+request.url);
-
 	/**
 	 * First thing we need to do is determine who is making the request
 	 * (create/update user requests are handled at this time also)
@@ -84,38 +73,37 @@ RPG.App = new (RPG.AppClass = new Class({
 
 	RPG.Users.determineUser(request,response, function(user) {
 	    request.user = user;
+	    request.user.logger.trace('Request: %s',request.url);
+
 	    if (url && (url.query && !url.query.xhr) || (!url.query)) {
+		request.user.logger.trace('Template Requested')
 		//No xhr request means we send them the Html Template for the site.
 		//afterwards all requests made to the server will be xhr
-		//
-		//@Todo Test Only:
-		//this.htmlTemplate = require('fs').readFileSync(this.options.htmlTemplate,'utf8');
-		//@Todo end Test Only^
-
 
 		this.onRequestComplete(response,this.htmlTemplate.replace('CLIENT_APP_OPTIONS',JSON.stringify(RPG.Users.getApplicationOptions(request.user))));
 
 	    } else if (url && url.query && url.query.a && url.query.xhr) {
-
 		/**
-	     * Attach our response handler to the response object
-	     * since the response object is passed around everywhere
-	     * it makes it easy for routed objects to complete there requeired tasks as they see fit
-	     */
+		 * Attach our response handler to the response object
+		 * since the response object is passed around everywhere
+		 * it makes it easy for routed objects to complete there requeired tasks as they see fit
+		 */
 		response.onRequestComplete = this.onRequestComplete.bind(this);
 		/**
-	     * try to Route this request to a
-	     */
+		 * try to Route this request to a
+		 */
 
 		this.routeXHR(url,request,response);
 
 
 	    } else {
 		/**
-	     * Nothing avaible to handle the request
-	     */
+		 * Nothing avaible to handle the request
+		 */
+		var err = 'Request "%s" Not Found'
+		request.user.logger.error(err,url.query.a);
 		this.onRequestComplete(response,{
-		    error : 'Request ['+url.query.a+'] Not Found'
+		    error : err.replace('%s',url.query.a)
 		});
 	    }
 	}.bind(this));
@@ -129,6 +117,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	 * If no handler is found this function continues and switch statement takes over
 	 */
 	if (!url.query.a) {
+	    request.user.logger.trace('Default: Home');
 	    url.query.a = 'Home';
 	}
 
@@ -146,6 +135,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	    url.search = Object.toQueryString(url.query);
 	    //overwrite the url with the new url object
 	    request.url = url;
+	    request.user.logger.trace('URL Rewrite: %s', JSON.encode(request.url));
 	} else {
 	    //overwrite the url with the parsed object
 	    request.url = url;
@@ -161,12 +151,12 @@ RPG.App = new (RPG.AppClass = new Class({
 		var handler = require(page.requires.js)[page.requires.exports];
 		if (typeOf(handler) == 'class') {
 		    if (page.requires.singleton && this.handlerCache[page.requires.js]) {
-			//RPG.Log('cached','Routing to: '+page.requires.js);
+			request.user.logger.trace('Routing to (cached): %s',page.requires.js);
 			this.handlerCache[page.requires.js].onRequest(request,response);
 			handled = true;
 			return;
 		    } else {
-			//RPG.Log('new','Routing to: '+page.requires.js);
+			request.user.logger.trace('Routing to: %s',page.requires.js);
 			(handler = new handler(page.options)).onRequest(request,response);
 			if (page.requires.singleton) {
 			    this.handlerCache[page.requires.js] = handler;
@@ -175,7 +165,7 @@ RPG.App = new (RPG.AppClass = new Class({
 			return;
 		    }
 		} else {
-		    //RPG.Log('static','Routing to: '+page.requires.js);
+		    request.user.logger.trace('Routing to (static): %s',page.requires.js);
 		    require(page.requires.js)[page.requires.exports].onRequest(request,response);
 		    handled = true;
 		    return;
@@ -188,7 +178,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	 */
 	switch (true) {
 	    case url.query.a == 'reloadMainMenu' :
-		//RPG.Log('info','Reloaded Main Menu')
+		request.user.logger.trace('Main Menu reload requested');
 		response.onRequestComplete(response,{
 		    mainMenu : RPG.mainMenu,
 		    pages : RPG.pages
@@ -197,11 +187,13 @@ RPG.App = new (RPG.AppClass = new Class({
 		break;
 
 	    case RPG.Users.routeAccepts.contains(url.query.a) :
+		request.user.logger.trace('Routing to: Users');
 		RPG.Users.onRequest(request,response);
 		handled = true;
 		break;
 
 	    case url.query.a == 'MapEditor' :
+		request.user.logger.trace('Routing to: MapEditor');
 		if (!RPG.MapEditor) {
 		    Object.merge(RPG,require('./Game/MapEditor.njs'));
 		}
@@ -213,8 +205,10 @@ RPG.App = new (RPG.AppClass = new Class({
 		break;
 	}
 	if (!handled) {
+	    var err = 'No suitable route found for: %s';
+	    request.user.logger.trace(err,request.url.query.a);
 	    response.onRequestComplete(response,{
-		error : 'No suitable route found for: '+request.url.query.a
+		error : err.replace('%s',request.url.query.a)
 	    });
 	}
     },
@@ -236,9 +230,9 @@ RPG.App = new (RPG.AppClass = new Class({
 	    statusCode = 500;
 	    headers['reason-phrase'] = 'Application Error';
 	    headers['content-type'] = 'text/json';
-	    if (output) {
-		RPG.Log('error',JSON.stringify(output));
-	    }
+
+	    logger.error('Output Error: %s',JSON.encode(output));
+
 	    output = JSON.stringify(output);
 	    error = true;
 	} else {
@@ -254,8 +248,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	response.writeHead(statusCode,headers);
 	response.write(output);
 	response.end();
-	//RPG.Log('response','Sent: '+JSON.stringify(headers));
-
+	logger.trace('Response Sent: %s',JSON.stringify(headers));
 	/**
 	 * Throw error to cause node to restart
 	 */

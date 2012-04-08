@@ -3,9 +3,7 @@
  */
 
 var RPG = module.exports = {};
-Object.merge(RPG,
-    require("../pageBase.njs")
-    );
+Object.merge(RPG,require("../pageBase.njs"));
 
 RPG.pagePlayers =  new Class({
     Extends : RPG.PageBaseClass,

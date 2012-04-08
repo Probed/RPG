@@ -9,11 +9,12 @@ Object.merge(RPG,
     require('../Character/Character.njs'),
     require('../Game/game.njs')
     );
+
+var logger = RPG.Log.getLogger('RPG.Play');
+
 RPG.Play =  new (RPG.PlayClass = new Class({
     Extends : RPG.PageBaseClass,
-    options : {
-
-    },
+    options : {},
     initialize : function(options) {
 	this.parent(options);
 	this.page = {
@@ -59,6 +60,8 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 	portraits.each(function(gender){
 	    this.page.options.portraits.Gender[gender] = require('fs').readdirSync('./client/images/Character/portrait/'+gender);
 	}.bind(this));
+
+	logger.info('Initialize');
     },
 
     onRequest : function(request,response) {
@@ -67,7 +70,6 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		error : 'Must be <b>logged in</b> to play.<br><br>Signup or Login and try again.'
 	    });
 	}
-
 	//Check for incoming data and wait for it if necessary
 	if (request.method == 'POST') {
 	    if (!request.dataReceived) {
@@ -78,14 +80,10 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 	    }
 	}
 
+	request.user.logger.trace('Play: characterID: '+request.url.query.characterID + ' Action: ' + request.url.query.m);
+
 	switch (true) {
 	    case request.url.query.m == 'CreateCharacter' :
-		if (!request.dataReceived) {
-		    request.on('end',function(){
-			this.onRequest(request,response);
-		    }.bind(this));
-		    return;
-		}
 		RPG.Character.create({
 		    user : request.user,
 		    character : request.data

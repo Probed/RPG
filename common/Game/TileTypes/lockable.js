@@ -90,10 +90,10 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 
 			    //finally callback
 			    callback({
-				lockable : 'Unlock attempt Successful. xp: '+xp,
+				lockable : ['Unlock attempt Successful.',xp],
 				game : {
 				    character : {
-					xp : xp
+					xp : options.game.character.xp
 				    }
 				}
 			    });
@@ -122,13 +122,17 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 //}
 
 RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = function(options,callback) {
-    //server
-    if (typeof exports != 'undefined' && options.events && ((options.events.activate && options.events.activate.lockable) || (options.events.onBeforeEnter && options.events.onBeforeEnter.lockable))) {
 
-	//remove the tile from the current Universe so it will get reloaded from the database
-	//and the client should receive the the cloned tile created above.
-	RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+
+    if (typeof exports != 'undefined') {
+	//server
+
+	if (Object.getFromPath(options, 'events.activate.lockable') || Object.getFromPath(options, 'events.onBeforeEnter.lockable')) {
+	    //remove the tile from the current Universe so it will get reloaded from the database
+	    //and the client should receive the the cloned tile created above.
+	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+	    RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+	}
     }
     callback();
 

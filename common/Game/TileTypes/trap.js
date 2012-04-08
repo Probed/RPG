@@ -89,11 +89,10 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 
 			    //finally callback
 			    callback({
-				trap : 'Disarm attempt Successful. xp: '+xp,
-
+				trap : ['Successful Disarmed',xp],
 				game : {
 				    character : {
-					xp : xp
+					xp : options.game.character.xp
 				    }
 				}
 
@@ -127,8 +126,8 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 		    }
 		    if (newOpts.armed) {
 			var out = Object.clone(universe);
-			Object.erase(out,'options');
-			Object.erase(out.maps[options.game.character.location.mapName],'options');
+			Object.erase(out,'options');//unchanged.. no need to send to client
+			Object.erase(out.maps[options.game.character.location.mapName],'options');//unchanged.. no need to send to client
 			callback({
 			    traverse : false,
 			    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
@@ -154,14 +153,18 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 //}
 
 RPG.TileTypes.trap.onEnter = function(options,callback) {
-    //server
-    if (typeof exports != 'undefined' && options.events.onBeforeEnter.trap) {
 
-	//remove the tile from the current Universe so it will get reloaded from the database
-	//and the client should receive the the cloned tile created above.
-	RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+    if (typeof exports != 'undefined') {
+
+	//server
+	if (Object.getFromPath(options,'events.onBeforeEnter.trap')) {
+	    //remove the tile from the current Universe so it will get reloaded from the database
+	    //and the client should receive the the cloned tile created above.
+	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+	    RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+	}
     }
+
     callback();
 }
 

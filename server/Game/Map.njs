@@ -1,13 +1,19 @@
 var RPG = module.exports = {};
 Object.merge(RPG,require('../../common/Game/Tiles/Utilities.js'));
 
+var logger = RPG.Log.getLogger('RPG.Map');
 
 RPG.Map = new (RPG.MapClass = new Class({
+
+    initialize : function() {
+	logger.info('Initialized');
+    },
+
     /**
      * required options:
      * user
      * universe
-     * mapID
+     * mapID || mapName
      *
      * optional:
      * tilePoints
@@ -16,6 +22,9 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(universe || error) 'universe' object mergable with a universe  or error object
      */
     loadMap : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	    return;
+	}
 
 	if (options.character) {
 	    options.universeID = options.character.location.universeID;
@@ -25,20 +34,16 @@ RPG.Map = new (RPG.MapClass = new Class({
 		options.mapName = options.character.location.mapName;
 	    }
 	    if (!options.bypassCache) {
-		//RPG.Log('Map Retrieve UniverseID','universe_'+options.universeID);
 		var universe = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID);
-		//universe && universe.maps && RPG.Log('Maps','LoadMap '+ (options.mapName) + Object.keys(universe.maps));
+		options.user.logger.trace('Map Load universeID: '+options.universeID+' map: "'+options.mapName+'" (cached)');
 		if (universe && universe.maps && universe.maps[options.mapName]) {
-		    //RPG.Log('Cached Map Retrieved Options',JSON.encode(universe.maps[options.character.location.mapName].options));
 		    options.universe = universe;
-		    //RPG.Log('Retrieved from Cache','Map: ' + JSON.encode(universe));
 		    RPG.Map.loadTiles(options,function(tileUni){
 			if (tileUni.error) {
 			    callback(tileUni);
 			    return;
 			}
 			Object.merge(universe,Object.clone(tileUni));
-			//RPG.Log('Cache Updated','Map: ' + JSON.encode(universe));
 			callback(tileUni);
 		    });
 		    return;
@@ -46,12 +51,15 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    }
 	}
 	if (!options.mapID && !options.mapName) {
-	    //RPG.Log('no map name',':(');
 	    callback({});
 	    return;
 	}
 
-	options.universeID = options.universeID || options.universe.options.database.universeID;
+	options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.universeID');
+
+	if (!RPG.Log.requiredOptions(options,['universeID'],logger,callback)){
+	    return;
+	}
 
 	var sql = '';
 	var args = [];
@@ -73,13 +81,12 @@ RPG.Map = new (RPG.MapClass = new Class({
 	RPG.Mysql.query(sql,args,
 	    function(err,mResults) {
 		if (err) {
-		    //RPG.Log('error',err);
+		    options.user.logger.error('Map Load universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName) +' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
 		} else if (mResults && mResults[0]) {
 		    var mResult = mResults[0];
-		    //RPG.Log('database hit','Loaded Map: '+ (options.mapID || options.mapName || mResult['mapName']));
 		    var universe = {
 			options : options.universe && options.universe.options && Object.clone(options.universe.options),
 			maps : {}
@@ -102,7 +109,11 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 		    if (!options.bypassCache) {
 			require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+mResult['universeID'],Object.clone(universe));
+			options.user.logger.trace('Map Loaded (cached) universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName));
+		    } else {
+			options.user.logger.trace('Map Loaded (non-cached) universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName));
 		    }
+
 
 		    RPG.Map.loadTiles(options,function(tileUni){
 			if (tileUni.error) {
@@ -113,7 +124,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			callback(universe);
 		    });
 		} else {
-		    //RPG.Log('Map','No Details...');
+		    options.user.logger.warn('Map Load universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName) +' error: Nothing Found.');
 		    callback({});
 		}
 	    });
@@ -131,7 +142,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(dupeName || null if ok)
      */
     checkDupeMapName : function(options,callback) {
-	//RPG.Log('Dupe','Check ' + JSON.encode(options));
+
 	RPG.Mysql.query(
 	    'SELECT mapName ' +
 	    'FROM maps ' +
@@ -171,15 +182,17 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(universe || error)
      */
     storeMap : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	    return;
+	}
 	options.errors = options.errors || [];
 
 	var remove = null;
 	var update = null;
 	var insert = null;
-	//RPG.Log('Map','Maps ' + Object.keys(options.universe.maps));
+
 	//go through all the maps in the universe
 	Object.each(options.universe.maps,function(map,mapName,source){
-	    //RPG.Log('MapOptions',mapName + ' ' + JSON.encode(map.options));
 	    //get this map database options
 	    var db = map.options && map.options.database;
 	    //Object.erase(map.options,'database');
@@ -187,7 +200,6 @@ RPG.Map = new (RPG.MapClass = new Class({
 		Object.erase(db,'new');
 		//remove tiles specified in db.tileDelete (array of points)
 		if (db && db.deleted) {
-		    //RPG.Log('database delete','Map Delete');
 		    if (!remove) remove = RPG.Mysql.createQueue();
 		    //perform any deletes
 		    remove.queue('DELETE FROM maps ' +
@@ -199,18 +211,19 @@ RPG.Map = new (RPG.MapClass = new Class({
 			],
 			function(err,info){
 			    if (err) {
+				options.user.logger.error('Map Delete: ' + (mapName) +' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database delete','Map '+ mapName);
 				if (info.affectedRows) {
+				    options.user.logger.trace('Map Deleted: ' + (mapName));
 				    Object.erase(options.universe.maps,mapName);
 				} else {
+				    options.user.logger.error('Map Delete error: ' + (mapName) + ' error: 0 Affected Rows');
 				    options.errors.push('Could not delete Map ' + map.options.property.mapName);
 				}
 			    }
 			});
 		} else if (db.mapID) {
-		    //RPG.Log('Map','Update Map ' + mapName);
 		    //perform any deletes
 		    if (!update) update = RPG.Mysql.createQueue();
 		    update.queue('UPDATE maps ' +
@@ -226,19 +239,21 @@ RPG.Map = new (RPG.MapClass = new Class({
 			],
 			function(err,info){
 			    if (err) {
+				options.user.logger.error('Map Update: ' + (mapName) +' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
 				if (info.affectedRows) {
+				    options.user.logger.trace('Map Updated: ' + (mapName));
 				    map.options.database = db;
-				//RPG.Log('database update','Map '+ mapName + ' ' + JSON.decode(map.options));
+
 				} else {
+				    options.user.logger.error('Map Update error: ' + (mapName) + ' error: 0 Affected Rows');
 				    options.errors.push('Could not update map item ' + mapName);
 				}
 			    }
 			});
 		}
 	    } else {
-		//RPG.Log('Map',map.options);
 		if (!insert) insert = RPG.Mysql.createQueue();
 		insert.queue('INSERT INTO maps ' +
 		    'SET universeID = ?, ' +
@@ -251,6 +266,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    ],
 		    function(err,info){
 			if (err) {
+			    options.user.logger.error('Map Insert: ' + (mapName) +' error: '+ JSON.encode(err));
 			    options.errors.push(err);
 			} else {
 
@@ -261,8 +277,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    'new' : true
 				},RPG.getMapBounds(map.tiles));
 
-				//RPG.Log('database Insert','Map '+ info.insertId+ ' ' + mapName + ' ' + JSON.encode(map.options));
+				options.user.logger.trace('Map Inserted: ' + (mapName));
 			    } else {
+				options.user.logger.error('Map Insert error: ' + (mapName) + ' error: 0 Affected Rows');
 				options.errors.push('Could not insert map item ' + mapName);
 			    }
 			}
@@ -273,7 +290,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 	});
 
 	//now that everything is all queued up:
+	options.user.logger.trace('Map Store Chain Started: ' + Object.keys(options.universe.maps));
 	RPG.Mysql.executeQueues([remove,update,insert],true,function(){
+	    options.user.logger.trace('Map Store Chain Finiehd: ' + Object.keys(options.universe.maps));
 	    if (options.errors && options.errors.length > 0) {
 		callback({
 		    error : options.errors
@@ -302,13 +321,18 @@ RPG.Map = new (RPG.MapClass = new Class({
     /**
      * List available maps
      * required options:
-     * none for now
+     *  user
+     *  universe
      *
      *
      * returns:
      * callback(maps || error)
      */
     listMaps : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	    return;
+	}
+
 	RPG.Mysql.query(
 	    'SELECT mapID, mapName, m.options, m.universeID, '+
 	    '   (SELECT count(1) FROM maptiles WHERE mapID = m.mapID) as totalArea, ' +
@@ -316,12 +340,15 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    'FROM maps m, universes u ' +
 	    'WHERE m.universeID = u.universeID  '+
 	    'AND u.userID = ? ' +
+	    'AND m.universeID = ? ' +
 	    'ORDER BY mapName ASC',
 	    [
-	    options.user.options.userID
+	    options.user.options.userID,
+	    options.universe.options.database.universeID
 	    ],
 	    function(err,results) {
 		if (err) {
+		    options.user.logger.error('Map List: universeID:' + (options.universe.options.database.universeID) +' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
@@ -343,10 +370,11 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    )
 			    };
 			});
-
+			options.user.logger.error('Map List '+results.length+' from universeID:' + (options.universe.options.database.universeID));
 			callback(maps);
 
 		    } else {
+			options.user.logger.error('Map List: universeID:' + (options.universe.options.database.universeID) +' error: No Maps Found.');
 			callback({
 			    error : 'No Maps found.'
 			});
@@ -380,6 +408,10 @@ RPG.Map = new (RPG.MapClass = new Class({
      * note. if you want to save these loaded tiles, you will need to merge it with a universe that has options
      */
     loadTiles : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	    return;
+	}
+
 	if (!options.tilePoints) {
 	    callback({});
 	    return;
@@ -388,14 +420,19 @@ RPG.Map = new (RPG.MapClass = new Class({
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
-	    //RPG.Log('Tiles Retrieve UniverseID','universe_'+options.universeID);
 	    if (!options.bypassCache) {
 		var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID);
+		options.user.logger.trace('Map Load Tiles (cached) '+options.character.location.mapName);
 		if (cachedUni && cachedUni.maps && cachedUni.maps[options.character.location.mapName] && cachedUni.maps[options.character.location.mapName].tiles) {
-		    //RPG.Log('Map Tiles Retrieved',cachedUni.maps[options.character.location.mapName].options);
 		    cachedTiles = cachedUni.maps[options.character.location.mapName].tiles;
 		}
 	    }
+	} else {
+	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.universeID');
+	}
+
+	if (!RPG.Log.requiredOptions(options,['mapID','universeID'],logger,callback)){
+	    return;
 	}
 
 	var points = [];
@@ -405,7 +442,6 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    options.tilePoints.each(function(point){
 		if (cachedTiles && cachedTiles[point[0]] && cachedTiles[point[0]][point[1]]) {
 		//ignore cached tiles since they should already exist in on the client
-		//RPG.Log('Cache','Skipping ' + point + ' Tile Load.')
 		} else {
 		    points.push(RPG.getPointSQL(point));
 		}
@@ -416,7 +452,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    points[1] = points[0];
 		}
 	    } else {
-		//RPG.Log('cache','Map LoadTiles: none to load.');
+		options.user.logger.trace('Map Load Tiles no points to load. map:'+options.mapID);
 		callback({});
 		return;
 	    }
@@ -433,14 +469,14 @@ RPG.Map = new (RPG.MapClass = new Class({
 	'ORDER BY point ASC';
 	args = [
 	options.mapID,
-	options.universeID || options.universe.options.database.universeID
+	options.universeID
 	];
 
 	RPG.Mysql.query(sql,args,
 	    function(err,mResults) {
 		Object.erase(options,'tilePoints');
 		if (err) {
-		    //RPG.Log('error',err);
+		    options.user.logger.error('Map Load Tiles: universeID: ' + (options.universeID) +' mapID: ' + (options.mapID) +' error: '+ JSON.encode(err));
 		    callback({
 			error: err
 		    });
@@ -475,10 +511,11 @@ RPG.Map = new (RPG.MapClass = new Class({
 			tiles : tiles
 		    };
 
-		    //RPG.Log('Tiles Merge UniverseID','universe_'+universeID);
 		    if (!options.bypassCache) {
 			require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+universeID,Object.clone(universe));
-		    //RPG.Log('Map Tiles Merged',require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+universeID,universe).maps[mapName].options);
+			options.user.logger.trace('Map Loaded '+mResults.length+' Tiles (cached): universeID: ' + (options.universeID) +' mapID: ' + (options.mapID));
+		    } else {
+			options.user.logger.trace('Map Loaded '+mResults.length+' Tiles (non-cached): universeID: ' + (options.universeID) +' mapID: ' + (options.mapID));
 		    }
 
 		    RPG.Map.loadCache(options,function(cache) {
@@ -495,7 +532,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			universe = null;
 		    });
 		} else {
-		    //RPG.Log('database hit','No Tiles Found. ' + points);
+		    options.user.logger.trace('Map Loaded '+mResults.length+' Tiles (non-cached): universeID: ' + (options.universeID) +' mapID: ' + (options.mapID) + ' error: No Tiles Found');
 		    callback({});
 		}
 	    }
@@ -510,6 +547,10 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(options.universe || errors)
      */
     storeTiles : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	    return;
+	}
+
 	options.errors = options.errors || [];
 
 	var remove = null;
@@ -525,7 +566,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 		//remove tiles specified in db.tileDelete (array of points)
 		if (db && db.tileDelete) {
-		    //RPG.Log('delete',mapName + ' Tile Delete');
+
 		    db.tileDelete.each(function(point){
 			if (!point || typeOf(point) != 'string') return;
 			del.push(RPG.getPointSQL(point.split(',')));
@@ -547,15 +588,16 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    ],
 			    function(err,info) {
 				if (err) {
+				    options.user.logger.error('Map Store Tiles - Delete Specific - name: '+mapName+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
 				} else {
-			    //RPG.Log('delete',mapName + ' Map Tiles'+ db.tileDelete.length);
-			    //if (!info.affectedRows) {
-			    //options.errors.push('Could not delete Map tiles ' + db.tileDelete.length);
-			    //}
-			    }
-			    }
-			    );
+				    if (info.affectedRows) {
+					options.user.logger.trace('Map Store Tiles - Deleted '+info.affectedRows+' Specific from '+mapName);
+				    } else {
+					options.user.logger.warn('Map Store Tiles - Deleted 0 Specific from '+mapName);
+				    }
+				}
+			    });
 		    }
 		}
 	    }
@@ -585,10 +627,15 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    ],
 			    function(err,info) {
 				if (err) {
+				    options.user.logger.error('Map Store Tiles - Delete Incoming - name: '+mapName+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
 				} else {
-			    //RPG.Log('deleted',mapName + ' Map Tiles'+ del.length);
-			    }
+				    if (info.affectedRows) {
+					options.user.logger.trace('Map Store Tiles - Deleted '+info.affectedRows+' Incoming from '+mapName);
+				    } else {
+					options.user.logger.warn('Map Store Tiles - Deleted 0 Incoming from '+mapName);
+				    }
+				}
 			    });
 		    }
 		}
@@ -609,21 +656,32 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    insert.queue(sql,arr,
 			function(err,info) {
 			    if (err) {
+				options.user.logger.error('Map Store Tiles - Insert Incoming name: '+mapName+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
+			    } else {
+				if (info.insertId) {
+				    options.user.logger.trace('Map Store Tiles - Inserted '+arr.length+' Incoming from '+mapName);
+				} else {
+				    options.user.logger.warn('Map Store Tiles - Insert 0 Incoming from '+mapName);
+				}
 			    }
-			//RPG.Log('insert',mapName +  ' Map Tiles Row: '+rowNum+' Cols: '+ Object.keys(col).length);
 			});
 		}
 	    });
 
 	});
 	//now that everything is all queued up:
-	RPG.Mysql.executeQueues([remove,insert],true,callback);
+	options.user.logger.trace('Map Store Tiles - Starting Store Queue: ' + Object.keys(options.universe.maps));
+	RPG.Mysql.executeQueues([remove,insert],true,function(){
+	    options.user.logger.trace('Map Store Tiles - Finished Store Queue: ' + Object.keys(options.universe.maps));
+	    callback();
+	});
     },
     /**
      * required options:
      *	    user
-     *	    universe
+     *	    universe || universeID
+     *	    mapID
      *	    paths : json encoded paths
      *
      * optional
@@ -633,6 +691,10 @@ RPG.Map = new (RPG.MapClass = new Class({
      *	    bypassCache
      */
     loadCache : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	    return;
+	}
+
 	if (!options.paths) {
 	    callback({});
 	    return;
@@ -643,13 +705,18 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
 	    if (!options.bypassCache) {
-		//RPG.Log('Cache Retrieve UniverseID','universe_'+options.universeID);
 		var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID) || {};
+		options.user.logger.trace('Map Load Cache (cached) '+options.character.location.mapName);
 		if (cachedUni.maps && cachedUni.maps[options.character.location.mapName]) {
-		    //RPG.Log('Map Cached Tiles Merged',cachedUni.maps[options.character.location.mapName].options);
 		    cachedTileCache = cachedUni.maps[options.character.location.mapName].cache;
 		}
 	    }
+	} else {
+	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.universeID');
+	}
+
+	if (!RPG.Log.requiredOptions(options,['mapID','universeID'],logger,callback)){
+	    return;
 	}
 
 	var paths = [];
@@ -670,7 +737,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 		paths[1] = paths[0];
 	    }
 	} else {
-	    //RPG.Log('MapCache','None specified. Skipping.');
+	    options.user.logger.warn('Map Load Cache 0 paths for mapID:'+options.mapID);
 	    callback({});
 	    return;
 	}
@@ -684,32 +751,35 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 	var arr = [
 	options.mapID,
-	options.universeID || options.universe.options.database.universeID
+	options.universeID
 	].append(paths)
 
 	RPG.Mysql.query(sql,arr,
 	    function(err,results) {
 		if (err) {
+		    options.user.logger.error('Map Load Tiles - Insert Incoming name: '+options.mapID+ ' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
 		} else if (results && results[0]) {
-		    //RPG.Log('database hit','Map LoadCache: Loaded ' + results.length + ' tile caches from '+results[0]['mapName']);
+
 		    var cache = RPG.expandResultsCache(results,'mapCacheID');
 
 		    if (!options.bypassCache) {
-			//RPG.Log('Cache Merge UniverseID','universe_'+options.universeID);
 			var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID);
 			if (!cachedUni.maps) cachedUni.maps = {};
 			if (!cachedUni.maps[results[0]['mapName']]) cachedUni.maps[results[0]['mapName']] = {};
 			Object.merge(cachedUni.maps[results[0]['mapName']],{
 			    cache : cache
 			});
-		    //RPG.Log('Map Cached Tiles Merged',cachedUni.maps[results[0]['mapName']].options);
+			options.user.logger.trace('Map Loaded '+results.length +' Tiles (cached) from '+options.mapID);
+		    } else {
+			options.user.logger.trace('Map Loaded '+results.length +' Tiles (non-cached) from '+options.mapID);
 		    }
 		    callback(cache);
 
 		} else {
+		    options.user.logger.warn('Map Load Cache - mapID: '+options.mapID+' error: None Found');
 		    callback({});
 		}
 	    });
@@ -718,10 +788,13 @@ RPG.Map = new (RPG.MapClass = new Class({
     /**
      * required options:
      *	    user
-     *	    character
      *	    universe
      */
     storeCache : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	    return;
+	}
+
 	options.errors = options.errors || [];
 
 	var remove = null;
@@ -730,7 +803,6 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 	//loop through all the maps found in the specified universe:
 	Object.each(options.universe.maps,function(map,mapName,source){
-	    //RPG.Log('MapCache',map.options);
 	    //flatten the maps cache in prepreation for insert/update/delete
 	    var flat = RPG.flattenCache(map.cache);
 
@@ -761,20 +833,20 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    Array.clone([map.options.database.mapID,db.mapCacheID]),
 			    function(err,results) {
 				if (err) {
+				    options.user.logger.error('Map Store Cache - Delete error. path:'+path+' from: '+mapName+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
 				} else {
-				    //RPG.Log('delete','Map cache '+ path);
 				    if (results.affectedRows) {
+					options.user.logger.trace('Map Store Cache - Deleted path:'+path+' from: '+mapName);
 					var pathName = (path = JSON.decode(path)).pop();
 					Object.erase(Object.getFromPath(map.cache,path),pathName);
 				    } else {
-					//RPG.Log('0 deleted',mapName + ' Map cache "'+ path);
+					options.user.logger.error('Map Store Cache - Delete error. path:'+path+' from: '+mapName+ ' error: 0 Affected Rows');
 					options.errors.push('Could not delete Cache item "'+ path+'" :(');
 				    }
 
 				}
-			    }
-			    );
+			    });
 			Object.erase(source,path);
 			return;
 
@@ -795,10 +867,16 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    ],
 			    function(err,results) {
 				if (err) {
+				    options.user.logger.error('Map Store Cache - Update Tiles error. path:'+path+' from: '+mapName+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
+				} else {
+				    if (results.affectedRows) {
+					options.user.logger.trace('Map Store Cache - Updated Tiles path:'+path+' from: '+mapName);
+				    } else {
+					options.user.logger.error('Map Store Cache - Update Tiles error. path:'+path+' from: '+mapName+ ' error: 0 Affected Rows');
+					options.errors.push('Could not update Cache item "'+ path+'" :(');
+				    }
 				}
-				Object.erase(db,'rename');
-				tileOpts.database = db;
 			    });
 		    }
 
@@ -818,16 +896,17 @@ RPG.Map = new (RPG.MapClass = new Class({
 			map.options.database.mapID,
 			db.mapCacheID
 			],
-			function(err,results,fields,input) {
+			function(err,results) {
 			    if (err) {
+				options.user.logger.error('Map Store Cache - Update error. path:'+path+' from: '+mapName+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('update',mapName + ' Map cache "'+ path +'" id:'+(JSON.encode(db))+'');
 				if (results.affectedRows) {
-				    Object.erase(db,'update');
+				    options.user.logger.trace('Map Store Cache - Updated path:'+path+' from: '+mapName);
 				    tileOpts.database = db;
 				} else {
-				    options.errors.push('Could not update Cache item "'+path+'"  ' + input.sql + ' ' + input.values);
+				    options.user.logger.error('Map Store Cache - Update error. path:'+path+' from: '+mapName+ ' error: 0 Affected Rows');
+				    options.errors.push('Could not update Cache item "'+path+'" :(');
 				}
 			    }
 			});
@@ -854,14 +933,16 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    ]),
 			function(err,results) {
 			    if (err) {
+				options.user.logger.error('Map Store Cache - Insert error. path:'+path+' from: '+mapName+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('insert',mapName + ' Map cache "'+ path  +'" id:'+(results && results.insertId)+'');
 				if (results.insertId) {
 				    tileOpts.database = {
 					mapCacheID : results.insertId
 				    };
+				    options.user.logger.trace('Map Store Cache - Inserted path:'+path+' id: '+results.insertId+' from: '+mapName);
 				} else {
+				    options.user.logger.error('Map Store Cache - Insert error. path:'+path+' from: '+mapName+ ' error: 0 Inserted Rows');
 				    options.errors.push('Failed to get newly inserted Cache ID :( '+JSON.encode(options.tile));
 				}
 			    }
@@ -871,6 +952,10 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    });
 	});
 	//now that everything is all queued up:
-	RPG.Mysql.executeQueues([remove,update,insert],true,callback);
+	options.user.logger.trace('Map Store Cache - Starting Store Queue: ' + Object.keys(options.universe.maps));
+	RPG.Mysql.executeQueues([remove,update,insert],true,function(){
+	    options.user.logger.trace('Map Store Cache - Finished Store Queue: ' + Object.keys(options.universe.maps));
+	    callback();
+	});
     }
 }))();

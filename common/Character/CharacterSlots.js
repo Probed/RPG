@@ -1,4 +1,7 @@
 if (!RPG) var RPG = {};
+if (typeof exports != 'undefined') {
+    module.exports = RPG;
+}
 
 RPG.CharacterSlots = {
     /*
@@ -9,9 +12,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Thumb',
 	desc : 'The thumb on your left growth hand. It\'s a quite good a finding a ride somewhere.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 1,
@@ -22,9 +23,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Pointer Finger',
 	desc : 'The pointer finger on your left growth hand. It\'s not polite to point.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 1,
@@ -35,9 +34,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand middle Finger',
 	desc : 'The middle finger on your left growth hand. Give it to someone; see how they respond.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 1,
@@ -48,9 +45,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Ring Finger',
 	desc : 'The ring finger on your left growth hand. I do.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 1,
@@ -61,9 +56,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Pinky Finger',
 	desc : 'The pinky finger on your left growth hand. "Wee wee wee"',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 1,
@@ -79,9 +72,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand Thumb',
 	desc : 'The thumb on your right growth hand. Yaaaaaaaa.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthHand',
 	partOf : 'RightGrowthArm',
 	row : 1,
@@ -92,9 +83,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand Pointer Finger',
 	desc : 'The pointer finger on your right growth hand. Tattooed with the word: "Pull".',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthHand',
 	partOf : 'RightGrowthArm',
 	row : 1,
@@ -105,9 +94,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand middle Finger',
 	desc : 'The middle finger on your right growth hand. fffffffuuuuuuuuuuuu.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthHand',
 	partOf : 'RightGrowthArm',
 	row : 1,
@@ -118,9 +105,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand Ring Finger',
 	desc : 'The ring finger on your right growth hand. Dainty isn\'t it',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthHand',
 	partOf : 'RightGrowthArm',
 	row : 1,
@@ -131,9 +116,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand Pinky Finger',
 	desc : 'The pinky finger on your right growth hand. Here; smell this--',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthHand',
 	partOf : 'RightGrowthArm',
 	row : 1,
@@ -149,9 +132,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Thumb',
 	desc : 'The thumb on your left hand. Goes straight for the eye sockets',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 3,
@@ -162,9 +143,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Pointer Finger',
 	desc : 'The pointer finger on your left hand. Dig for that gold.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 4,
@@ -175,9 +154,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand middle Finger',
 	desc : 'The middle finger on your left hand. 50% more evil.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 5,
@@ -188,9 +165,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Ring Finger',
 	desc : 'The ring finger on your left hand. [Reserved For] Ball and Chain #2.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 6,
@@ -201,9 +176,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Pinky Finger',
 	desc : 'The pinky finger on your left hand. It\'s like a neverending lolly-pop.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 7,
@@ -219,9 +192,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand Thumb',
 	desc : 'The thumb on your right hand. Doubles as a plug (of sorts)',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightHand',
 	partOf : 'RightArm',
 	row : 3,
@@ -232,9 +203,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand Pointer Finger',
 	desc : 'The pointer finger on your growth hand. Goochy goochy gooo.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightHand',
 	partOf : 'RightArm',
 	row : 4,
@@ -245,9 +214,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand middle Finger',
 	desc : 'The middle finger on your right hand. I was just scratching my nose. I swear.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightHand',
 	partOf : 'RightArm',
 	row : 5,
@@ -258,9 +225,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand Ring Finger',
 	desc : 'The ring finger on your right hand. In case of emergency use as floatation device.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightHand',
 	partOf : 'RightArm',
 	row : 6,
@@ -271,9 +236,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand Pinky Finger',
 	desc : 'The pinky finger on your right hand. Fits good in thoes tight places.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightHand',
 	partOf : 'RightArm',
 	row : 7,
@@ -289,9 +252,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand',
 	desc : 'Your left hand. or is it?',
-	itemTypes : [
-
-	],
+	itemTypes : ['hand'],
 	connectTo : 'LeftArm',
 	partOf : 'LeftArm',
 	row : 5,
@@ -302,9 +263,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Weapon',
 	desc : 'Left Hand Weapon',
-	itemTypes : [
-
-	],
+	itemTypes : ['weapon','sheild'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 6,
@@ -315,9 +274,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Ammo',
 	desc : 'Left Hand Ammo',
-	itemTypes : [
-
-	],
+	itemTypes : ['ammo'],
 	connectTo : 'LeftArm',
 	partOf : 'LeftArm',
 	row : 6,
@@ -331,9 +288,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand',
 	desc : 'Your significant oth- err I mean Your Right Hand.',
-	itemTypes : [
-
-	],
+	itemTypes : ['hand'],
 	connectTo : 'RightArm',
 	partOf : 'RightArm',
 	row : 5,
@@ -344,9 +299,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand Weapon',
 	desc : 'Right Hand Weapon',
-	itemTypes : [
-
-	],
+	itemTypes : ['weapon','shield'],
 	connectTo : 'RightHand',
 	partOf : 'RightArm',
 	row : 6,
@@ -357,9 +310,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Hand Ammo',
 	desc : 'Right Hand Ammo',
-	itemTypes : [
-
-	],
+	itemTypes : ['ammo'],
 	connectTo : 'RightArm',
 	partOf : 'RightArm',
 	row : 6,
@@ -374,9 +325,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand',
 	desc : 'Your left growth hand. It will make a move someday.',
-	itemTypes : [
-
-	],
+	itemTypes : ['hand'],
 	connectTo : 'LeftGrowthArm',
 	partOf : 'LeftGrowthArm',
 	row : 2,
@@ -387,9 +336,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Weapon',
 	desc : 'Left Growth Hand Weapon',
-	itemTypes : [
-
-	],
+	itemTypes : ['weapon','sheild'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 3,
@@ -400,9 +347,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Ammo',
 	desc : 'Left Growth Hand Ammo',
-	itemTypes : [
-
-	],
+	itemTypes : ['ammo'],
 	connectTo : 'LeftGrowthArm',
 	partOf : 'LeftGrowthArm',
 	row : 3,
@@ -417,9 +362,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand',
 	desc : 'Your right growth hand. Double your pleasure.',
-	itemTypes : [
-
-	],
+	itemTypes : ['hand'],
 	connectTo : 'RightGrowthArm',
 	partOf : 'RightGrowthArm',
 	row : 2,
@@ -430,9 +373,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand Weapon',
 	desc : 'Right Growth Hand Weapon',
-	itemTypes : [
-
-	],
+	itemTypes : ['weapon','shield'],
 	connectTo : 'RightGrowthHand',
 	partOf : 'RightGrowthArm',
 	row : 3,
@@ -443,9 +384,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Hand Ammo',
 	desc : 'Right Growth Hand Ammo',
-	itemTypes : [
-
-	],
+	itemTypes : ['ammo'],
 	connectTo : 'RightGrowthArm',
 	partOf : 'RightGrowthArm',
 	row : 3,
@@ -461,9 +400,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Arm',
 	desc : 'Your left growth arm.',
-	itemTypes : [
-
-	],
+	itemTypes : ['arm'],
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 3,
@@ -478,9 +415,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Arm',
 	desc : 'Your Right Growth Arm.',
-	itemTypes : [
-
-	],
+	itemTypes : ['arm'],
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 3,
@@ -495,9 +430,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Arm',
 	desc : 'Your left normal arm. It will make a move someday.',
-	itemTypes : [
-
-	],
+	itemTypes : ['arm'],
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 5,
@@ -512,9 +445,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Arm',
 	desc : 'Your right normal arm. Double your pleasure.',
-	itemTypes : [
-
-	],
+	itemTypes : ['arm'],
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 5,
@@ -530,9 +461,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Growth Head',
 	desc : 'Your brain container.',
-	itemTypes : [
-
-	],
+	itemTypes : ['head'],
 	connectTo : 'GrowthNeck',
 	row : 2,
 	col : 10
@@ -547,9 +476,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Ear',
 	desc : 'Your left growth ear. WHAT??',
-	itemTypes : [
-
-	],
+	itemTypes : ['ear'],
 	connectTo : 'GrowthNeck',
 	partOf : 'GrowthHead',
 	row : 3,
@@ -564,9 +491,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Ear',
 	desc : 'Your right growth ear. Can only hear the drum beats of war.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ear'],
 	connectTo : 'GrowthNeck',
 	partOf : 'GrowthHead',
 	row : 3,
@@ -582,9 +507,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Head',
 	desc : 'Overflow parking.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ear'],
 	connectTo : 'Neck',
 	partOf : 'Head',
 	row : 2,
@@ -600,9 +523,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Ear',
 	desc : 'Your left normal ear. It dosn\'t hear as well as it once did.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ear'],
 	connectTo : 'Neck',
 	partOf : 'Head',
 	row : 3,
@@ -618,9 +539,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Ear',
 	desc : 'Your right normal ear. You can make it wiggle.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ear'],
 	connectTo : 'Neck',
 	partOf : 'Head',
 	row : 3,
@@ -634,9 +553,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'GrowthNeck',
 	desc : 'Growth Head holder.',
-	itemTypes : [
-
-	],
+	itemTypes : ['neck'],
 	connectTo : 'Neck',
 	partOf : 'GrowthHead',
 	row : 5,
@@ -652,9 +569,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Neck',
 	desc : 'Head holder.',
-	itemTypes : [
-
-	],
+	itemTypes : ['neck'],
 	connectTo : 'Neck',
 	partOf : 'Head',
 	row : 5,
@@ -668,9 +583,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Brazzier',
 	desc : 'Over-the-shoulder-boulder-holder.',
-	itemTypes : [
-
-	],
+	itemTypes : ['bra'],
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 6,
@@ -684,9 +597,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Chest',
 	desc : '',
-	itemTypes : [
-
-	],
+	itemTypes : ['chest'],
 	connectTo : null,
 	partOf : null,
 	row : 6,
@@ -700,9 +611,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Undies',
 	desc : 'Undies',
-	itemTypes : [
-
-	],
+	itemTypes : ['undies'],
 	connectTo : 'Waist',
 	partOf : 'Waist',
 	row : 9,
@@ -716,9 +625,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Waist',
 	desc : 'Waist',
-	itemTypes : [
-
-	],
+	itemTypes : ['waist'],
 	connectTo : 'Chest',
 	partOf : 'Chest',
 	row : 9,
@@ -733,9 +640,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Foot',
 	desc : 'Your left growth foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthFoot',
 	partOf : 'LeftGrowthLeg',
 	row : 18,
@@ -746,9 +651,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Foot Pointer Toe',
 	desc : 'Your left growth foots 2nd toe.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthFoot',
 	partOf : 'LeftGrowthLeg',
 	row : 17,
@@ -759,9 +662,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Foot middle Toe',
 	desc : 'The middle toe on your left growth foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthFoot',
 	partOf : 'LeftGrowthLeg',
 	row : 16,
@@ -772,9 +673,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Foot Ring Toe',
 	desc : 'The ring toe on your left growth foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthFoot',
 	partOf : 'LeftGrowthLeg',
 	row : 15,
@@ -785,9 +684,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Foot Pinky Toe',
 	desc : 'The pinky toe on your left growth foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftGrowthFoot',
 	partOf : 'LeftGrowthLeg',
 	row : 14,
@@ -803,9 +700,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Foot Thumb',
 	desc : 'The thumb on your right foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthFoot',
 	partOf : 'RightGrowthLeg',
 	row : 14,
@@ -816,9 +711,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Foot Pointer Toe',
 	desc : 'The pointer toe on your right foot..',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthFoot',
 	partOf : 'RightGrowthLeg',
 	row : 15,
@@ -829,9 +722,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Foot middle Toe',
 	desc : 'The middle toe on your right foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthFoot',
 	partOf : 'RightGrowthLeg',
 	row : 16,
@@ -842,9 +733,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Foot Ring Toe',
 	desc : 'The ring toe on your right foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthFoot',
 	partOf : 'RightGrowthLeg',
 	row : 17,
@@ -855,9 +744,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Foot Pinky Toe',
 	desc : 'The pinky toe on your right foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightGrowthFoot',
 	partOf : 'RightGrowthLeg',
 	row : 18,
@@ -873,9 +760,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Foot Thumb',
 	desc : 'The thumb on your left foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftFoot',
 	partOf : 'LeftLeg',
 	row : 19,
@@ -886,9 +771,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Foot Pointer Toe',
 	desc : 'The pointer toe on your left foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftFoot',
 	partOf : 'LeftLeg',
 	row : 19,
@@ -899,9 +782,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Foot middle Toe',
 	desc : 'The middle toe on your left foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftFoot',
 	partOf : 'LeftLeg',
 	row : 19,
@@ -912,9 +793,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Foot Ring Toe',
 	desc : 'The ring toe on your left foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftFoot',
 	partOf : 'LeftLeg',
 	row : 19,
@@ -925,9 +804,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Foot Pinky Toe',
 	desc : 'The pinky toe on your left foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'LeftFoot',
 	partOf : 'LeftLeg',
 	row : 19,
@@ -943,9 +820,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Foot Thumb',
 	desc : 'The thumb on your right foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightFoot',
 	partOf : 'RightLeg',
 	row : 19,
@@ -956,9 +831,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Foot Pointer Toe',
 	desc : 'The pointer toe on your right foot. ',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightFoot',
 	partOf : 'RightLeg',
 	row : 19,
@@ -969,9 +842,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Foot middle Toe',
 	desc : 'The middle toe on your right foot. ',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightFoot',
 	partOf : 'RightLeg',
 	row : 19,
@@ -982,9 +853,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Foot Ring Toe',
 	desc : 'The ring toe on your right foot. ',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightFoot',
 	partOf : 'RightLeg',
 	row : 19,
@@ -995,9 +864,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Foot Pinky Toe',
 	desc : 'The pinky toe on your right foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['ring'],
 	connectTo : 'RightFoot',
 	partOf : 'RightLeg',
 	row : 19,
@@ -1013,9 +880,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Foot',
 	desc : 'Your left foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['foot'],
 	connectTo : 'LeftGrowthLeg',
 	partOf : 'LeftGrowthLeg',
 	row : 16,
@@ -1030,9 +895,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Foot',
 	desc : 'Your Right Growth Foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['foot'],
 	connectTo : 'RightGrowthLeg',
 	partOf : 'RightGrowthLeg',
 	row : 16,
@@ -1047,9 +910,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Foot',
 	desc : 'Your left normal foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['foot'],
 	connectTo : 'LeftLeg',
 	partOf : 'LeftLeg',
 	row : 18,
@@ -1064,9 +925,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Foot',
 	desc : 'Your right normal foot.',
-	itemTypes : [
-
-	],
+	itemTypes : ['foot'],
 	connectTo : 'RightLeg',
 	partOf : 'RightLeg',
 	row : 18,
@@ -1082,9 +941,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Leg',
 	desc : 'Your left leg.',
-	itemTypes : [
-
-	],
+	itemTypes : ['leg'],
 	connectTo : 'Waist',
 	partOf : 'Waist',
 	row : 12,
@@ -1098,9 +955,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Growth Leg',
 	desc : 'Your right growth leg.',
-	itemTypes : [
-
-	],
+	itemTypes : ['leg'],
 	connectTo : 'Waist',
 	partOf : 'Waist',
 	row : 12,
@@ -1116,9 +971,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Right Leg',
 	desc : 'Your Right Leg.',
-	itemTypes : [
-
-	],
+	itemTypes : ['leg'],
 	connectTo : 'Waist',
 	partOf : 'Waist',
 	row : 14,
@@ -1133,16 +986,10 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Leg',
 	desc : 'Your left normal leg.',
-	itemTypes : [
-
-	],
+	itemTypes : ['leg'],
 	connectTo : 'Waist',
 	partOf : 'Waist',
 	row : 14,
 	col : 10
     }
 };
-
-if (typeof exports != 'undefined') {
-    exports.characterSlots = RPG.CharacterSlots;
-}

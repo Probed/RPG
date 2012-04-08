@@ -8,10 +8,9 @@
 
 var RPG = module.exports = {};
 
-Object.merge(RPG,
-    require('../Log/Log.njs'),
-    require('./User.njs')
-    );
+Object.merge(RPG,require('./User.njs'));
+
+var logger = RPG.Log.getLogger('RPG.Users');
 
 RPG.Users = new (RPG.UsersClass = new Class({
     Implements : [Events,Options],
@@ -50,9 +49,9 @@ RPG.Users = new (RPG.UsersClass = new Class({
     },
     initialize : function(options) {
 	this.setOptions(options);
-	RPG.Log('init','RPG.Users initialized');
+	logger.info('Initialized');
     },
-    determineUser : function(request,response, onComplete) {
+    determineUser : function(request,response, callback) {
 	var cookies = new (require('./Cookies.njs').Cookies)(request,response);
 	var apiKey = cookies.get(this.options.cookieOptions.name);
 
@@ -64,9 +63,9 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	     * either way we well set their user cookie and give them a userid
 	     * based on there UserAgent and IP @Todo make better?
 	     */
-
 	    cookies.set(this.options.cookieOptions.name,guestUser,this.options.cookieOptions);
 	    apiKey = guestUser;
+	    logger.trace('User Lookup. No cookie found.');
 	}
 
 	/**
@@ -75,18 +74,13 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	 */
 	var user = require('../Cache.njs').Cache.retrieve('users',apiKey);
 	if (user) {
+	    user.logger.trace('User (cached) #' + user.options.userID);
 	    /**
 	     * Return the cached user for this request session
 	     */
-	    onComplete(user);
+	    callback(user);
 
 	} else if (apiKey != guestUser) {
-
-	    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
-		name : 'Guest User #'+ (++this.userIDs),
-		id : this.userIDs
-	    }));
-
 	    /**
 	     * @Attempt to find the user in the database based on the hash:
 	     */
@@ -98,17 +92,40 @@ RPG.Users = new (RPG.UsersClass = new Class({
 		function(err,results) {
 		    if (!err) {
 			if (results && results[0]) {
+
+			    /**
+			     * Successful Login via cookie
+			     */
+			    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
+				userID : results[0]['userID']
+			    }));
 			    user.isLoggedIn = true;
 			    this.populateUser(results[0],user);
-			    //RPG.Log('lookup','User Found: '+JSON.encode(user));
-			    onComplete(user);
+			    user.logger.trace('User Found: '+JSON.encode(user));
+			    callback(user);
 			} else {
-			    //RPG.Log('lookup','User Not Found: '+apiKey);
-			    onComplete(user);
+
+			    /**
+			     * Cookie id not found
+			     */
+			    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
+				name : 'Guest User #'+ (++this.userIDs),
+				id : this.userIDs
+			    }));
+			    user.logger.error('User Not Found: '+apiKey);
+			    callback(user);
 			}
 		    } else {
-			//RPG.Log('lookup error','User Error: '+JSON.encode(user));
-			onComplete(user);
+
+			/**
+			 * Sql Error
+			 */
+			require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
+			    name : 'Guest User #'+ (++this.userIDs),
+			    id : this.userIDs
+			}));
+			user.logger.error('User Lookup Error: '+JSON.encode(user));
+			callback(user);
 		    }
 		}.bind(this)
 		);
@@ -123,7 +140,8 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    /**
 	     * Return the user for this request session
 	     */
-	    onComplete(user);
+	    user.logger.trace('User (guest) #' + user.options.userID);
+	    callback(user);
 	}
     },
 
@@ -205,14 +223,18 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    errors.push('<b>Password</b> provided is too short. Minimum 7 symbols.');
 	}
 
+	passwordHash = (request.url.query.email + request.url.query.password + this.PASSWORD_SALT).toMD5()
+
+	request.url.query.password = null;
+
 	if (errors.length > 0) {
+	    logger.trace('Login error: ' + errors + ' request:'+JSON.encode(request.url.query));
+	    logger.error('Login error: ' + errors);
 	    response.onRequestComplete(response,{
 		error : errors
 	    });
 	    return;
 	}
-
-	passwordHash = (request.url.query.email + request.url.query.password + this.PASSWORD_SALT).toMD5()
 
 	/**
 	 * Attempt lookup of user in database:
@@ -227,20 +249,24 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    passwordHash
 	    ],
 	    /**
-	 * Process Results of Query
-	 */
+	     * Process Results of Query
+	     */
 	    function(err,results,fields) {
 		if (err) {
+		    logger.trace('Login error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
+		    logger.error('Login error: ' + JSON.encode(err));
 		    response.onRequestComplete(response,{
 			error : err
 		    });
 		} else {
 		    if (results && results[0]) {
 			/**
-		     * Check to see if there account is pending verification
-		     */
+			 * Check to see if there account is pending verification
+			 */
 			//@todo remove verify key from return
 			if (results[0]['verifyKey']) {
+			    logger.trace('Login error: Pending Verification. request:'+JSON.encode(request.url.query));
+			    logger.error('Login error: Pending Verification.');
 			    response.onRequestComplete(response,{
 				error : 'This account is currently pending <b>verification</b>.<br>Please check your email for your verification key.<br>If you need it sent again, please use the forgot password form.<br><br>Key: ' +results[0]['verifyKey']
 			    });
@@ -250,6 +276,8 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			this.doLogin(results,request,response);
 
 		    } else{
+			logger.trace('Login error: Not found. request:'+JSON.encode(request.url.query));
+			logger.error('Login error: Not found.');
 			response.onRequestComplete(response,{
 			    error : 'Invalid <b>Login/Password</b> combination.'
 			});
@@ -278,7 +306,8 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    ],
 	    function(err,results,fields) {
 		if (err) {
-		    console.log('Error updating User login information.\n');
+		    logger.trace('Login update error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
+		    logger.error('Login update error: ' + JSON.encode(err));
 		}
 	    }.bind(this)
 	    );
@@ -304,6 +333,9 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	this.populateUser(results[0],request.user);
 
 	request.user.isLoggedIn = true;
+
+	logger.trace('Login successfull. userID: '+request.user.options.userID+ '  user:'+JSON.encode(request.user));
+	logger.info('Login successfull. userID: '+request.user.options.userID);
 
 	/**
 	 * Send back the users application options as the result of a successful login
@@ -335,6 +367,9 @@ RPG.Users = new (RPG.UsersClass = new Class({
 
 	require('../Cache.njs').Cache.remove('users',request.user.options.apiKey);
 
+	logger.trace('Logout. userID: '+request.user.options.userID+ '  user:'+JSON.encode(request.user));
+	logger.info('Logout. userID: '+request.user.options.userID);
+
 	/**
 	 * dispose of the user
 	 */
@@ -350,6 +385,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 		id : this.userIDs
 	    }));
 	}
+
 	response.onRequestComplete(response,this.getApplicationOptions(require('../Cache.njs').Cache.retrieve('users',guestApiKey)));
 
 	/**
@@ -398,6 +434,10 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	}
 
 	if (errors.length > 0) {
+	    request.url.query.password = null;
+	    request.url.query.retypePassword = null;
+	    logger.trace('Register error: ' + errors + ' request:'+JSON.encode(request.url.query));
+	    logger.error('Register error: ' + errors);
 	    response.onRequestComplete(response,{
 		error : errors
 	    });
@@ -415,8 +455,8 @@ RPG.Users = new (RPG.UsersClass = new Class({
 				response.onRequestComplete(response, dupeEmail);
 			    } else {
 				/**
-			 * Perform User Registration
-			 */
+				 * Perform User Registration
+				 */
 				var passwordHash = (request.url.query.email + request.url.query.password + this.PASSWORD_SALT).toMD5()
 				var apiKey = (request.url.query.email + request.url.query.passwordHash + this.APIKEY_SALT).toMD5();
 				var verifyKey = (passwordHash + apiKey + this.VERIFY_SALT).toMD5();
@@ -445,29 +485,43 @@ RPG.Users = new (RPG.UsersClass = new Class({
 				    JSON.encode(this.options.defaultSettings)
 				    ],
 				    /**
-			 * Process Results of Query
-			 */
+				     * Process Results of Query
+				     */
 				    function(err,info) {
 					if (err) {
+					    request.url.query.password = null;
+					    request.url.query.retypePassword = null;
+					    logger.trace('Register error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
+					    logger.error('Register error: ' + JSON.encode(err));
 					    response.onRequestComplete(response,{
 						error : err
 					    });
 					} else {
 					    if (info.insertId) {
+
 						/**
-				     * @todo email new user
-				     */
+						 * @todo email new user
+						 */
 						var message = '';
 
 						/**
-				     *Inser successful
-				     */
+						 *Inser successful
+						 */
+						request.url.query.password = null;
+						request.url.query.retypePassword = null;
+						logger.trace('Register Success: userID:' + info.insertID + ' request:'+JSON.encode(request.url.query));
+						logger.error('Register Success: userID:' + info.insertID);
 						response.onRequestComplete(response,{
 						    success : 'An email has been sent to '+request.url.query.email+' with a verification id.<br>Please use that id to verify your account.'
 						    +'<br>Key: '+verifyKey //@todo : remove this
 						});
 
 					    } else {
+						request.url.query.password = null;
+						request.url.query.retypePassword = null;
+						logger.trace('Register Error: No insertId returned. request:'+JSON.encode(request.url.query));
+						logger.error('Register Error: No insertId returned.');
+
 						response.onRequestComplete(response,{
 						    error : 'No insertId returned from users.register. Please try again. :('
 						});
@@ -490,23 +544,24 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    'SELECT u.name ' +
 	    'FROM user u ' +
 	    'WHERE u.name = ?',
-	    [
-	    name
-	    ],
+	    [name],
 	    /**
-	 * Process Results of Query
-	 */
+	     * Process Results of Query
+	     */
 	    function(err,results,fields) {
 		if (err) {
+		    logger.error('Check Dupe Name error: ' + JSON.encode(err) + ' name:'+name);
 		    callback({
 			error : err
 		    });
 		} else {
 		    if (results && results[0] && results[0]['name']) {
+			logger.error('Check Dupe Name error: Name Taken: '+name);
 			callback({
 			    error : 'The display name <b>"'+results[0]['name']+'"</b> is already taken.<br>Please choose another name.'
 			});
 		    } else {
+			logger.trace('Check Dupe Name ok: Name Available: '+name);
 			callback(null);
 		    }
 		}
@@ -529,15 +584,18 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	 */
 	    function(err,results,fields) {
 		if (err) {
+		    logger.error('Check Dupe Email error: ' + JSON.encode(err) + ' name:'+email);
 		    callback({
 			error : err
 		    });
 		} else {
 		    if (results && results[0] && results[0]['email']) {
+			logger.error('Check Dupe Email error: Email Taken: '+email);
 			callback({
 			    error : 'The email address: <b>"'+results[0]['email']+'"</b> is already in use.<br>Please enter another email address.'
 			});
 		    } else {
+			logger.trace('Check Dupe Email ok: Email Available: '+email);
 			callback(null);
 		    }
 		}
@@ -549,8 +607,12 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	if (!request.url.query.verifyKey) {
 	    errors.push('Verification key missing. Please provide a Key.');
 	}
+	if (request.url.query.verifyKey.length > 256) {
+	    errors.push('Verification key to long.');
+	}
 
 	if (errors.length > 0) {
+	    logger.error('Verify Account: '+errors);
 	    response.onRequestComplete(response,{
 		error : errors
 	    });
@@ -576,10 +638,19 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			    [
 			    request.url.query.verifyKey
 			    ],
-			    function(err) {
+			    function(err,info) {
 				if (!err) {
-				    this.doLogin(results,request,response);
+				    if (info.affectedRows > 0){
+					logger.trace('Verify Account success. user:' + JSON.encode(results));
+					this.doLogin(results,request,response);
+				    } else {
+					logger.error('Verify Account error: No Results.'+ ' request:'+JSON.encode(request.url.query));
+					response.onRequestComplete(response,{
+					    error : 'No Results :('
+					});
+				    }
 				} else {
+				    logger.error('Verify Account error: '+JSON.encode(err)+ ' request:'+JSON.encode(request.url.query));
 				    response.onRequestComplete(response,{
 					error : err
 				    });
@@ -587,11 +658,13 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			    }.bind(this)
 			    );
 		    } else {
+			logger.error('Verify Account error: Key not found. request:'+JSON.encode(request.url.query));
 			response.onRequestComplete(response,{
 			    error : 'Verification key not found. Sorry.'
 			});
 		    }
 		} else {
+		    logger.error('Verify Account error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
 		    response.onRequestComplete(response,{
 			error : err
 		    });
@@ -611,6 +684,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	}
 
 	if (errors.length > 0) {
+	    logger.error('Forgot password error: ' + JSON.encode(errors) + ' request:'+JSON.encode(request.url.query));
 	    response.onRequestComplete(response,{
 		error : errors
 	    });
@@ -631,10 +705,12 @@ RPG.Users = new (RPG.UsersClass = new Class({
 		if (!err) {
 		    if (results && results[0]) {
 			/**
-		     * Sends link to user to reset there account
-		     * link contains: userID and resetKey
-		     */
+			 * Sends link to user to reset there account
+			 * link contains: userID and resetKey
+			 */
 			var resetKey = (results[0].userID + results[0].name + results[0].passwordHash + this.RESET_SALT).toMD5();
+
+			logger.trace('Forgot password sent to: ' + request.url.query.email + ' request:'+JSON.encode(request.url.query));
 
 			//@todo email user
 			response.onRequestComplete(response,{
@@ -642,11 +718,13 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			    +'ResetKey: '+ resetKey//@todo remove
 			});
 		    } else {
+			logger.error('Forgot password error: No Results. request:'+JSON.encode(request.url.query));
 			response.onRequestComplete(response,{
 			    error : 'The email address "'+request.url.query.email+'" was not found.'
 			});
 		    }
 		} else {
+		    logger.error('Forgot password error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
 		    response.onRequestComplete(response,{
 			error : err
 		    });
@@ -666,6 +744,7 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	}
 
 	if (errors.length > 0) {
+	    logger.error('Reset password error: ' + JSON.encode(errors) + ' request:'+JSON.encode(request.url.query));
 	    response.onRequestComplete(response,{
 		error : errors
 	    });
@@ -706,12 +785,13 @@ RPG.Users = new (RPG.UsersClass = new Class({
 				],
 				function(err) {
 				    if (err) {
+					logger.error('Reset password error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
 					response.onRequestComplete(response,{
 					    error : err
 					});
 				    } else {
 					//@todo email user
-
+					logger.trace('Reset password success: userID:' + results[0].userID + ' request:'+JSON.encode(request.url.query));
 					response.onRequestComplete(response,{
 					    success : 'An email has been sent to '+results[0].email+' with your new password.'
 					});
@@ -719,16 +799,19 @@ RPG.Users = new (RPG.UsersClass = new Class({
 				}
 				);
 			} else {
+			    logger.error('Reset password error: Key not found. request:'+JSON.encode(request.url.query));
 			    response.onRequestComplete(response,{
 				error : 'Password reset failed. Unknown reset key.'
 			    });
 			}
 		    } else {
+			logger.error('Reset password error: User not found. request:'+JSON.encode(request.url.query));
 			response.onRequestComplete(response,{
 			    error : 'The user "'+request.url.query.userID+'" was not found.'
 			});
 		    }
 		} else {
+		    logger.error('Reset password error: ' + JSON.encode(err) + ' request:'+JSON.encode(request.url.query));
 		    response.onRequestComplete(response,{
 			error : err
 		    });

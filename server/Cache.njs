@@ -1,59 +1,63 @@
 var RPG = module.exports = {};
 Object.merge(RPG,require('./Log/Log.njs'));
 
-var cache = {};
+var logger = RPG.Log.getLogger('RPG.Cache');
 
 RPG.Cache = new(RPG.CacheClass = new Class({
     Implements : [Options,Events],
 
-    cache : cache,
+    cache : {},
 
     options : {},
     initialize : function(options) {
 	this.setOptions(options);
-	RPG.Log('init','Cache Initialized.');
+	logger.info('Initialized.');
     },
 
-    store : function(userID, to, value) {
-	if (!this.cache[userID]) this.cache[userID] = {};
-	this.cache[userID][to] = value;
-	//universe/.test(to) && RPG.Log('Cache store','u:' + userID + ' k:'+ to + ' ->  '+JSON.stringify((this.cache[userID] && this.cache[userID][to]) || null));
-
+    store : function(id, to, value) {
+	if (!this.cache[id]) this.cache[id] = {};
+	this.cache[id][to] = value;
+	logger.info('Store: id:' + id + ' to:'+ to);
+	logger.trace('Store: id:' + id + ' to:'+ to + ' ' + JSON.encode((this.cache[id] && this.cache[id][to]) || null));
 	return value;
     },
 
-    merge : function(userID, to, value) {
-	if (!this.cache[userID]) this.cache[userID] = {};
-	if (!this.cache[userID][to]) {
-	    this.cache[userID][to] = value;
+    merge : function(id, to, value) {
+	if (!this.cache[id]) this.cache[id] = {};
+	if (!this.cache[id][to]) {
+	    this.cache[id][to] = value;
 	} else {
-	    Object.merge(this.cache[userID][to],value);
+	    Object.merge(this.cache[id][to],value);
 	}
-	//universe/.test(to) && RPG.Log('Cache merge','u:' + userID + ' k:'+ to + ' ->  '+JSON.stringify((this.cache[userID] && this.cache[userID][to]) || null));
-
-	return this.cache[userID][to];
+	logger.info('Merge: id:' + id + ' to:'+ to);
+	logger.trace('Merge: id:' + id + ' to:'+ to + ' ' + JSON.encode((this.cache[id] && this.cache[id][to]) || null));
+	return this.cache[id][to];
     },
-    retrieve : function(userID,from) {
-	//universe/.test(from) && RPG.Log('Cache Retrieve','u:' + userID + ' k:'+ from + ' ->  '+JSON.stringify((this.cache[userID] && this.cache[userID][from]) || null));
-
-	return this.cache[userID] && this.cache[userID][from];
+    retrieve : function(id,from) {
+	logger.info('Retrieve: id:' + id + ' from:'+ from);
+	logger.trace('Retrieve: id:' + id + ' from:'+ from + ' ' + JSON.encode((this.cache[id] && this.cache[id][from]) || null));
+	return this.cache[id] && this.cache[id][from];
     },
 
-    remove : function(userID,from) {
-	var value = this.retrieve(userID,from);
-	Object.erase(this.cache[userID],from);
-	//universe/.test(from) && RPG.Log('Cache remove','u:' + userID + ' k:'+ from + ' ->  '+JSON.stringify((this.cache[userID] && this.cache[userID][from]) || null));
+    remove : function(id,from) {
+	var value = this.retrieve(id,from);
+	logger.info('Remove: id:' + id + ' from:'+ from);
+	logger.trace('Remove: id:' + id + ' from:'+ from + ' ' + JSON.encode(value));
+	Object.erase(this.cache[id],from);
 	return value;
     },
 
-    list : function(userID) {
-	if (!this.cache[userID]) {
+    list : function(id) {
+	var keys = null;
+	if (!this.cache[id]) {
+	    logger.info('List: id:' + id + ' - Empty');
 	    return null;
 	} else {
-	    return Object.keys(this.cache[userID]);
+	    keys = Object.keys(this.cache[id]);
+	    logger.info('List: id:' + id + ' - Length:'+keys.length);
+	    logger.trace('List: id:' + id + ' - Length:'+keys.length + ' Keys: ' + keys);
+	    return Object.keys(this.cache[id]);
 	}
     }
 
 }))();
-
-//l =

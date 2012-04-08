@@ -4,11 +4,12 @@ Object.merge(RPG,
     require('./Universe.njs'),
     require('./Map.njs'),
     require('./Tileset.njs'),
-    require('./Inventory.njs')
+    require('./Inventory.njs'),
+    require('../../common/Game/TileTypes/item.js')
     );
 
 RPG.Game = new (RPG.GameClass = new Class({
-    routeAccepts : ['PlayCharacter','MoveCharacter','ActivateTile'],
+    routeAccepts : ['PlayCharacter','MoveCharacter','ActivateTile','InventorySwap'],
 
     require : {
 	css : [
@@ -36,12 +37,10 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    return;
 	}
 
-	//RPG.Log('BeforeInit',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 	RPG.InitGame.startGame({
 	    user : request.user,
 	    characterID : request.url.query.characterID
 	}, function(game) {
-
 	    if (!game || game.error) {
 		response.onRequestComplete(response,{
 		    error : game.error
@@ -49,7 +48,6 @@ RPG.Game = new (RPG.GameClass = new Class({
 		return;
 	    }
 
-	    //RPG.Log('BeforeLoad',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 	    RPG.Game.loadGame(game,function(game) {
 		if (game.error) {
 		    response.onRequestComplete(response,{
@@ -57,7 +55,6 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    });
 		    return;
 		}
-		//RPG.Log('AfterLoad',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 		switch (true) {
 		    //process game commands:
 
@@ -87,6 +84,18 @@ RPG.Game = new (RPG.GameClass = new Class({
 			});
 			break;
 
+		    /**
+		     * Swap an inventory item
+		     */
+		    case request.url.query.m == 'InventorySwap' :
+			var options = {};
+			options.clientEvents = JSON.decode(request.data,true);
+			options.game = game;
+			RPG.TileTypes.item.inventorySwap(options, function(events){
+			    RPG.Game.requestComplete(game,events,response);
+			});
+			break;
+
 		    default :
 			/**
 			 * This gets called at the start of playing
@@ -94,7 +103,6 @@ RPG.Game = new (RPG.GameClass = new Class({
 			 *  returns the full contents of the cached game.
 			 */
 			RPG.Game.getViewableTiles(game,function(universe){
-			    //RPG.Log('AfterGetViewable',require('../Cache.njs').Cache.list(request.user.options.userID)+'');
 			    if (universe.error) {
 				response.onRequestComplete(response,universe);
 				return;
@@ -159,7 +167,7 @@ RPG.Game = new (RPG.GameClass = new Class({
      */
     requestComplete : function(game, events, response) {
 	Object.erase(game,'bypassCache');//incease it is here..
-	//RPG.Log('debug',''+Object.keys(game));
+
 	RPG.Game.getViewableTiles(game, function(universeChanges) {
 
 	    //create an object that will get sent back to the cliend
@@ -168,19 +176,16 @@ RPG.Game = new (RPG.GameClass = new Class({
 		//merge any events[event].game objects into the client response
 		Object.each(events,function(event,name,source){
 		    if (event && event.game) {
-			//RPG.Log('Game',name + ' ' + JSON.encode(event.game));
 			Object.merge(toClient,event.game);
-			Object.erase(source,name);//remove it so the client does not recive a dupe
+			Object.erase(event,'game');//remove it so the client does not recive a dupe
 		    }
 		});
 
 		//merge any events.game objects into the client response
 		if (events.game) {
-		    //RPG.Log('Game','Events ' + JSON.encode(events.game));
 		    Object.merge(toClient,events.game);
 		    Object.erase(events,'game');
 		}
-		toClient.events = events;
 	    }
 	    if (universeChanges && !universeChanges.error && universeChanges.maps) {
 		//merge loaded universe tile data which will override any event universe data
@@ -197,8 +202,9 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    Object.merge(toClient.universe.maps[mapName].cache,map.cache);
 		});
 	    }
-	    //RPG.Log('toClient',toClient);
-	    Object.merge(game,toClient);
+	    Object.merge(game,toClient);//updates cached object. beware
+
+	    toClient.events = events;
 
 	    //and send the cleaned up resonse back to the client
 	    response.onRequestComplete(response,RPG.Game.removeSecrets(toClient));
@@ -214,7 +220,7 @@ RPG.Game = new (RPG.GameClass = new Class({
      * callback(game || error)
      */
     loadGame : function(game,callback) {
-	//RPG.Log('LoadGame','Loading Game Universe');
+
 	RPG.Universe.load(game,function(universe) {
 	    if (!universe || universe.error) {
 		callback(universe);
@@ -272,19 +278,13 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	game.moveTo = RPG[game.dir](game.character.location.point,1);
 
-
-	//RPG.Log('MoveEnvent','MoveEnvent Start');
 	RPG.moveCharacterToTile(game,function(moveEvents) {
-	    //RPG.Log('MoveEnvent','MoveEnvent End');
 	    if (moveEvents.error) {
 		callback(moveEvents);
 		return;
 	    }
-
-	    //RPG.Log('Tick','Tick Start');
-	    RPG.Game.tick(game, function(universe){
-		//RPG.Log('Tick','Tick End');
-		callback(moveEvents);
+	    RPG.Game.tick(game, function(tickEvents){
+		callback(Object.merge(moveEvents,tickEvents));
 	    });
 	});
     },
@@ -352,21 +352,21 @@ RPG.Game = new (RPG.GameClass = new Class({
     },
 
     /**
-     * This will move a tile on the current characters map
+     * go through the move objects and move shit around.
      *
-     * options: (see the TileType eg: teleportTo for all options)
-     *
-     * updateOptions:
-     * tileType : the tileType to match
-     * tileOptions : function calling back for info for each tileType being moved
-     * point : the point on the current map to update. if no point, options.game.moveTo is used.
-     *
-     * optional updateOptions
-     * bypassCache : defaults false. determine if we should update the game cache
+     * options: (see the 'TileType' for all options)
+	move looks like :
+	   move {
+	       [to] : {  //json encoed point
+		    [tilePath] : { //json encoded path
+			from : [0,1],
+			options : optsObj //optional contains new options for this tile
+		    }
+		 }
+	   }
      */
-    moveGameTile : function(options,updateOptions,callback) {
-	if (typeof updateOptions.bypassCache != 'boolean') updateOptions.bypassCache = false;
-
+    moveGameTiles : function(options,move,callback) {
+	//
 	//create a empty universe with same options as current
 	//this universe is what gets saved since it only contains the updated tiles
 	var newUniverse = {
@@ -381,67 +381,57 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    cache : {}
 	};
 
+	//the current game map where we will get the 'from' stuff.
 	var currentMap = options.game.universe.maps[options.game.character.location.mapName];
 
-	var moved = false;
+	var moved = false;//make sure something has moved so we don't store needlessly'
 
-	if (updateOptions.tileType && updateOptions.tileOptions) {
-	    options.tiles.each(function(tilePath){
-		var c = Object.getFromPath(currentMap.cache,tilePath);
-		if (!c) return;
-		if (c.options[updateOptions.tileType]) {
-
-		    var moveInfo = updateOptions.tileOptions(c,currentMap,tilePath);
-		    if (!moveInfo) {
-			return;
-		    }
-
-		    //ensure the client will get the new Tile
-		    if (!map.tiles) map.tiles = {};
-		    if (!map.tiles[moveInfo.point[0]])map.tiles[moveInfo.point[0]] = {};
-		    map.tiles[moveInfo.point[0]][moveInfo.point[1]] = Array.clone(currentMap.tiles[moveInfo.point[0]][moveInfo.point[1]]);
-
-		    //push the tile to the new location and set it's new options
-		    RPG.pushTile(map.tiles, moveInfo.point, RPG.cloneTile(currentMap.cache, tilePath, map.cache, moveInfo.options));
-
-		    //ensure the client will get the new Tile
-		    if (!map.tiles) map.tiles = {};
-		    if (!map.tiles[options.game.point[0]])map.tiles[options.game.point[0]] = {};
-		    map.tiles[options.game.point[0]][options.game.point[1]] = currentMap.tiles[options.game.point[0]][options.game.point[1]];
-
-		    //remove the tile from the old location
-		    RPG.removeTile(map.tiles, tilePath, options.game.point);
-
-		    moved = true;
-		}
+	//first copy all the tiles at to/from locations from the games current map, into our new map
+	Object.each(move,function(to,point){
+	    if (!to) return;
+	    point = JSON.decode(point,true);
+	    RPG.setTiles(map.tiles, point,Array.clone(RPG.getTiles(currentMap.tiles,point)));
+	    Object.each(to,function(moveInfo,path){
+		RPG.setTiles(map.tiles, moveInfo.from,Array.clone(RPG.getTiles(currentMap.tiles,moveInfo.from)));
 	    });
-	}
+	});
+
+	//next go through each to location and push them to the new map
+	Object.each(move,function(paths,to){
+	    if (!paths) return;
+	    to = JSON.decode(to,true);
+	    Object.each(paths,function(moveInfo,tilePath){
+		if (!moveInfo) return;
+		tilePath = JSON.decode(tilePath,true);
+
+		//push the tile to the new location and set it's new options
+		//this clones the tileoptions into the map.cache and pushes the path onto the map.tiles
+		RPG.pushTile(map.tiles, to, RPG.cloneTile(currentMap.cache, tilePath, map.cache, moveInfo.options));
+
+		//remove the tile from the old location
+		RPG.removeTile(map.tiles, tilePath, moveInfo.from);
+
+		moved = true;
+	    });
+	});
+
 	if (!moved) {
 	    callback({});
 	    return;
 	}
 
-	if (updateOptions.cache) {
-	    map.cache = updateOptions.cache;
-	}
-
-	if (updateOptions.storeWait) {
-	    callback(newUniverse);
-	} else {
-	    //save our newUniverse tile changes
-	    RPG.Universe.store({
-		user : options.game.user,
-		universe : newUniverse,
-		bypassCache : updateOptions.bypassCache
-	    },callback);
-	}
+	//finally save our newUniverse changes and callback with the universe
+	RPG.Universe.store({
+	    user : options.game.user,
+	    universe : newUniverse,
+	    bypassCache : true
+	},callback);
     },
 
     tick : function(game,callback) {
 
 	//find out what the character can see:
 	var circle = RPG.Game.getViewableArea(game);
-	//RPG.Log('Viewable',''+circle.area.length);
 	var tickEvents = {};//results of tick events
 	var tickChain = new Chain();
 	var tickCompleteChain = new Chain();
@@ -461,11 +451,12 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 		game.point = point;
 
-		//RPG.Log('tick Chain',point+''+tiles);
 		//trigger a tick event on each tile
 		RPG.triggerTileTypes(game,tiles,'tick',tickEvents,function(tickResults) {
 		    if (tickResults) {
-			Object.merge(tickEvents,tickResults);
+			Object.merge(tickEvents,{
+			    tick : tickResults
+			});
 		    }
 		    //move to the next tile
 		    tickChain.callChain();
@@ -475,11 +466,12 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    //add it to the complete chain
 	    tickCompleteChain.chain(function(){
 		game.point = point;
-		//RPG.Log('tick Chain complete',''+tiles);
 		//trigger a tick event on each tile
 		RPG.triggerTileTypes(game,tiles,'tickComplete',tickEvents,function(tickResults) {
 		    if (tickResults) {
-			Object.merge(tickEvents,tickResults);
+			Object.merge(tickEvents,{
+			    tickComplete : tickResults
+			});
 		    }
 		    //move to the next tile
 		    tickCompleteChain.callChain();
@@ -489,8 +481,6 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	//Called Last when all triggers are complete
 	tickChain.chain(function(){
-	    //RPG.Log('tick Chain','Complete');
-	    //RPG.Log('tick Chain Complete','Started');
 	    //start the complete chain
 	    tickCompleteChain.callChain();
 	});
@@ -498,12 +488,9 @@ RPG.Game = new (RPG.GameClass = new Class({
 	//All Finished. Finally callback
 	tickCompleteChain.chain(function(){
 	    callback(tickEvents);
-	//RPG.Log('tick Chain Complete','Complete');
 	});
 
 	//start triggering
-	//RPG.Log('tick Chain','Started');
 	tickChain.callChain();
     }
-
 }))();

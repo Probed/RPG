@@ -15,8 +15,7 @@ RPG.CharacterEquipment = new Class({
 	this.game = game;
 
 	this.tips = new Tips([],{
-	    showDelay: 100,
-	    fixed : true,
+	    showDelay: 0,
 	    offset : {
 		y : 35,
 		x : -20
@@ -43,7 +42,7 @@ RPG.CharacterEquipment = new Class({
 		    properties : {
 			id : '',
 			cellpadding : 0,
-			cellspacing : 2
+			cellspacing : 0
 		    },
 		    headers : [],
 		    rows  :[
@@ -56,7 +55,7 @@ RPG.CharacterEquipment = new Class({
 			    properties : {
 				id : 'CharacterEquipmentTable',
 				cellpadding : 0,
-				cellspacing : 2
+				cellspacing : 0
 			    },
 			    headers : [],
 			    rows  :[[]],
@@ -77,8 +76,7 @@ RPG.CharacterEquipment = new Class({
 				border : 0,
 				align : 'center',
 				styles : {
-				    'border-spacing' : '8px',
-				    'border-collapse' : 'separate'
+				    'background-color' : '#3e3e3e'
 				}
 			    },
 			    headers : [],
@@ -103,6 +101,11 @@ RPG.CharacterEquipment = new Class({
 		    js :['/common/Character/CharacterSlots.js'],
 		    onloaded : function() {
 			this.refresh();
+			$('characterEquipmentWindow').addEvents({
+			    mousedown : function(event) {
+			    //event.preventDefault();
+			    }
+			});
 			$('characterEquipmentWindow').adopt(
 			    RPG.elementFactory.buttons.actionButton({
 				'class' : 'WinFootRight',
@@ -197,10 +200,8 @@ RPG.CharacterEquipment = new Class({
 	    item.tipText = new Element('div',{
 		html : 'Slot Empty'
 	    });
-	    if (/Growth/.test(key)) {
-		if ((slot.partOf && this.game[slot.partOf]) || (this.game[slot.id])) {
-		    add = true;
-		}
+	    if (/Growth/.test(key) && ((slot.partOf && this.game.character[slot.partOf]))) {
+		add = true;
 	    } else {
 		//fix rows where we need to colspan certain items for astetics
 		if (!this.game.character.GrowthHead && (/Head/.test(slot.partOf) || /Head/.test(key) || /^Neck$/.test(key) || /^LeftArm$/.test(key) || /^LeftHand$/.test(key) || /^LeftFinger3$/.test(key))) {
@@ -216,22 +217,45 @@ RPG.CharacterEquipment = new Class({
 			colOffset = 1;
 		    }
 		}
+
 		add = true;
+
 	    }
 
 	    if (add) {
+		var inv = this.game.inventory.equipment;
+		var styles = RPG.getMapTileStyles({
+		    map : inv,
+		    row : slot.row,
+		    col : slot.col,
+		    rowOffset : 0,
+		    colOffset : 0,
+		    zoom : 24
+		});
+		var tiles = inv.tiles && inv.tiles[slot.row] && inv.tiles[slot.row][slot.col];
+		var tileCount = 0;
+		if (tiles) {
+		    tileCount = tiles.length;
+		}
 		rows[slot.row][slot.col+colOffset] = Object.merge({
-		    content : RPG.elementFactory.character.characterSlot({
-			id : slot.id,
-			tipTitle : slot.title + '<br><span class="textSmall">' + slot.desc + '</span>',
-			tipText : item.tipText,
-			tips : this.tips
-
-		    })
+		    properties : {
+			'class' : 'ItemDrop',
+			row : slot.row,
+			col : slot.col,
+			inventory : 'equipment'
+		    },
+		    content : (new RPG.Item(this.game,inv.cache,tiles && tiles[0],this.tips,new Element('div',{
+			html : (tileCount > 1 && tileCount) || '&nbsp;',
+			styles : Object.merge(styles,{
+			    'background-size' : '100% 100%',
+			    'background-position' : '0% 0%',
+			    //'background-color' : '#3e3e3e',
+			    'display' : 'inline-block'
+			})
+		    }))).toElement()
 		},(colSpan==1?{}:{
 		    properties : {
-			colspan : colSpan,
-			'class' : 'textCenter'
+			colspan : colSpan
 		    }
 		}));
 	    }
@@ -403,7 +427,7 @@ RPG.CharacterEquipment = new Class({
 		    colOffset : 0,
 		    zoom : 32
 		});
-		var tiles = inv.tiles[r] && inv.tiles[r][c];
+		var tiles = inv.tiles && inv.tiles[r] && inv.tiles[r][c];
 		var tileCount = 0;
 		if (tiles) {
 		    tileCount = tiles.length;
@@ -411,16 +435,19 @@ RPG.CharacterEquipment = new Class({
 
 		row.push({
 		    properties : {
-			'class' : 'CharacterInventory textTiny'
+			'class' : 'CharacterInventory textTiny ItemDrop',
+
+			row : r,
+			col : c,
+			inventory : 'character'
 		    },
-		    content : (new RPG.Item(inv.cache,tiles && tiles[0])).attachToolTip(this.tips,new Element('div',{
+		    content : (new RPG.Item(this.game,inv.cache,tiles && tiles[0],this.tips,new Element('div',{
 			html : (tileCount > 1 && tileCount) || '&nbsp;',
 			styles : Object.merge(styles,{
-			    border : '1px solid white',
 			    'background-size' : '100% 100%',
 			    'background-position' : '0% 0%'
 			})
-		    }))
+		    }))).toElement()
 		});
 
 		styles = null;

@@ -1,28 +1,47 @@
-var RPG = module.exports = {};
-Object.merge(RPG,require('../Database/mysql.njs'));
-Object.merge(RPG,require('../../common/appInfo.js'));
+var RPG = {};
 
-RPG.logID = 0;
+if (typeof exports != 'undefined') {
+    Object.merge(RPG,require('../Database/mysql.njs'));
+    Object.merge(RPG,require('../../common/appInfo.js'));
+    RPG.Log = require('log4js');
+    var log = RPG.Log.getLogger('Log');
+    RPG.Log.configure(undefined,{
+	reloadSecs:5
+    });
 
-RPG.Log = function(type, options) {
-    if (!RPG.appInfo || !RPG.appInfo.test || !RPG.appInfo.debug) return;
+    RPG.Log.requiredOptions = function(options,requiredKeys,logger,callback) {
+	var errors = [];
+	if (!options) {
+	    errors.push('"options" argument missing.');
+	}
+	if (!requiredKeys && typeof requiredKeys == 'array') {
+	    errors.push('"requiredKeys" argument missing or not an array.');
+	}
+	if (typeof callback != 'function') {
+	    errors.push('callback must be a function.');
+	}
 
-    var message = '('+(RPG.logID++)+')';
-    if (type) {
-	message += '['+type.toUpperCase()+']: ';
+	if (errors && errors.length == 0) {
+	    var optKeys = Object.keys(options);
+	    Array.clone(requiredKeys).each(function(key){
+		if (optKeys.contains(key)) {
+		    requiredKeys.erase(key);
+
+		}
+	    });
+	    if (requiredKeys.length != 0) {
+		errors.push('Missing option values: ' + requiredKeys);
+	    }
+	}
+
+	if (errors && errors.length > 0) {
+	    (options.user && options.user.logger || logger || log).fatal(errors+'');
+	    callback({
+		error : errors
+	    });
+	    return false;
+	}
+	return true;
     }
-    if (typeOf(options) == 'string') {
-	require('util').log(message+options+String.fromCharCode(13));
-	return;
-    } else if (typeOf(options) == 'object') {
-	require('util').log(message+JSON.stringify(options) +String.fromCharCode(13));
-	return;
-    }
-    if (options && options.message) {
-	message += options.message +String.fromCharCode(13);
-    }
-    if (options && options.exception) {
-    //message += options.exception;
-    }
-    require('util').log(message+String.fromCharCode(13));
+    module.exports = RPG;
 }

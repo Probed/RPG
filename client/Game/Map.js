@@ -451,6 +451,12 @@ RPG.Map = new Class({
 
 	var charPoint = this.game.character.location.point;
 	var moveTo = this.game.moveTo;
+	var zoom = this.mapZoom;
+	var dir = this.game.dir;
+	var transition = Fx.Transitions.linear;
+	var duration = 150;
+	var fps = 30;
+
 
 	var animations = [];
 	var aniLeft = 0;
@@ -461,65 +467,175 @@ RPG.Map = new Class({
 	    }
 	};
 
+
 	if (!RPG.pointsEqual(charPoint,moveTo)) {
 	    var charDiv = this.game.Character.toElement();
 	    var charTD = charDiv.getParent();
-	    var zoom = this.mapZoom;
-	    var dir = this.game.dir;
+	    if (charTD) {
 
-	    charDiv.setStyle('position','absolute');
-	    charDiv.setStyle('top',charTD.getPosition($('GameMap')).y+this.mapZoom);
-	    charDiv.setStyle('left',charTD.getPosition($('GameMap')).x+this.mapZoom);
+		charDiv.setStyle('position','absolute');
+		charDiv.setStyle('top',charTD.getPosition($('GameMap')).y+this.mapZoom);
+		charDiv.setStyle('left',charTD.getPosition($('GameMap')).x+this.mapZoom);
 
-	    this.game.Character.changeDirection(this.game.dir);
-	    var transition = Fx.Transitions.linear;
-	    animations.push(function() {
-		(new Fx.Tween($('GameTable'),{
-		    duration : 150,
-		    fps : 30,
-		    transition : transition,
-		    property : (dir == 's' || dir=='n'?'top':'left'),
-		    onComplete : function(){
-			complete();
-		    }
-		})).start(
-		    Number.from($('GameTable').getStyle(dir == 's'||dir=='n'?'top':'left')),
-		    Number.from($('GameTable').getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?1:-1))
-		    );
-	    });
-
-	    animations.push(function() {
-
-		(new Fx.Tween(charDiv,{
-		    duration : 150,
-		    fps : 30,
-		    transition : transition,
-		    property : (dir == 's' || dir=='n'?'top':'left'),
-		    onComplete : function(){
-			charDiv.setStyle('position',null).setStyle('top',null).setStyle('left',null);
-			complete();
-		    }
-		})).start(
-		    Number.from(charDiv.getStyle(dir == 's'||dir=='n'?'top':'left')),
-		    Number.from(charDiv.getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?-1:1))
-		    );
-	    });
-
-	    $$('.teleportToLabel').each(function(label){
+		this.game.Character.changeDirection(this.game.dir);
 		animations.push(function() {
 
-		    (new Fx.Tween(label,{
-			duration : 150,
-			fps : 30,
+		    (new Fx.Tween(charDiv,{
+			duration : duration,
+			fps : fps,
 			transition : transition,
 			property : (dir == 's' || dir=='n'?'top':'left'),
 			onComplete : function(){
+			    charDiv.setStyle('position',null).setStyle('top',null).setStyle('left',null);
 			    complete();
 			}
 		    })).start(
-			Number.from(label.getStyle(dir == 's'||dir=='n'?'top':'left')),
-			Number.from(label.getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?1:-1))
+			Number.from(charDiv.getStyle(dir == 's'||dir=='n'?'top':'left')),
+			Number.from(charDiv.getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?-1:1))
 			);
+		});
+		
+		if (!this.draggingMap) {
+		    animations.push(function() {
+			(new Fx.Tween($('GameTable'),{
+			    duration : duration,
+			    fps : fps,
+			    transition : transition,
+			    property : (dir == 's' || dir=='n'?'top':'left'),
+			    onComplete : function(){
+				charDiv.setStyle('position',null).setStyle('top',null).setStyle('left',null);
+				complete();
+			    }
+			})).start(
+			    Number.from($('GameTable').getStyle(dir == 's'||dir=='n'?'top':'left')),
+			    Number.from($('GameTable').getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?1:-1))
+			    );
+		    });
+
+
+		    $$('.teleportToLabel').each(function(label){
+			animations.push(function() {
+
+			    (new Fx.Tween(label,{
+				duration : duration,
+				fps : fps,
+				transition : transition,
+				property : (dir == 's' || dir=='n'?'top':'left'),
+				onComplete : function(){
+				    complete();
+				}
+			    })).start(
+				Number.from(label.getStyle(dir == 's'||dir=='n'?'top':'left')),
+				Number.from(label.getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?1:-1))
+				);
+			});
+		    });
+		}
+	    }
+	}
+
+	if (Object.getFromPath(results,'events.tickComplete.move')) {
+	    var map = results.universe.maps[this.game.character.location.mapName];
+	    var currentMap = this.game.universe.maps[this.game.character.location.mapName];
+	    var rowOffset = this.rowOffset;
+	    var colOffset = this.colOffset;
+	    Object.each(results.events.tickComplete.move,function(paths,to) {
+		to = JSON.decode(to,true);
+		var moveToTD = $('mR'+(to[0]-rowOffset)+'mC'+(to[1]-colOffset));
+
+		Object.each(paths,function(moveInfo,path) {
+		    var moveFromTD = $('mR'+(moveInfo.from[0]-rowOffset)+'mC'+(moveInfo.from[1]-colOffset));
+		    if (!moveFromTD && !moveToTD) return;
+		    path = JSON.decode(path,true);
+
+
+		    animations.push(function() {
+			var styles = RPG.getMapTileStyles({
+			    map : {
+				cache : map.cache,
+				tiles : [path]
+			    },
+			    zoom : zoom
+			});
+
+			var top = 0;
+			var left = 0;
+
+			//going the opposite direction of the character
+			if (moveInfo.dir == RPG.dir_opp[dir]) {
+			    if (moveInfo.dir == 'n') top = -zoom*2;
+			    else if (moveInfo.dir == 's') top = zoom*2;
+			    else if (moveInfo.dir == 'e') left = zoom*2;
+			    else if (moveInfo.dir == 'w') left = -zoom*2;
+
+			//not going the same way as the character
+			} else if (moveInfo.dir != dir) {
+			    if (dir == 'n') {
+				top = zoom;
+				if (moveInfo.dir == 'w') left = -zoom;
+				if (moveInfo.dir == 'e') left = zoom;
+			    }
+			    if (dir == 's') {
+				top = -zoom;
+				if (moveInfo.dir == 'w') left = -zoom;
+				if (moveInfo.dir == 'e') left = zoom;
+			    }
+			    if (dir == 'e') {
+				left = -zoom;
+				if (moveInfo.dir == 'n') top = -zoom;
+				if (moveInfo.dir == 's') top = zoom;
+			    }
+			    if (dir == 'w') {
+				left = zoom;
+				if (moveInfo.dir == 'n') top = -zoom;
+				if (moveInfo.dir == 's') top = zoom;
+			    }
+			}
+			//create a div for the move tile
+			var moveDiv = new Element('div',{
+			    styles : Object.merge(styles,{
+				position : 'absolute',
+				top : 0,
+				left : 0
+			    }),
+			    html : '&nbsp'
+			});
+			$('GameMap').adopt(moveDiv);
+
+			//repaint that maptile
+			if (moveFromTD) {
+			    moveDiv.setStyles({
+				top : moveFromTD.getPosition($('GameMap')).y,
+				left : moveFromTD.getPosition($('GameMap')).x
+			    });
+			    RPG.removeTile(currentMap.tiles,path,moveInfo.from);
+			    moveFromTD.setStyles(RPG.getMapTileStyles({
+				map : {
+				    cache : currentMap.cache,
+				    tiles : RPG.getTiles(currentMap.tiles,moveInfo.from)
+				},
+				zoom : zoom
+			    }));
+			} else {
+			    moveDiv.setStyles({
+				top : moveToTD.getPosition($('GameMap')).y - (zoom * (moveInfo.dir == 'n'?1:moveInfo.dir=='s'?-1:0)),
+				left : moveToTD.getPosition($('GameMap')).x - (zoom * (moveInfo.dir == 'e'?1:moveInfo.dir=='w'?-1:0))
+			    });
+			}
+
+			(new Fx.Morph(moveDiv,{
+			    duration : duration,
+			    fps : fps,
+			    transition : transition,
+			    onComplete : function(){
+				moveDiv.destroy();
+				complete();
+			    }
+			})).start({
+			    top: moveDiv.getPosition($('GameMap')).y + top,
+			    left :moveDiv.getPosition($('GameMap')).x + left
+			});
+		    });
 		});
 	    });
 	}

@@ -218,8 +218,6 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 				}
 			    }
 			}
-			//RPG.Log('teleporTo',toClient);
-			//callback
 			callback(toClient);
 		    });
 		});

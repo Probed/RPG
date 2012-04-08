@@ -100,7 +100,6 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
     Object.each(mergedTileOptions.options,function(content,key,source){
 	//if there exists a function to handle this trigger; create a function wrapper, push it onto the stack then execute each one after the other.
 	if (typeof exports != 'undefined' && (!RPG.TileTypes || !RPG.TileTypes[key])) {
-	    //RPG.Log('filesystem','TileType lookup: '+key+'.js');
 	    if (require('path').existsSync('./common/Game/TileTypes/'+key+'.js')) {
 		Object.merge(RPG,require('../TileTypes/'+key+'.js'))
 	    } else {
@@ -154,9 +153,6 @@ RPG.triggerTileTypes = function(options, tiles, event, events, callback) {
  */
 RPG.moveCharacterToTile = function(options,callback) {
 
-    //    if (typeof exports != 'undefined') {
-    //	RPG.Log('MoveEvent Universe',options.universe);
-    //    }
     var map = options.universe.maps[options.character.location.mapName];
     if (!map) callback({});
     var newLocTiles = map.tiles && map.tiles[options.moveTo[0]] && map.tiles[options.moveTo[0]][options.moveTo[1]];
@@ -378,9 +374,16 @@ RPG.createTile = function(path, cache, options) {
     return newPath;
 }
 
+RPG.getTiles = function(tiles,point) {
+    if (!tiles || !tiles[point[0]] || !tiles[point[0]][point[1]]) return null;
+    return tiles[point[0]][point[1]];
+}
+
 RPG.cloneTile = function(original_cache, clonePath, new_cache, options) {
     if (!clonePath || !original_cache || !new_cache) return null;
     var orig = Object.getFromPath(original_cache,clonePath);
+
+    if (!orig || !orig.options) return null;
 
     //merge together the options from the original cache, and the incoming options
     options = Object.merge(Object.clone(orig.options),options);
@@ -389,34 +392,63 @@ RPG.cloneTile = function(original_cache, clonePath, new_cache, options) {
     return RPG.createTile(RPG.trimPathOfNameAndFolder(clonePath),new_cache,options);
 }
 
+RPG.cloneTiles = function(original_cache, clonePaths, new_cache, options) {
+    if (!original_cache || !clonePaths || !new_cache) return false;
+    if (clonePaths && typeof clonePaths[0] == 'string') clonePaths = [clonePaths];
+    var cp = [];
+    clonePaths.each(function(path){
+	cp.push(RPG.cloneTile(original_cache,path,new_cache,options) || null);
+    });
+    cp.clean();
+    return cp.length>0?cp:false;
+}
+
 RPG.removeAllTiles = function(tiles,point) {
     if (!tiles) return;
     if (!tiles[point[0]]) return;
-    Object.erase(tiles[point[0]],point[1]);
+    tiles[point[0]][point[1]] = [];
+}
+RPG.removeTiles = function(tiles,paths,point) {
+    var rem = [];
+    if (!tiles || !paths || !point) return null;
+    paths.each(function(path) {
+	rem.push(RPG.removeTile(tiles,path,point));
+    });
+    rem.clean();
+    return rem;
 }
 
 RPG.removeTile = function(tiles,path,point) {
     if (!path) return null;
     var rem = RPG.tilesContainsPath(tiles,path,point);
     if (!rem) return false;
+    var rt = []
     rem.each(function(tile){
-	tiles[point[0]][point[1]].erase(tile);
+	rt.push(tiles[point[0]][point[1]].erase(tile) || null);
     });
-    return rem;
+    rt.clean();
+    return rt.length > 0?rt:false;
 }
 
-RPG.removeCacheTiles = function(cache,paths) {
-    if (!cache || !paths) return;
+RPG.deleteTiles = function(map,paths,point) {
+    if (!map || !paths) return null;
+    var rem = [];
     paths.each(function(path){
-	RPG.removeCacheTile(cache,path);
+	rem.push(RPG.deleteTile(map,path,point) || null);
     });
+    rem.clean();
+    return rem.length > 0?rem:false;
 }
 
-RPG.removeCacheTile = function(cache,path) {
-    var tileName = path.pop();
-    var rem = Object.getFromPath(cache,path);
-    if (!rem) return;
-    Object.erase(rem,tileName);
+RPG.deleteTile = function(map,path,point) {
+    var rem = Object.getFromPath(map.cache,path);
+    if (!rem) return false;
+    Object.pathToObject(rem,'options.database').child.deleted = true;
+    rem = false;//reusing var
+    if (point && map.tiles) {
+	rem = RPG.removeTile(map.tiles,path,point);
+    }
+    return rem;
 }
 
 RPG.pushTile = function(tiles,point,path) {
@@ -432,17 +464,17 @@ RPG.pushTile = function(tiles,point,path) {
     return path;
 }
 RPG.pushTiles = function(tiles,point,paths) {
-    var ret = [];
-    if (!paths) return null;
+    if (!paths || !tiles || !point) return false;
+    var tls = [];
     if (typeOf(paths[0]) == 'array') {
 	var len = paths.length;
 	for (var i=0;i<len;i++) {
-	    ret.push(RPG.pushTile(tiles,point,paths[i]));
+	    tls.push(RPG.pushTile(tiles,point,paths[i]));
 	}
     } else {
-	ret.push(RPG.pushTile(tiles,point,paths));
+	tls.push(RPG.pushTile(tiles,point,paths));
     }
-    return ret;
+    return tls.length > 0?tls:false;
 }
 
 RPG.appendTile = function(tiles,point,path) {
@@ -452,24 +484,26 @@ RPG.appendTile = function(tiles,point,path) {
     if (!RPG.tilesContainsPath(tiles,path,point) && !RPG.isTileBlocked(tiles,point)) {
 	if (!tiles[r]) tiles[r] = {};
 	if (!tiles[r][c]) tiles[r][c] = [];
-
 	tiles[r][c].append(typeOf(path) == 'string'?path.split('.'):path);
+	r=c=null;
+	return path;
     }
-    r=c=null;
+    return false;
+
 }
 
-RPG.setTile = function(tiles,point,path) {
+RPG.setTiles = function(tiles,point,paths) {
+    if (!tiles || !paths || !point) return false;
     var r = point[0];
     var c = point[1];
-    if (!RPG.tilesContainsPath(tiles,path,r,c)) {
-	if (!tiles[r]) tiles[r] = {};
-	if (!tiles[r][c]) tiles[r][c] = [];
-	tiles[r][c] = [(typeOf(path) == 'string'?path.split('.'):path)];
-    }
+    if (!tiles[r]) tiles[r] = {};
+    tiles[r][c] = paths;
     r=c=null;
+    return paths;
 }
 
 RPG.unshiftTile = function(tiles,point,path) {
+    if (!tiles || !path || !point) return false;
     var r = point[0];
     var c = point[1];
     if (!path) return;
@@ -477,8 +511,11 @@ RPG.unshiftTile = function(tiles,point,path) {
 	if (!tiles[r]) tiles[r] = {};
 	if (!tiles[r][c]) tiles[r][c] = [];
 	tiles[r][c].unshift(typeOf(path) == 'string'?path.split('.'):path);
+	r=c=null;
+	return path;
     }
     r=c=null;
+    return false;
 }
 
 RPG.replaceTile = function(tiles,oldPath,point,newPath) {
@@ -519,7 +556,7 @@ RPG.isTileBlocked = function(tiles,point) {
 }
 
 RPG.trimPathOfNameAndFolder = function(path) {
-    return path.slice(1,path.length-1);
+    return path && path.slice(1,path.length-1);
 }
 
 /**

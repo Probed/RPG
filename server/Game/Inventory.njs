@@ -1,8 +1,62 @@
 var RPG = module.exports = {};
 Object.merge(RPG,require('../../common/Game/Tiles/Utilities.js'));
 
+var logger = RPG.Log.getLogger('RPG.Inventory');
 
 RPG.Inventory = new (RPG.InventoryClass = new Class({
+
+    initialize : function() {
+	logger.trace('Initialized');
+    },
+    /**
+     * Load multiple inventories
+     * options :
+     *	    user
+     *	    character
+     *	    names
+     *
+     */
+    loadInventories : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['character','user','names'],logger,callback)){
+	    return;
+	}
+
+	options.user.logger.info('Loading Inventories: ' + options.names);
+	var inventory = {};
+	var load = this.loadInventory;
+	var loadChain = new Chain();
+	var errors = [];
+	options.names.each(function(name,index){
+	    loadChain.chain(function(){
+		if (index == 0) {
+		    options.user.logger.trace('Inventories Start Load Chain.');
+		}
+		options.name = name;
+		load(options,function(inv){
+		    if (inv && inv.error) {
+			errors.push(inv.error);
+		    } else {
+			Object.merge(inventory,inv);
+		    }
+		    options.user.logger.trace('Inventories Next Load Chain.');
+		    loadChain.callChain();
+		});
+
+	    });
+	});
+	loadChain.chain(function(){
+	    if (errors.length > 0) {
+		callback({
+		    error : errors
+		});
+	    } else {
+		options.user.logger.trace('Inventories Finished Load Chain.');
+		callback(inventory);
+	    }
+	});
+	loadChain.callChain();
+    },
+
     /**
      * required options:
      *	    user
@@ -14,11 +68,14 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
      * callback(inventory || error)
      */
     loadInventory : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['character','user','name'],logger,callback)){
+	    return;
+	}
 
 	if (!options.bypassCache) {
 	    var inventory = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+options.name);
 	    if (inventory) {
-		//RPG.Log('cached','Inventory: '+JSON.encode(inventory));
+		options.user.logger.trace('Inventory Load "'+options.name+'" (cached)');
 		RPG.Inventory.loadTiles(options,function(tileInv){
 		    if (tileInv.error) {
 			callback(tileInv);
@@ -49,12 +106,12 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 	RPG.Mysql.query(sql,args,
 	    function(err,iResults) {
 		if (err) {
+		    options.user.logger.error('Inventory Load error: name:'+options.name + ' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
 		} else if (iResults && iResults[0]) {
 		    var iResult = iResults[0];
-		    //RPG.Log('database hit','Loaded Inventory: '+ (iResult['name']));
 		    var inventory = {};
 
 		    inventory[iResult['name']] = {
@@ -66,8 +123,10 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		    options.tilePoints = 'all';
 
 		    if (!options.bypassCache) {
+			options.user.logger.trace('Inventory Load Cached: name:'+options.name);
 			require('../Cache.njs').Cache.merge(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+options.name,inventory);
-			//RPG.Log('cached','Inventory Merge Retrieve: '+JSON.encode(require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+options.name)));
+		    } else {
+			options.user.logger.trace('Inventory Loaded Non-cache: name:'+options.name);
 		    }
 		    RPG.Inventory.loadTiles(options,function(tileInv){
 			if (tileInv.error) {
@@ -78,49 +137,12 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		    });
 
 		} else {
+		    options.user.logger.warn('Inventory Load warning: name:'+options.name + ' Not Found.');
 		    callback({});
 		}
 	    });
     },
-    /**
-     * Checks for Duplicate Inventory Name
-     * required options:
-     * name
-     *
-     * optional options:
-     * characterID //ignore for updates
-     *
-     * return
-     * callback(dupeName || null if ok)
-     */
-    checkDupeInventoryName : function(options,callback) {
 
-	RPG.Mysql.query(
-	    'SELECT name ' +
-	    'FROM inventory ' +
-	    'WHERE name = ? ' +
-	    'AND characterID <> ? ',
-	    [
-	    options.name,
-	    options.characterID
-	    ],
-	    function(err,iResults) {
-		if (err) {
-		    callback({
-			error : err
-		    });
-		} else {
-		    if (iResults && iResults[0] && iResults[0]['name']) {
-			callback({
-			    error : 'You have a Inventory named <b>"'+iResults[0]['name']+'"</b> already.<br>Please choose another name.'
-			});
-		    } else {
-			callback();
-		    }
-		}
-	    }
-	    );
-    },
     /**
      * Store Inventory data
      *
@@ -133,6 +155,10 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
      * callback(inventory || error)
      */
     storeInventory : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['character','user','inventory'],logger,callback)){
+	    return;
+	}
+
 	options.errors = options.errors || [];
 
 	var remove = null;
@@ -158,12 +184,19 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			],
 			function(err,info){
 			    if (err) {
+				options.user.logger.error('Inventory Store - Delete error: name:'+name + ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database delete','Inventory '+ db.inventoryID);
 				if (info.affectedRows) {
+				    if (!options.bypassCache) {
+					require('../Cache.njs').Cache.remove(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+name);
+					options.user.logger.trace('Inventory Store Deleted (cached): inventory: '+name);
+				    } else {
+					options.user.logger.trace('Inventory Store Deleted (non-cached): inventory: '+name);
+				    }
 				    Object.erase(options.inventory,name);
 				} else {
+				    options.user.logger.error('Inventory Store - Delete error: name:'+name + ' error: 0 Affected Rows');
 				    options.errors.push('Could not delete Inventory ' + inv.options.property.name);
 				}
 			    }
@@ -184,12 +217,14 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			],
 			function(err,info){
 			    if (err) {
+				options.user.logger.error('Inventory Store - Update error: name:'+name + ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database delete','Inventory '+ db.inventoryID);
 				if (info.affectedRows) {
+				    options.user.logger.trace('Inventory Store - Updated '+info.affectedRows+' name:'+name);
 				    inv.options.database = db;
 				} else {
+				    options.user.logger.error('Inventory Store - Update error: name:'+name + ' error: 0 Affected Rows');
 				    options.errors.push('Could not update inventory item ' + inv.options.property.name);
 				}
 			    }
@@ -208,15 +243,17 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		    ],
 		    function(err,info){
 			if (err) {
+			    options.user.logger.error('Inventory Store - Insert error: name:'+name + ' error: '+ JSON.encode(err));
 			    options.errors.push(err);
 			} else {
 
 			    if (info && info.insertId) {
 				inv.options.database = {
 				    inventoryID : info.insertId
-				}
-				//RPG.Log('database Insert','Inventory '+ info.insertId+ ' ' + inv.options.property.name);
+				};
+				options.user.logger.trace('Inventory Insert - Updated id:'+info.insertId+' name:'+name + ' error: '+ JSON.encode(err));
 			    } else {
+				options.user.logger.error('Inventory Insert - Update error: name:'+name + ' error: 0 Inserted Rows');
 				options.errors.push('Could not insert inventory item ' + inv.options.property.name);
 			    }
 			}
@@ -225,7 +262,9 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 	});
 
 	//now that everything is all queued up:
+	options.user.logger.trace('Inventory Store - Starting Store Queue: ' + Object.keys(options.inventory));
 	RPG.Mysql.executeQueues([remove,update,insert],true,function(){
+	    options.user.logger.trace('Inventory Store - Finished Store Queue: ' + Object.keys(options.inventory));
 	    if (options.errors && options.errors.length > 0) {
 		callback({
 		    error : options.errors
@@ -247,6 +286,12 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			})
 			return;
 		    }
+		    Object.each(options.inventory,function(inv,name){
+			if (!options.bypassCache) {
+			    require('../Cache.njs').Cache.merge(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+name,Object.clone(options.inventory));
+			    options.user.logger.trace('Inventory Store Updated (cached): inventory: '+name);
+			}
+		    });
 		    callback(options.inventory);
 		});
 
@@ -256,24 +301,30 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
     },
     /**
      * List available inventory
-     *	    character
+     *	    character,
+     *	    user //@todo restrict by user
      *
      * returns:
      * callback(inventory || error)
      */
-    listInventory : function(options,callback) {
+    listInventories : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['character','user'],logger,callback)){
+	    return;
+	}
+
 	RPG.Mysql.query(
 	    'SELECT inventoryID, i.name, options, '+
-	    '   (SELECT count(1) FROM inventorytiles WHERE inventoryID = ts.inventoryID) as totalArea, ' +
-	    '   (SELECT count(1) FROM inventorycache WHERE inventoryID = ts.inventoryID) as totalObjects ' +
+	    '   (SELECT count(1) FROM inventorytiles WHERE inventoryID = i.inventoryID) as totalArea, ' +
+	    '   (SELECT count(1) FROM inventorycache WHERE inventoryID = i.inventoryID) as totalObjects ' +
 	    'FROM inventory i ' +
 	    'WHERE i.characterID = ? ' +
 	    'ORDER BY i.name ASC',
 	    [
-	    options.character.database.characterID
+	    options.character.database && options.character.database.characterID
 	    ],
 	    function(err,results) {
 		if (err) {
+		    options.user.logger.error('Inventory List error: characterID:'+(options.character.database.characterID)+ ' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
@@ -295,12 +346,13 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 				    )
 			    };
 			});
-
+			options.user.logger.trace('Inventory Listing '+results.length+' for characterID:'+options.character.database.characterID);
 			callback(inventory);
 
 		    } else {
+			options.user.logger.warn('Inventory List not found for characterID:'+options.character.database.characterID);
 			callback({
-			    error : 'No Inventory found.'
+			    error : 'No Inventories found.'
 			});
 		    }
 		}
@@ -330,21 +382,28 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
      *
      */
     loadTiles : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['character','name','user'],logger,callback)){
+	    return;
+	}
 	if (!options.tilePoints) {
 	    callback({});
 	    return;
 	}
+
 	var cachedTiles = null;
 	if (!options.bypassCache) {
 	    var cachedInv = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+options.name);
-	    if (cachedInv && cachedInv[options.name]) {
+	    options.user.logger.trace('Inventory Load Tiles (cached) from '+options.name);
+	    if (cachedInv && cachedInv[options.name] && cachedInv[options.name].tiles) {
 		cachedTiles = cachedInv[options.name].tiles;
 	    }
 	}
 
 	var points = [];
 	if  (options.tilePoints == 'all') {
-	//allow 'all' to go through
+	    //allow 'all' to go through
+	    options.user.logger.trace('Inventory Load All Tiles');
+
 	} else {
 	    options.tilePoints.each(function(point){
 		if (cachedTiles && cachedTiles[point[0]] && cachedTiles[point[0]][point[1]]) {
@@ -359,7 +418,7 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		    points[1] = points[0];
 		}
 	    } else {
-		//RPG.Log('cache','Inventory LoadTiles: none to load.');
+		options.user.logger.trace('Inventory Load Tiles. No points specified for ' + options.name);
 		callback({});
 		return;
 	    }
@@ -383,6 +442,7 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 	RPG.Mysql.query(sql,args,
 	    function(err,iResults) {
 		if (err) {
+		    options.user.logger.error('Inventory Load Tiles error: name: '+options.name+ ' error: '+ JSON.encode(err));
 		    callback({
 			error: err
 		    });
@@ -400,16 +460,15 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			    tCache.push(JSON.encode(tile));//push this tilePath for cache lookup
 			});
 		    });
-		    //RPG.Log('database hit','Inventory LoadTiles: Loaded tiles from "'+options.name+"");
-
 		    var inventory = {};
 		    inventory[options.name] = {
 			tiles : tiles
 		    };
-		    //RPG.Log('inventory tiles',inventory);
 		    if (!options.bypassCache) {
 			require('../Cache.njs').Cache.merge(options.user.options.userID,'inventory_'+options.character.database.characterID+'_'+options.name,Object.clone(inventory));
-			//RPG.Log('cached','Inventory Tiles Merge Retrieve: '+JSON.encode(require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+options.name)));
+			options.user.logger.trace('Inventory Loaded Tiles Cached: name:'+options.name + ' count: '+iResults.length);
+		    } else {
+			options.user.logger.trace('Inventory Loaded Tiles Non-cached: name:'+options.name + ' count: '+iResults.length);
 		    }
 
 		    options.paths = tCache.unique();
@@ -426,7 +485,7 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			cache = null;
 		    });
 		} else {
-		    //RPG.Log('database hit','No Inventory Tiles Found.');
+		    options.user.logger.warn('Inventory Load Tiles warning: name: '+options.name+ ' error: No Tiles Found.');
 		    callback({});
 		}
 	    }
@@ -436,11 +495,16 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
      * Insert the universes inventory iiles into the database,
      * required options :
      * user
-     * universe
+     * character
+     * inventory
      *
      * callback(options.universe || errors)
      */
     storeTiles : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['character','inventory','user'],logger,callback)){
+	    return;
+	}
+
 	options.errors = options.errors || [];
 
 	var remove = null;
@@ -456,7 +520,6 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 
 		//remove tiles specified in db.tileDelete (array of points)
 		if (db && db.tileDelete) {
-		    //RPG.Log('database delete','Tile Delete');
 		    db.tileDelete.each(function(point){
 			if (!point || typeOf(point) != 'string') return;
 			del.push(RPG.getPointSQL(point.split(',')));
@@ -471,19 +534,21 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			remove.queue('DELETE FROM inventorytiles ' +
 			    'WHERE inventoryID = ? ' +
 			    'AND point in ('+del.join(',')+') '+
-			    'AND inventoryID in (SELECT inventoryID FROM inventory WHERE characterID = ?)',
+			    'AND inventoryID in (SELECT inventoryID FROM inventory WHERE characterID = ?) ',
 			    [
 			    db.inventoryID,
 			    options.character.database.characterID
 			    ],
 			    function(err,info) {
 				if (err) {
+				    options.user.logger.error('Inventory Store Tiles - Delete Specific - name: '+name+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
 				} else {
-				    //RPG.Log('database delete','Inventory Tiles'+ db.tileDelete.length);
-				//if (!info.affectedRows) {
-				//options.errors.push('Could not delete Inventory tiles ' + db.tileDelete.length);
-				//}
+				    if (info.affectedRows) {
+					options.user.logger.trace('Inventory Store Tiles - Deleted '+info.affectedRows+' Specific from '+name);
+				    } else {
+					options.user.logger.warn('Inventory Store Tiles - Deleted 0 Specific from '+name);
+				    }
 				}
 			    }
 			    );
@@ -514,49 +579,70 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			],
 			function(err,info) {
 			    if (err) {
+				options.user.logger.error('Inventory Store Tiles - Delete Incoming name: '+name+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database deleted','Inventory Tiles '+ info.affectedRows);
+				if (info.affectedRows) {
+				    options.user.logger.trace('Inventory Store Tiles - Deleted '+info.affectedRows+' Incoming from '+name);
+				} else {
+				    options.user.logger.warn('Inventory Store Tiles - Deleted 0 Incoming from '+name);
+				}
 			    }
 			});
 		}
 		if (!insert) insert = RPG.Mysql.createQueue();
 		//insert incoming tiles:
 		var sql = 'INSERT INTO inventorytiles (inventoryID,point,tiles) VALUES ';
+		var inserts = [];
 		var arr = [];
 		Object.each(col, function(tiles,colNum) {
-		    if (tiles && tiles != 'null') {
+		    if (tiles && tiles != 'null' && tiles.length > 0) {
 			colNum = Number.from(colNum);
-			sql += '(?,GeomFromText(\'POINT('+rowNum+' '+colNum+')\'),?),'
+			inserts.push('(?,GeomFromText(\'POINT('+rowNum+' '+colNum+')\'),?)');
 			arr.push(db.inventoryID,JSON.encode(tiles));
+
 		    }
 		});
-		sql = sql.substr(0,sql.length-1);
-		if (arr && arr.length > 1) {
-		    insert.queue(sql,arr,
+		if (arr && arr.length > 0) {
+		    insert.queue(sql + inserts.join(','),arr,
 			function(err,info) {
 			    if (err) {
+				options.user.logger.error('Inventory Store Tiles - Insert into name: '+name+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
+			    } else {
+				if (info.insertId) {
+				    options.user.logger.trace('Inventory Store Tiles - Inserted ' + inserts.length + ' into ' +name );
+				} else {
+				    options.user.logger.error('Inventory Store Tiles - Inserted 0 into '+name);
+				}
 			    }
-			    //RPG.Log('insert',name +  ' Inventory Tiles Row: '+rowNum+' Cols: '+ Object.keys(col).length);
 			});
 		}
 	    });
 
 	});
 	//now that everything is all queued up:
-	RPG.Mysql.executeQueues([remove,insert],true,callback);
+	options.user.logger.trace('Inventory Store Tiles - Starting Store Queue: ' + Object.keys(options.inventory));
+	RPG.Mysql.executeQueues([remove,insert],true,function(){
+	    options.user.logger.trace('Inventory Store Tiles - Finished Store Queue: ' + Object.keys(options.inventory));
+	    callback();
+	});
     },
     /**
      * required options:
      *	    user
      *	    name : name of inventory
      *	    paths : json encoded paths
+     *	    character
      *
      * optional:
      *	    bypassCache
      */
     loadCache : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user','name','character'],logger,callback)){
+	    return;
+	}
+
 	if (!options.paths) {
 	    callback({});
 	    return;
@@ -565,6 +651,7 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 	var cachedTileCache = null;
 	if (!options.bypassCache) {
 	    var cachedInv = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID+'_'+options.name);
+	    options.user.logger.trace('Inventory Cache Load "'+options.name+'" (cached)');
 	    if (cachedInv && cachedInv[options.name]) {
 		cachedTileCache = cachedInv[options.name].cache;
 	    }
@@ -588,9 +675,8 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		pathSql.push("?");
 		paths[1] = paths[0];
 	    }
-	    //RPG.Log('database hit','Inventory loadCache: Loading ' + paths.length + ' tile cache objects.');
 	} else {
-	    //RPG.Log('no tiles',''+options.paths);
+	    options.user.logger.warn('Inventory Load Cache - No paths specified for: '+options.name);
 	    callback({});
 	    return;
 	}
@@ -601,7 +687,6 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 	'AND i.characterID = ? ' +
 	'AND path in ('+pathSql.join(',')+') ' +
 	'ORDER BY folderName ASC';
-
 	var arr = [
 	options.name,
 	options.character.database.characterID,
@@ -609,26 +694,27 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 
 	RPG.Mysql.query(sql,arr,
 	    function(err,iResults) {
-		//RPG.Log('database hit','Inventory loadCache: Loading ' + iResults.length + ' tile cache objects.' + sql + ' ' + arr);
 		if (err) {
-		    //RPG.Log('error',err);
+		    options.user.logger.error('Inventory Load Cache - name: '+options.name+ ' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
 		} else if (iResults && iResults[0]) {
 		    var cache = RPG.expandResultsCache(iResults,'inventoryCacheID');
-		    //RPG.Log('inventory cache',cache);
+
 		    if (!options.bypassCache) {
 			var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID+'_'+options.name);
 			if (!cachedUni[iResults[0]['name']]) cachedUni[iResults[0]['name']] = {};
 			Object.merge(cachedUni[iResults[0]['name']],{
 			    cache : cache
 			});
-			//RPG.Log('cached','Inventory Cache Merge Retrieve: '+JSON.encode(require('../Cache.njs').Cache.retrieve(options.user.options.userID,'inventory_'+options.character.database.characterID + '_'+options.name)));
+			options.user.logger.trace('Inventory Load Tiles (cached) - Loaded: '+iResults.length+' from  '+options.name);
+		    } else {
+			options.user.logger.trace('Inventory Load Tiles (non-cached) - Loaded: '+iResults.length+' from  '+options.name);
 		    }
-
 		    callback(cache);
 		} else {
+		    options.user.logger.warn('Inventory Load Tiles - None Loaded from  '+options.name);
 		    callback({});
 		}
 	    });
@@ -638,12 +724,16 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
      * required options:
      *	    user
      *	    character
-     *	    universe
+     *	    inventory
      *
      * optional:
      *	    bypassCache
      */
     storeCache : function(options,callback) {
+	if (!RPG.Log.requiredOptions(options,['user','inventory','character'],logger,callback)){
+	    return;
+	}
+
 	options.errors = options.errors || [];
 
 	var remove = null;
@@ -671,14 +761,15 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			    Array.clone([inv.options.database.inventoryID,db.inventoryCacheID]),
 			    function(err,results) {
 				if (err) {
+				    options.user.logger.error('Inventory Store Cache - Delete error. path:'+path+' from: '+name+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
 				} else {
-				    //RPG.Log('database delete','Inventory cache '+ path);
 				    if (results.affectedRows) {
+					options.user.logger.trace('Inventory Store Cache - Deleted path:'+path+' from: '+name);
 					var pathName = (path = JSON.decode(path)).pop();
 					Object.erase(Object.getFromPath(inv.cache,path),pathName);
 				    } else {
-					//RPG.Log('0 deleted','Inventory cache "'+ path);
+					options.user.logger.error('Inventory Store Cache - Delete error. path:'+path+' from: '+name+ ' error: 0 Affected Rows');
 					options.errors.push('Could not delete Cache item "'+ path+'" :(');
 				    }
 
@@ -702,7 +793,15 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			    ],
 			    function(err,results) {
 				if (err) {
+				    options.user.logger.error('Inventory Store Cache - Update Tiles error. path:'+path+' from: '+name+ ' error: '+ JSON.encode(err));
 				    options.errors.push(err);
+				} else {
+				    if (results.affectedRows) {
+					options.user.logger.trace('Inventory Store Cache - Updated Tiles path:'+path+' from: '+name);
+				    } else {
+					options.user.logger.error('Inventory Store Cache - Update Tiles error. path:'+path+' from: '+name+ ' error: 0 Affected Rows');
+					options.errors.push('Could not update Cache item "'+ path+'" :(');
+				    }
 				}
 			    });
 		    }
@@ -725,12 +824,14 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			],
 			function(err,results) {
 			    if (err) {
+				options.user.logger.error('Inventory Store Cache - Update error. path:'+path+' from: '+name+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database update','Inventory cache "'+ path +'" id:'+(JSON.encode(db))+'');
 				if (results.affectedRows) {
+				    options.user.logger.trace('Inventory Store Cache - Updated path:'+path+' from: '+name);
 				    tileOpts.database = db;
 				} else {
+				    options.user.logger.error('Inventory Store Cache - Update error. path:'+path+' from: '+name+ ' error: 0 Affected Rows');
 				    options.errors.push('Could not update Cache item "'+path+'" :(');
 				}
 			    }
@@ -753,14 +854,16 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			],
 			function(err,results) {
 			    if (err) {
+				options.user.logger.error('Inventory Store Cache - Insert error. path:'+path+' from: '+name+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database insert','Inventory cache "'+ path  +'" id:'+(results && results.insertId)+'');
 				if (results.insertId) {
 				    tileOpts.database = {
 					inventoryCacheID : results.insertId
 				    };
+				    options.user.logger.trace('Inventory Store Cache - Inserted path:'+path+' id: '+results.insertId+' from: '+name);
 				} else {
+				    options.user.logger.error('Inventory Store Cache - Insert error. path:'+path+' from: '+name+ ' error: 0 Inserted Rows');
 				    options.errors.push('Failed to get newly inserted Cache ID :( '+JSON.encode(options.tile));
 				}
 			    }
@@ -769,7 +872,12 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		}
 	    });
 	});
+
 	//now that everything is all queued up:
-	RPG.Mysql.executeQueues([remove,update,insert],true,callback);
+	options.user.logger.trace('Inventory Store Cache - Starting Store Queue: ' + Object.keys(options.inventory));
+	RPG.Mysql.executeQueues([remove,update,insert],true,function(){
+	    options.user.logger.trace('Inventory Store Cache - Starting Store Queue: ' + Object.keys(options.inventory));
+	    callback();
+	});
     }
 }))();

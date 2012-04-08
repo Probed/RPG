@@ -251,7 +251,8 @@ RPG.TileType.Item = function(options) {
 	    identified : [false],
 	    level : [0,100,0],
 	    cost : [0,5,0],
-	    weight : [1,1,1]
+	    weight : [1,1,1],
+	    stacksize : [1,32,1]
 	}
 	,options||{})
     };

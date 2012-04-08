@@ -41,7 +41,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 		    });
 		} else if (tResults && tResults[0]) {
 		    var tResult = tResults[0];
-		    //RPG.Log('database hit','Loaded Tileset: '+ (options.tilesetID || options.name || tResult['name']));
 		    var universe = {
 			tilesets : {}
 		    };
@@ -150,7 +149,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 
 		    //remove tiles specified in db.tileDelete (array of points)
 		    if (db && db.deleted) {
-			//RPG.Log('database delete','Tileset Delete');
 			if (!remove) remove = RPG.Mysql.createQueue();
 			//perform any deletes
 			remove.queue('DELETE FROM tilesets ' +
@@ -164,7 +162,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				if (err) {
 				    options.errors.push(err);
 				} else {
-				    //RPG.Log('database delete','Tileset '+ db.tilesetID);
 				    if (info.affectedRows) {
 					Object.erase(options.universe.tilesets,name);
 				    } else {
@@ -173,7 +170,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				}
 			    });
 		    } else if (db.tilesetID) {
-			//RPG.Log('database update','Tileset update');
 			//perform any deletes
 			if (!update) update = RPG.Mysql.createQueue();
 			update.queue('UPDATE tilesets ' +
@@ -192,7 +188,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				if (err) {
 				    options.errors.push(err);
 				} else {
-				    //RPG.Log('database delete','Tileset '+ db.tilesetID);
 				    if (info.affectedRows) {
 					tileset.options.database = db;
 				    } else {
@@ -222,7 +217,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				    tileset.options.database = {
 					tilesetID : info.insertId
 				    }
-				    //RPG.Log('database Insert','Tileset '+ info.insertId+ ' ' + tileset.options.property.name);
 				} else {
 				    options.errors.push('Could not insert tileset item ' + tileset.options.property.name);
 				}
@@ -359,7 +353,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 		    points[1] = points[0];
 		}
 	    } else {
-		//RPG.Log('cache','Tileset LoadTiles: none to load.');
 		callback({});
 		return;
 	    }
@@ -383,7 +376,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 	    function(err,tResults) {
 		Object.erase(options,'tilePoints');
 		if (err) {
-		    //RPG.Log('error',err);
 		    callback({
 			error: err
 		    });
@@ -404,7 +396,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    tCache.push(JSON.encode(tile));//push this tilePath for cache lookup
 			});
 		    });
-		    //RPG.Log('database hit','Tileset LoadTiles: Loaded ' + cnt + ' tiles from "'+name+"");
 		    options.paths = tCache.unique();
 		    RPG.Tileset.loadCache(options,function(cache) {
 			if (cache.error) {
@@ -423,7 +414,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			universe = null;
 		    });
 		} else {
-		    //RPG.Log('database hit','No Tiles Found.');
+
 		    callback({});
 		}
 	    }
@@ -453,7 +444,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 
 		//remove tiles specified in db.tileDelete (array of points)
 		if (db && db.tileDelete) {
-		    //RPG.Log('database delete','Tile Delete');
 		    db.tileDelete.each(function(point){
 			if (!point || typeOf(point) != 'string') return;
 			del.push(RPG.getPointSQL(point.split(',')));
@@ -477,10 +467,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				if (err) {
 				    options.errors.push(err);
 				} else {
-			    //RPG.Log('database delete','Tileset Tiles'+ db.tileDelete.length);
-			    //if (!info.affectedRows) {
-			    //options.errors.push('Could not delete Tileset tiles ' + db.tileDelete.length);
-			    //}
+
 			    }
 			    }
 			    );
@@ -512,7 +499,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    if (err) {
 				options.errors.push(err);
 			    } else {
-			//RPG.Log('database deleted','Tileset Tiles'+ del.length);
 			}
 			});
 		}
@@ -534,8 +520,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    if (err) {
 				options.errors.push(err);
 			    }
-			//RPG.Log('database insert','Tileset Tiles'+ info.insertId);
-			});
+		});
 		}
 	    });
 
@@ -566,9 +551,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 		pathSql.push("?");
 		paths[1] = paths[0];
 	    }
-	//RPG.Log('database hit','Tileset loadCache: Loading ' + paths.length + ' tile cache objects.');
 	} else {
-	    //RPG.Log('no tiles',''+options.paths);
 	    callback({});
 	    return;
 	}
@@ -643,12 +626,10 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				if (err) {
 				    options.errors.push(err);
 				} else {
-				    //RPG.Log('database delete','Tileset cache '+ path);
 				    if (results.affectedRows) {
 					var pathName = (path = JSON.decode(path)).pop();
 					Object.erase(Object.getFromPath(tileset.cache,path),pathName);
 				    } else {
-					//RPG.Log('0 deleted','Tileset cache "'+ path);
 					options.errors.push('Could not delete Cache item "'+ path+'" :(');
 				    }
 
@@ -697,7 +678,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    if (err) {
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database update','Tileset cache "'+ path +'" id:'+(JSON.encode(db))+'');
 				if (results.affectedRows) {
 				    tileOpts.database = db;
 				} else {
@@ -725,7 +705,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    if (err) {
 				options.errors.push(err);
 			    } else {
-				//RPG.Log('database insert','Tileset cache "'+ path  +'" id:'+(results && results.insertId)+'');
 				if (results.insertId) {
 				    tileOpts.database = {
 					tilesetCacheID : results.insertId

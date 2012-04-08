@@ -501,6 +501,7 @@ var hasOwnProperty = Object.prototype.hasOwnProperty;
 Object.extend({
 
 	getFromPath: function(source, parts){
+		if (!source || !parts) return null;
 		if (typeof parts == 'string') parts = parts.split('.');
 		for (var i = 0, l = parts.length; i < l; i++){
 			if (hasOwnProperty.call(source, parts[i])) source = source[parts[i]];
