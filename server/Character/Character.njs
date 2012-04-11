@@ -3,7 +3,7 @@ Object.merge(RPG,
     require('../Log/Log.njs'),
     require('../Game/Inventory.njs'),
     require('../../common/Game/Generators/Equipment.js'),
-    require('../../common/optionConfig.js'),
+    require('../../common/Constraints.js'),
     require('../../common/Character/Character.js'),
     require('../../common/Character/CharacterSlots.js')
     );
@@ -25,7 +25,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(error || null) (null == not a dupe)
      */
     checkDupeName : function(options, callback) {
-	if (!RPG.Log.requiredOptions(options,['character','user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['character','user'],logger,callback)){
 	    return;
 	}
 
@@ -68,7 +68,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(character || error)
      */
     create : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['character','user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['character','user'],logger,callback)){
 	    return;
 	}
 
@@ -104,7 +104,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 
 	//validate the incoming character
 	var errors = [];
-	errors = RPG.optionValidator.validate(options.character,RPG.character_options);
+	errors = RPG.Constraints.validate(options.character,RPG.character_options);
 
 	var total = 0;
 	var base = 0;
@@ -237,7 +237,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(character || error)
      */
     store : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['character','user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['character','user'],logger,callback)){
 	    return;
 	}
 
@@ -342,7 +342,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * callback(list || error)
      */
     list : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
@@ -403,7 +403,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      */
     load : function(options, callback) {
 	options.characterID = options.characterID || (options.character && options.character.database.characterID);
-	if (!RPG.Log.requiredOptions(options,['user','characterID'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user','characterID'],logger,callback)){
 	    return;
 	}
 

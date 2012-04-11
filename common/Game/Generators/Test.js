@@ -123,10 +123,10 @@ RPG.Generator.Test = new (RPG.Generator.TestClass = new Class({
 			    },
 
 			    //Generate all random options.  It is a bad idea to create all random options.
-			    npc : RPG.optionCreator.random(RPG.Tiles.npc.options.npc,rand),
+			    npc : RPG.Constraints.random(RPG.Tiles.npc.options.npc,rand),
 
 			    //Allow this Tile to roam about
-			    roam : Object.merge(RPG.optionCreator.random(RPG.Tiles.npc.options.roam,rand),{
+			    roam : Object.merge(RPG.Constraints.random(RPG.Tiles.npc.options.roam,rand),{
 				home : point
 			    })
 			}));
@@ -150,7 +150,7 @@ RPG.Generator.Test = new (RPG.Generator.TestClass = new Class({
 				state : 'Open',
 				states : {
 				    'Open' : [{
-					path : options.properties.name+'.world.earth.lever.'+point.join(''),
+					path : (options.properties.name+'.world.earth.lever.'+point.join('')).split('.'),
 					options : JSON.encode({
 					    property : {
 						image : {
@@ -163,7 +163,7 @@ RPG.Generator.Test = new (RPG.Generator.TestClass = new Class({
 					})
 				    }],
 				    'Closed' : [{
-					path : options.properties.name+'.world.earth.lever.'+point.join(''),
+					path : (options.properties.name+'.world.earth.lever.'+point.join('')).split('.'),
 					options : JSON.encode({
 					    property : {
 						image : {

@@ -40,7 +40,7 @@ Example:
 
 #### A TileType is how we define what `options` a tile has.
 
-Each TileType returns a `option_constraints` object which can be merged into a tile's options. (see [optionConfig.md](https://github.com/Probed/RPG/tree/master/common/optionsConfig.md))
+Each TileType returns a `option_constraints` object which can be merged into a tile's options. (see [Constraints.md](https://github.com/Probed/RPG/tree/master/common/Constraints.md))
 
 ### Simple TileType example:
 

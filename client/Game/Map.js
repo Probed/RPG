@@ -494,7 +494,7 @@ RPG.Map = new Class({
 			Number.from(charDiv.getStyle(dir == 's'||dir=='n'?'top':'left')) - (zoom * (dir == 's'|| dir=='e'?-1:1))
 			);
 		});
-		
+
 		if (!this.draggingMap) {
 		    animations.push(function() {
 			(new Fx.Tween($('GameTable'),{
@@ -552,7 +552,7 @@ RPG.Map = new Class({
 		    animations.push(function() {
 			var styles = RPG.getMapTileStyles({
 			    map : {
-				cache : map.cache,
+				cache : currentMap.cache,
 				tiles : [path]
 			    },
 			    zoom : zoom

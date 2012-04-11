@@ -42,14 +42,14 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    tiles : {},
 	    cache : {},
 	    path : options.properties.type.split('.'),
-	    tileConstraints : RPG.optionValidator.getConstraintOptions(options.properties.type.split('.'),RPG.Tiles).item,
+	    tileConstraints : RPG.Constraints.getConstraints(options.properties.type.split('.'),RPG.Tiles).item,
 	    itemOptions : {
 		genOptions : options
 	    }
 	};
 
 	//generate random options:
-	Object.merge(equipmentObj.itemOptions,RPG.optionCreator.random(equipmentObj.tileConstraints,rand));
+	Object.merge(equipmentObj.itemOptions,RPG.Constraints.random(equipmentObj.tileConstraints,rand));
 
 
 	//generate item generic

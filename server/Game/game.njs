@@ -89,8 +89,8 @@ RPG.Game = new (RPG.GameClass = new Class({
 		     */
 		    case request.url.query.m == 'InventorySwap' :
 			var options = {};
-			options.clientEvents = JSON.decode(request.data,true);
 			options.game = game;
+			options.swap = JSON.decode(request.data,true);
 			RPG.TileTypes.item.inventorySwap(options, function(events){
 			    RPG.Game.requestComplete(game,events,response);
 			});
@@ -287,145 +287,6 @@ RPG.Game = new (RPG.GameClass = new Class({
 		callback(Object.merge(moveEvents,tickEvents));
 	    });
 	});
-    },
-
-    /**
-     * This will update a tile on the current characters map
-     *
-     * options:
-     * (see the TileType eg: teleportTo for all options)
-     *
-     * updateOptions:
-     * tileType : the tileType to match
-     * tileOptions : the new options to merge with existing options
-     *
-     * optional updateOptions
-     * point : the point on the current map to update. if no point, options.game.moveTo is used.
-     * bypassCache : defaults false. determine if we should update the game cache
-     */
-    updateGameTile : function(options,updateOptions,callback) {
-	if (typeof updateOptions.bypassCache != 'boolean') updateOptions.bypassCache = false;
-
-	//create a empty universe with same options as current
-	//this universe is what gets saved since it only contains the updated tiles
-	var newUniverse = {
-	    options : options.game.universe.options,
-	    maps : {}
-	};
-
-	//create an empty map with current map options for updating
-	var map = newUniverse.maps[options.game.character.location.mapName] = {
-	    options : options.game.universe.maps[options.game.character.location.mapName].options,
-	    tiles : {},
-	    cache : {}
-	};
-
-	var currentMap = options.game.universe.maps[options.game.character.location.mapName];
-
-	if (updateOptions.tileType && updateOptions.tileOptions) {
-	    options.tiles.each(function(tilePath){
-		var c = Object.getFromPath(currentMap.cache,tilePath);
-		if (!c) return;
-		var newOptions = {};
-		if (c.options[updateOptions.tileType]) {
-		    newOptions = updateOptions.tileOptions;
-		}
-		//clone each tile at the moveTo point
-		RPG.pushTile(map.tiles, updateOptions.point || options.game.moveTo, RPG.cloneTile(currentMap.cache, tilePath, map.cache,newOptions));
-	    });
-	}
-
-	if (updateOptions.cache) {
-	    map.cache = updateOptions.cache;
-	}
-
-	if (updateOptions.storeWait) {
-	    callback(newUniverse);
-	} else {
-	    //save our newUniverse tile changes
-	    RPG.Universe.store({
-		user : options.game.user,
-		universe : newUniverse,
-		bypassCache : updateOptions.bypassCache
-	    },callback);
-	}
-    },
-
-    /**
-     * go through the move objects and move shit around.
-     *
-     * options: (see the 'TileType' for all options)
-	move looks like :
-	   move {
-	       [to] : {  //json encoed point
-		    [tilePath] : { //json encoded path
-			from : [0,1],
-			options : optsObj //optional contains new options for this tile
-		    }
-		 }
-	   }
-     */
-    moveGameTiles : function(options,move,callback) {
-	//
-	//create a empty universe with same options as current
-	//this universe is what gets saved since it only contains the updated tiles
-	var newUniverse = {
-	    options : options.game.universe.options,
-	    maps : {}
-	};
-
-	//create an empty map with current map options for updating
-	var map = newUniverse.maps[options.game.character.location.mapName] = {
-	    options : options.game.universe.maps[options.game.character.location.mapName].options,
-	    tiles : {},
-	    cache : {}
-	};
-
-	//the current game map where we will get the 'from' stuff.
-	var currentMap = options.game.universe.maps[options.game.character.location.mapName];
-
-	var moved = false;//make sure something has moved so we don't store needlessly'
-
-	//first copy all the tiles at to/from locations from the games current map, into our new map
-	Object.each(move,function(to,point){
-	    if (!to) return;
-	    point = JSON.decode(point,true);
-	    RPG.setTiles(map.tiles, point,Array.clone(RPG.getTiles(currentMap.tiles,point)));
-	    Object.each(to,function(moveInfo,path){
-		RPG.setTiles(map.tiles, moveInfo.from,Array.clone(RPG.getTiles(currentMap.tiles,moveInfo.from)));
-	    });
-	});
-
-	//next go through each to location and push them to the new map
-	Object.each(move,function(paths,to){
-	    if (!paths) return;
-	    to = JSON.decode(to,true);
-	    Object.each(paths,function(moveInfo,tilePath){
-		if (!moveInfo) return;
-		tilePath = JSON.decode(tilePath,true);
-
-		//push the tile to the new location and set it's new options
-		//this clones the tileoptions into the map.cache and pushes the path onto the map.tiles
-		RPG.pushTile(map.tiles, to, RPG.cloneTile(currentMap.cache, tilePath, map.cache, moveInfo.options));
-
-		//remove the tile from the old location
-		RPG.removeTile(map.tiles, tilePath, moveInfo.from);
-
-		moved = true;
-	    });
-	});
-
-	if (!moved) {
-	    callback({});
-	    return;
-	}
-
-	//finally save our newUniverse changes and callback with the universe
-	RPG.Universe.store({
-	    user : options.game.user,
-	    universe : newUniverse,
-	    bypassCache : true
-	},callback);
     },
 
     tick : function(game,callback) {

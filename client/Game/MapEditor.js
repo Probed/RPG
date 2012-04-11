@@ -1280,7 +1280,7 @@ RPG.MapEditor = new Class({
 		],
 		[
 		{
-		    content : RPG.optionCreator.getOptionTable(RPG.universe_options,null,[],null,'newUniverse')
+		    content : RPG.Constraints.getTable(RPG.universe_options,null,[],null,'newUniverse')
 		}
 		],
 		[
@@ -1293,7 +1293,7 @@ RPG.MapEditor = new Class({
 		],
 		[
 		{
-		    content : RPG.optionCreator.getOptionTable(RPG.map_options,null,[],null,'newMap')
+		    content : RPG.Constraints.getTable(RPG.map_options,null,[],null,'newMap')
 		}
 		]
 		]
@@ -1338,10 +1338,10 @@ RPG.MapEditor = new Class({
 	/**
 	 * Validate the options
 	 */
-	var universeOptions = RPG.optionCreator.getOptionsFromTable('newUniverseWindow','newUniverse');
-	var mapOptions = RPG.optionCreator.getOptionsFromTable('newUniverseWindow','newMap');
-	var uniErrors = RPG.optionValidator.validate(universeOptions,RPG.universe_options);
-	uniErrors.append(RPG.optionValidator.validate(mapOptions,RPG.map_options));
+	var universeOptions = RPG.Constraints.getFromInput('newUniverseWindow','newUniverse');
+	var mapOptions = RPG.Constraints.getFromInput('newUniverseWindow','newMap');
+	var uniErrors = RPG.Constraints.validate(universeOptions,RPG.universe_options);
+	uniErrors.append(RPG.Constraints.validate(mapOptions,RPG.map_options));
 
 	if (uniErrors && uniErrors.length > 0) {
 	    RPG.Error.show(uniErrors);
@@ -1384,7 +1384,7 @@ RPG.MapEditor = new Class({
 
 
 	var options = {
-	    universeID : universe.options.database.universeID,
+	    universeID : universe.options.database.id,
 	    start :  [this.rowOffset,this.colOffset],
 	    end :  [this.rowOffset+this.calcRows(),this.colOffset+this.calcCols()]
 	};
@@ -1428,7 +1428,7 @@ RPG.MapEditor = new Class({
 	    title : 'Update Universe Options',
 	    type : 'window',
 	    loadMethod : 'html',
-	    content :  RPG.optionCreator.getOptionTable(Object.merge(Object.clone(RPG.universe_options),{
+	    content :  RPG.Constraints.getTable(Object.merge(Object.clone(RPG.universe_options),{
 		property : {
 		    startMap : Object.keys(this.currentUniverse.maps).erase('options')
 		}
@@ -1448,7 +1448,7 @@ RPG.MapEditor = new Class({
 			'html' : 'Update Universe Options',
 			events : {
 			    click : function(event) {
-				this.editUniverse(RPG.optionCreator.getOptionsFromTable('editUniverseWindow','editUniverse'));
+				this.editUniverse(RPG.Constraints.getFromInput('editUniverseWindow','editUniverse'));
 			    }.bind(this)
 			}
 		    }),
@@ -1467,7 +1467,7 @@ RPG.MapEditor = new Class({
     },
 
     editUniverse : function(options) {
-	var errors = RPG.optionValidator.validate(options,Object.merge(Object.clone(RPG.universe_options),{
+	var errors = RPG.Constraints.validate(options,Object.merge(Object.clone(RPG.universe_options),{
 	    property : {
 		startMap : Object.keys(this.currentUniverse.maps).erase('options')
 	    }
@@ -1478,7 +1478,7 @@ RPG.MapEditor = new Class({
 	    return;
 	}
 	new Request.JSON({
-	    url : '/index.njs?xhr=true&a=MapEditor&m=checkDupeUniverseName&universeName='+options.property.universeName+'&universeID='+(this.currentUniverse.options.database && this.currentUniverse.options.database.universeID?this.currentUniverse.options.database.universeID:0),
+	    url : '/index.njs?xhr=true&a=MapEditor&m=checkDupeUniverseName&universeName='+options.property.universeName+'&universeID='+(this.currentUniverse.options.database && this.currentUniverse.options.database.id?this.currentUniverse.options.database.id:0),
 	    onFailure : function(error) {
 		RPG.Error.show(error);
 	    }.bind(this),
@@ -1513,7 +1513,7 @@ RPG.MapEditor = new Class({
 	    title : 'New Map for Universe <b>'+this.currentUniverse.options.property.universeName+'</b>',
 	    type : 'window',
 	    loadMethod : 'html',
-	    content : RPG.optionCreator.getOptionTable(RPG.map_options,null,[],null,'newMap'),
+	    content : RPG.Constraints.getTable(RPG.map_options,null,[],null,'newMap'),
 	    collapsible : false,
 	    storeOnClose : false,
 	    resizable : true,
@@ -1548,8 +1548,8 @@ RPG.MapEditor = new Class({
 	});
     },
     addNewMap : function() {
-	var options = RPG.optionCreator.getOptionsFromTable('newMapWindow','newMap');
-	var errors = RPG.optionValidator.validate(options,RPG.map_options);
+	var options = RPG.Constraints.getFromInput('newMapWindow','newMap');
+	var errors = RPG.Constraints.validate(options,RPG.map_options);
 	if (options && this.currentUniverse.maps[options.property.mapName]) {
 	    errors.push('The map "'+options.property.mapName+'" already exists.');
 	}
@@ -1610,7 +1610,7 @@ RPG.MapEditor = new Class({
 	    title : 'Update Map Options',
 	    type : 'window',
 	    loadMethod : 'html',
-	    content :  RPG.optionCreator.getOptionTable(Object.erase(Object.clone(RPG.map_options),'generators'),null,[],this.currentUniverse.maps[this.currentUniverse.options.settings.activeMap].options,'editMap'),
+	    content :  RPG.Constraints.getTable(Object.erase(Object.clone(RPG.map_options),'generators'),null,[],this.currentUniverse.maps[this.currentUniverse.options.settings.activeMap].options,'editMap'),
 
 	    collapsible : false,
 	    storeOnClose : false,
@@ -1626,7 +1626,7 @@ RPG.MapEditor = new Class({
 			'html' : 'Update Map Options',
 			events : {
 			    click : function(event) {
-				this.editMap(RPG.optionCreator.getOptionsFromTable('editMapWindow','editMap'));
+				this.editMap(RPG.Constraints.getFromInput('editMapWindow','editMap'));
 			    }.bind(this)
 			}
 		    }),
@@ -1645,7 +1645,7 @@ RPG.MapEditor = new Class({
     },
 
     editMap : function(options) {
-	var errors = RPG.optionValidator.validate(options,Object.erase(Object.clone(RPG.map_options),'generators'));
+	var errors = RPG.Constraints.validate(options,Object.erase(Object.clone(RPG.map_options),'generators'));
 	if (options && this.currentUniverse.maps[options.property.mapName]) {
 	    errors.push('The map "'+options.property.mapName+'" already exists.');
 	}
@@ -1717,7 +1717,7 @@ RPG.MapEditor = new Class({
 	    require : {
 		js : Object.getFromPath(RPG.Generators,generator).require.js,
 		onloaded : function() {
-		    $('generatorDiv').empty().adopt(RPG.optionCreator.getOptionTabs(RPG.Generator[generator[1]].constraints,null,[],map.options.generator[generator[1]].options,'generator'));
+		    $('generatorDiv').empty().adopt(RPG.Constraints.getTabs(RPG.Generator[generator[1]].constraints,null,[],map.options.generator[generator[1]].options,'generator'));
 		    MUI.initializeTabs('generator_mapTileConfigTabs');
 		}.bind(this)
 	    },
@@ -1728,8 +1728,8 @@ RPG.MapEditor = new Class({
 			'html' : 'Generate Now',
 			events : {
 			    click : function(event) {
-				var options = RPG.optionCreator.getOptionsFromTable('generatorWindow','generator');
-				var errors = RPG.optionValidator.validate(options,RPG.Generator[generator[1]].constraints);
+				var options = RPG.Constraints.getFromInput('generatorWindow','generator');
+				var errors = RPG.Constraints.validate(options,RPG.Generator[generator[1]].constraints);
 				if (errors && errors.length > 0) {
 				    RPG.Error.show(errors);
 				    errors = null;
@@ -1911,7 +1911,7 @@ RPG.MapEditor = new Class({
 	if (options.cache != RPG.Tiles) {
 	    path = options.path.slice(1,path.length-1);
 	}
-	var constraint_options = RPG.optionValidator.getConstraintOptions(path,RPG.Tiles);
+	var constraint_options = RPG.Constraints.getConstraints(path,RPG.Tiles);
 	var loadOptions = null;
 	if (options.cache != RPG.Tiles) {
 	    loadOptions = Object.getFromPath(options.cache,options.path).options;
@@ -1920,7 +1920,7 @@ RPG.MapEditor = new Class({
 	    constraint_options.teleportTo.mapName = [''].append(Object.keys(this.currentUniverse.maps));
 	}
 
-	this.tabBodyDiv.empty().adopt(RPG.optionCreator.getOptionTabs(constraint_options,null,[],loadOptions,'tile'));
+	this.tabBodyDiv.empty().adopt(RPG.Constraints.getTabs(constraint_options,null,[],loadOptions,'tile'));
 
 	MUI.initializeTabs('tile_mapTileConfigTabs');
     },
@@ -1930,7 +1930,7 @@ RPG.MapEditor = new Class({
 	if (options.cache != RPG.Tiles) {
 	    path = options.path.slice(1,path.length-1);
 	}
-	var tileOptions = RPG.optionCreator.getOptionsFromTable(options.parentID,'tile');
+	var tileOptions = RPG.Constraints.getFromInput(options.parentID,'tile');
 
 	$$('.mapTileImageSelected').each(function(elm){
 	    var img = null;
@@ -1943,7 +1943,7 @@ RPG.MapEditor = new Class({
 	/**
 	 * Validate New Tile
 	 */
-	var errors = RPG.optionValidator.validate(tileOptions,RPG.optionValidator.getConstraintOptions(path,RPG.Tiles));
+	var errors = RPG.Constraints.validate(tileOptions,RPG.Constraints.getConstraints(path,RPG.Tiles));
 	if (errors && errors.length > 0) {
 	    RPG.Error.show(errors);
 	} else {
@@ -2388,7 +2388,7 @@ RPG.MapEditor = new Class({
     },
 
     loadTiles : function() {
-	if (!this.loadingTiles && this.currentUniverse && this.currentUniverse.options.database && this.currentUniverse.options.database.universeID && this.currentUniverse.options.settings.activeMap) {
+	if (!this.loadingTiles && this.currentUniverse && this.currentUniverse.options.database && this.currentUniverse.options.database.id && this.currentUniverse.options.settings.activeMap) {
 	    this.loadingTiles = true;
 	    /**
 	     * Loop through all the tile holder cells that are empty
@@ -2421,7 +2421,7 @@ RPG.MapEditor = new Class({
 	    }
 
 	    new Request.JSON({
-		url : '/index.njs?xhr=true&a=MapEditor&m=loadTiles&universeID='+this.currentUniverse.options.database.universeID+'&mapID='+currenMapDatabaseOpts.mapID+'&minRow='+currenMapDatabaseOpts.minRow+'&maxRow='+currenMapDatabaseOpts.maxRow+'&minCol='+currenMapDatabaseOpts.minCol+'&maxCol='+currenMapDatabaseOpts.maxCol,
+		url : '/index.njs?xhr=true&a=MapEditor&m=loadTiles&universeID='+this.currentUniverse.options.database.id+'&mapID='+currenMapDatabaseOpts.mapID+'&minRow='+currenMapDatabaseOpts.minRow+'&maxRow='+currenMapDatabaseOpts.maxRow+'&minCol='+currenMapDatabaseOpts.minCol+'&maxCol='+currenMapDatabaseOpts.maxCol,
 		onFailure : function(error) {
 		    //ignore errors
 		    //RPG.Error.notify(error);
@@ -2859,7 +2859,7 @@ RPG.MapEditor = new Class({
 	    return;
 	}
 	new Request.JSON({
-	    url : '/index.njs?xhr=true&a=MapEditor&m=checkDupeUniverseName&universeName='+this.currentUniverse.options.property.universeName+'&universeID='+(this.currentUniverse.options.database && this.currentUniverse.options.database.universeID?this.currentUniverse.options.database.universeID:0),
+	    url : '/index.njs?xhr=true&a=MapEditor&m=checkDupeUniverseName&universeName='+this.currentUniverse.options.property.universeName+'&universeID='+(this.currentUniverse.options.database && this.currentUniverse.options.database.id?this.currentUniverse.options.database.id:0),
 	    onFailure : function(error) {
 		RPG.Error.show(error);
 	    }.bind(this),
@@ -3087,7 +3087,7 @@ RPG.MapEditor = new Class({
 	    title : 'New Tileset',
 	    type : 'window',
 	    loadMethod : 'html',
-	    content : RPG.optionCreator.getOptionTable(RPG.tileset_options,null,[],null,'newTileset'),
+	    content : RPG.Constraints.getTable(RPG.tileset_options,null,[],null,'newTileset'),
 	    collapsible : false,
 	    storeOnClose : false,
 	    resizable : true,
@@ -3122,8 +3122,8 @@ RPG.MapEditor = new Class({
 	});
     },
     addNewTileset : function() {
-	var options = RPG.optionCreator.getOptionsFromTable('newTilesetWindow','newTileset');
-	var errors = RPG.optionValidator.validate(options,RPG.tileset_options);
+	var options = RPG.Constraints.getFromInput('newTilesetWindow','newTileset');
+	var errors = RPG.Constraints.validate(options,RPG.tileset_options);
 
 	if (errors && errors.length > 0) {
 	    RPG.Error.show(errors);
@@ -3168,7 +3168,7 @@ RPG.MapEditor = new Class({
 	    return;
 	}
 	new Request.JSON({
-	    url : '/index.njs?xhr=true&a=MapEditor&m=checkDupeTilesetName&name='+this.activeTileset.options.property.name+'&category='+this.activeTileset.options.property.category+'&tilesetID='+(this.activeTileset.options.database && this.activeTileset.options.database.tilesetID?this.activeTileset.options.database.tilesetID:0),
+	    url : '/index.njs?xhr=true&a=MapEditor&m=checkDupeTilesetName&name='+this.activeTileset.options.property.name+'&category='+this.activeTileset.options.property.category+'&tilesetID='+(this.activeTileset.options.database && this.activeTileset.options.database.id?this.activeTileset.options.database.id:0),
 	    onFailure : function(error) {
 		RPG.Error.show(error);
 	    }.bind(this),
@@ -3622,9 +3622,9 @@ RPG.MapEditor = new Class({
     },
 
     openTileset : function(tileset) {
-	if (tileset && tileset.options && tileset.options.database && tileset.options.database.tilesetID) {
+	if (tileset && tileset.options && tileset.options.database && tileset.options.database.id) {
 	    new Request.JSON({
-		url : '/index.njs?xhr=true&a=MapEditor&m=openTileset&tilesetID='+tileset.options.database.tilesetID,
+		url : '/index.njs?xhr=true&a=MapEditor&m=openTileset&tilesetID='+tileset.options.database.id,
 		onFailure : function(error) {
 		    if ($('listTilesetWindow')) {
 			MUI.closeWindow($('listTilesetWindow'));

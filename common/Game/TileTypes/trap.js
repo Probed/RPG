@@ -37,8 +37,8 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 	    //client
 	    //@todo disarm attempt
 	    RPG.Disarm.show(options,{
-		success : function(solution){
-		    callback(solution);
+		success : function(disarm){
+		    callback(disarm);
 		},
 		fail : function() {
 		    callback({
@@ -52,14 +52,21 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 	    //server
 	    if (RPG.Disarm.checkSolution(options)) {
 
-		//update the tile to make it disarmed.
-		RPG.Game.updateGameTile(options,{
-		    tileType : 'trap',
-		    tileOptions : {
+		var updateUni = RPG.updateTile({
+		    universe : options.game.universe,
+		    mapName : options.game.character.location.mapName,
+		    tilePath : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path,
+		    options : {
 			trap : {
 			    armed : false
 			}
 		    }
+		});
+
+		RPG.Universe.store({
+		    user : options.game.user,
+		    universe : updateUni,
+		    bypassCache : true
 		},function(universe){
 		    if (universe.error) {
 			callback(universe);
@@ -91,6 +98,7 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 			    callback({
 				trap : ['Successful Disarmed',xp],
 				game : {
+				    universe : updateUni,
 				    character : {
 					xp : options.game.character.xp
 				    }
@@ -114,11 +122,26 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 		    newOpts.armed = false;
 		}
 
-		RPG.Game.updateGameTile(options,{
-		    tileType : 'trap',
-		    tileOptions : {
+		updateUni = RPG.updateTile({
+		    universe : options.game.universe,
+		    mapName : options.game.character.location.mapName,
+		    tilePath : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path,
+		    options : {
 			trap : newOpts
 		    }
+		});
+
+		if (updateUni && updateUni.error) {
+		    callback({
+			error : updateUni.error
+		    });
+		    return;
+		}
+
+		RPG.Universe.store({
+		    user : options.game.user,
+		    universe : updateUni,
+		    bypassCache : true
 		},function(universe){
 		    if (universe.error) {
 			callback(universe);
@@ -158,11 +181,11 @@ RPG.TileTypes.trap.onEnter = function(options,callback) {
 
 	//server
 	if (Object.getFromPath(options,'events.onBeforeEnter.trap')) {
-	    //remove the tile from the current Universe so it will get reloaded from the database
-	    //and the client should receive the the cloned tile created above.
-	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-	    RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
-	}
+    //remove the tile from the current Universe so it will get reloaded from the database
+    //and the client should receive the the cloned tile created above.
+    //RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+    //	    RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+    }
     }
 
     callback();
@@ -220,10 +243,11 @@ RPG.Disarm = new (new Class({
 		    events : {
 			click : function() {
 			    if (this.puzzle && this.puzzle.isSolved()) {
+				var ret = {};
+				//ret becomes like: { '["path","to","tile"]' : solution }
+				ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path)] = this.puzzle.solution;
 				callbacks.success({
-				    trap : {
-					solution : this.puzzle.solution
-				    }
+				    'disarm' : ret
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();
@@ -254,11 +278,14 @@ RPG.Disarm = new (new Class({
     checkSolution : function(options) {
 	var rand = Object.clone(RPG.Random);
 	rand.seed = Number.from(options.contents.seed);
-	var solution = Object.getFromPath(options,'game.clientEvents.onBeforeEnter.trap.solution');
+
+	//get the solution from the client events:
+	var solution = Object.getFromPath(options,['game','clientEvents','onBeforeEnter','disarm',JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path)]);
 
 	switch (options.contents.type) {
 	    case  'posion' :
 		var code = Math.floor(rand.random(100,999));
+		options.game.user.logger.trace('Posion Trap - Checking Solution: ' + solution + ' '+(Number.from(solution) == code?'==':'!=')+' ' + code + ' tile: '+JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path));
 		if (Number.from(solution) == code) {
 		    return true;
 		} else {

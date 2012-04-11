@@ -37,7 +37,7 @@ RPG.Universe.store({
     if (universe.error) {
         console.log('Universe Error: ' + universe.error);
     } else {
-        console.log('Universe Stored Successfully. ID#: '+ universe.property.database.universeID);
+        console.log('Universe Stored Successfully. ID#: '+ universe.property.database.id);
     }
 });
 ```
@@ -72,7 +72,7 @@ RPG.Universe.load({
     if (universe.error) {
         console.log('Universe Error: ' + universe.error);
     } else {
-        console.log('Universe Loaded Successfully. ID#: '+ universe.property.database.universeID);
+        console.log('Universe Loaded Successfully. ID#: '+ universe.property.database.id);
     }
 });
 ```

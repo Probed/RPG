@@ -29,7 +29,7 @@ RPG.Play =  new (RPG.PlayClass = new Class({
 		'/common/Game/Generators/Generators.js',
 		'/common/Game/Generators/Utilities.js',
 		'/client/Game/play.js',
-		'/common/optionConfig.js',
+		'/common/Constraints.js',
 
 		'/common/Game/Tiles/Tiles.js',
 

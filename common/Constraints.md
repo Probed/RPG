@@ -1,7 +1,7 @@
 Options Configuration Stuff
 ---
 
-The [optionsConfig.js](https://github.com/Probed/RPG/blob/master/common/optionConfig.js) file
+The [Constraints.js](https://github.com/Probed/RPG/blob/master/common/Constraints.js) file
 is used to recursively walk `options` and `option_constraints` objects to provide:
 
 * [HTML Input elements](#input) arranged in tabs/tables for each `constraint`
@@ -72,13 +72,13 @@ Next we can retrieve an HTML Table with tabbed input values for `option_constrai
 The first level of constrains are given Tab selectors. (in the case of this example `property` would be a tab)
 
 ```javascript
-var tabbedTableElement = RPG.optionCreator.getOptionTabs(option_constraints,null,null,null,'opts');
+var tabbedTableElement = RPG.Constraints.getTabs(option_constraints,null,null,null,'opts');
 ```
 
 Or Retrieve an HTML Table with input values for `option_constraints` with the id 'opts'
 
 ```javascript
-var tableElement = RPG.optionCreator.getOptionTable(option_constraints,null,null,null,'opts');
+var tableElement = RPG.Constraints.getTable(option_constraints,null,null,null,'opts');
 ```
 
 <a name="create"></a>
@@ -88,7 +88,7 @@ var tableElement = RPG.optionCreator.getOptionTable(option_constraints,null,null
 Upon filling out the option values in the table 'opts' from above we retrieve an `options` object from the table with all the values from the input elements
 
 ```javascript
-var options = RPG.optionCreator.getOptionsFromTable(null,'opts');
+var options = RPG.Constraints.getFromInput(null,'opts');
 ```
 
 Our populated `options` object looks something like this and is identical in structure to the `option_constraints`
@@ -113,7 +113,7 @@ Now that we have the input `options` values we need to validate it against the `
 The `validate` function returns an `array` of `errors` or an empty array if no errors were encountered.
 
 ```javascript
-var errors = RPG.optionValidator.validate(options,option_constraints);
+var errors = RPG.Constraints.validate(options,option_constraints);
 ```
 
 <a name="random"></a>
@@ -123,7 +123,7 @@ var errors = RPG.optionValidator.validate(options,option_constraints);
 Using the `constrains_options` object from above we can generate random values for our `options` object
 
 ```javascript
-var random_options = RPG.optionCreator.random(option_constraints,RPG.Random);
+var random_options = RPG.Constraints.random(option_constraints,RPG.Random);
 ```
 
 `random_options` should look something like this:
@@ -175,7 +175,7 @@ We will be recursively merging together the `options` from the object such that 
 }
 ```
 
-#### Perform the merge using `RPG.optionValidator.getConstraintOptions`(`path`,`constraints`)
+#### Perform the merge using `RPG.Constraints.getConstraints`(`path`,`constraints`)
 
 * `path` : the path to the child object. can be a string or array `['terrain','grass']` or `'terrain.grass'`
 * `constraints` : the object holding the constraint values to be merged. ex: `RPG.Tiles`
@@ -183,7 +183,7 @@ We will be recursively merging together the `options` from the object such that 
 
 ```javascript
 var path = ['terrain'];
-var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
+var constraints = RPG.Constraints.getConstraints(path, RPG.Tiles);
 //constraints.name : ["/[a-zA-Z]/",1,10]
 //constraints.color : undefined
 //constraints.stickiness : undefined
@@ -191,7 +191,7 @@ var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
 
 ```javascript
 var path = ['terrain','grass'];
-var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
+var constraints = RPG.Constraints.getConstraints(path, RPG.Tiles);
 //constraints.name : ["/[a-zA-Z1-9]/",5,25]
 //constraints.color : ['green','brown']
 //constraints.stickiness : undefined
@@ -199,7 +199,7 @@ var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
 
 ```javascript
 var path = ['terrain','grass','marijuana'];
-var constraints = RPG.optionValidator.getConstraintOptions(path, RPG.Tiles);
+var constraints = RPG.Constraints.getConstraints(path, RPG.Tiles);
 //constraints.name : ['kush','lambs breath','etc']
 //constraints.color : ['green','brown',purple]
 //constraints.stickiness : [0,10,1]

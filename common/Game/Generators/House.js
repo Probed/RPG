@@ -340,7 +340,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 					state : 'Open',
 					states : {
 					    'Open' : [{
-						path : options.properties.name+'.world.earth.lever.'+point.join(''),
+						path : (options.properties.name+'.world.earth.lever.'+point.join('')).split('.'),
 						options : JSON.encode({
 						    property : {
 							image : {
@@ -353,7 +353,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 						})
 					    }],
 					    'Closed' : [{
-						path : options.properties.name+'.world.earth.lever.'+point.join(''),
+						path : (options.properties.name+'.world.earth.lever.'+point.join('')).split('.'),
 						options : JSON.encode({
 						    property : {
 							image : {
@@ -411,8 +411,8 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 					    name : RPG.getRandomTileImage('npc.earth.monster',rand).image
 					}
 				    },
-				    npc : RPG.optionCreator.random(RPG.Tiles.npc.options.npc,rand),
-				    roam : Object.merge(RPG.optionCreator.random(RPG.Tiles.npc.options.roam,rand),{
+				    npc : RPG.Constraints.random(RPG.Tiles.npc.options.npc,rand),
+				    roam : Object.merge(RPG.Constraints.random(RPG.Tiles.npc.options.roam,rand),{
 					home : point,
 					distance : 0
 				    })

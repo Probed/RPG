@@ -28,7 +28,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		'/common/Game/Tiles/Tiles.js',
 		'/common/Game/universe.js',
 		'/common/Game/Generators/Generators.js',
-		'/common/optionConfig.js',
+		'/common/Constraints.js',
 		'/common/Random.js',
 		'/common/Game/Generators/Utilities.js',
 		'/common/Game/Tiles/Utilities.js',
@@ -188,24 +188,33 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		}.bind(this));
 	    } else {
 		var uni = JSON.decode(request.data,true);
-		var errors = RPG.optionValidator.validate(uni,RPG.universe_options);
+		var errors = RPG.Constraints.validate(uni,RPG.universe_options);
 		if (errors.length > 0) {
 		    response.onRequestComplete(response,{
 			error : errors
 		    });
 		    return;
 		}
-		//Store the universe in the database:
-		RPG.Universe.store({
+		this.checkDupeName({
 		    user : request.user,
-		    universe : uni,
-		    bypassCache : true
-		},function(universe){
-		    //remove all tiles since the clinet should have these already
-		    Object.each(universe.maps,function(map,mapName){
-			Object.erase(map,'tiles');
+		    universe : uni
+		},function(dupeName){
+		    if (dupeName) {
+			callback(dupeName);
+			return;
+		    }
+		    //Store the universe in the database:
+		    RPG.Universe.store({
+			user : request.user,
+			universe : uni,
+			bypassCache : true
+		    },function(universe){
+			//remove all tiles since the clinet should have these already
+			Object.each(universe.maps,function(map,mapName){
+			    Object.erase(map,'tiles');
+			});
+			response.onRequestComplete(response,universe);
 		    });
-		    response.onRequestComplete(response,universe);
 		});
 	    }
 	} else {
@@ -310,7 +319,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		}.bind(this));
 	    } else {
 		var tileset = JSON.decode(request.data);
-		var errors = RPG.optionValidator.validate(tileset,RPG.tileset_options);
+		var errors = RPG.Constraints.validate(tileset,RPG.tileset_options);
 		if (errors.length > 0) {
 		    response.onRequestComplete(response,{
 			error : errors

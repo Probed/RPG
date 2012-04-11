@@ -38,8 +38,9 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 	    //client
 	    //@todo unlock attempt
 	    RPG.Unlock.show(options,{
-		success : function(solution){
-		    callback(solution);
+		success : function(unlock){
+		    //send back the solution object to the server for verification
+		    callback(unlock);
 		},
 		fail : function() {
 		    callback({
@@ -49,18 +50,32 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 		}
 	    });
 
-	} else if (typeof exports != 'undefined' && options.game.clientEvents && options.game.clientEvents[options.event] && options.game.clientEvents[options.event][options.contents.type]) {
+	} else if (typeof exports != 'undefined' && Object.getFromPath(options,['game','clientEvents',options.event,'unlock'])) {
 
 	    //server
 	    if (RPG.Unlock.checkSolution(options)) {
-
-		RPG.Game.updateGameTile(options,{
-		    tileType : 'lockable',
-		    tileOptions : {
+		var updateUni = RPG.updateTile({
+		    universe : options.game.universe,
+		    mapName : options.game.character.location.mapName,
+		    tilePath : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path,
+		    options : {
 			lockable : {
 			    locked : false
 			}
 		    }
+		});
+
+		if (updateUni && updateUni.error) {
+		    callback({
+			error : updateUni.error
+		    });
+		    return;
+		}
+
+		RPG.Universe.store({
+		    user : options.game.user,
+		    universe : updateUni,
+		    bypassCache : true
 		},function(universe){
 		    if (universe.error) {
 			callback(universe);
@@ -92,6 +107,7 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 			    callback({
 				lockable : ['Unlock attempt Successful.',xp],
 				game : {
+				    universe : updateUni,
 				    character : {
 					xp : options.game.character.xp
 				    }
@@ -128,11 +144,11 @@ RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = funct
 	//server
 
 	if (Object.getFromPath(options, 'events.activate.lockable') || Object.getFromPath(options, 'events.onBeforeEnter.lockable')) {
-	    //remove the tile from the current Universe so it will get reloaded from the database
-	    //and the client should receive the the cloned tile created above.
-	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-	    RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
-	}
+    //remove the tile from the current Universe so it will get reloaded from the database
+    //and the client should receive the the cloned tile created above.
+    //RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
+    //RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
+    }
     }
     callback();
 
@@ -189,10 +205,11 @@ RPG.Unlock = new (new Class({
 		    events : {
 			click : function() {
 			    if (this.puzzle && this.puzzle.isSolved()) {
+				var ret = {};
+				//ret becomes like: { '["path","to","tile"]' : solution }
+				ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path)] = this.puzzle.solution;
 				callbacks.success({
-				    tumbler : {
-					solution : this.puzzle.solution
-				    }
+				    unlock : ret
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();
@@ -223,10 +240,16 @@ RPG.Unlock = new (new Class({
     checkSolution : function(options) {
 	var rand = Object.clone(RPG.Random);
 	rand.seed = Number.from(options.contents.seed);
+
+	//get the solution from the client events:
+	var solution = Object.getFromPath(options,['game','clientEvents',options.event,'unlock',JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path)]);
+
+	//check solution
 	switch (options.contents.type) {
 	    case  'tumbler' :
 		var code = Math.floor(rand.random(100,999));
-		if (Number.from(options.game.clientEvents[options.event].tumbler.solution) == code) {
+		options.game.user.logger.trace('Tumbler Lock - Checking Solution: ' + solution + ' '+(Number.from(solution) == code?'==':'!=')+' ' + code + ' tile: '+JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path));
+		if (Number.from(solution) == code) {
 		    return true;
 		} else {
 		    return false;

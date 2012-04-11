@@ -22,7 +22,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(universe || error) 'universe' object mergable with a universe  or error object
      */
     loadMap : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
@@ -55,9 +55,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    return;
 	}
 
-	options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.universeID');
+	options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.id');
 
-	if (!RPG.Log.requiredOptions(options,['universeID'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['universeID'],logger,callback)){
 	    return;
 	}
 
@@ -100,7 +100,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    minCol : mResult['minCol'],
 				    maxRow : mResult['maxRow'],
 				    maxCol : mResult['maxCol'],
-				    mapID : mResult['mapID']
+				    id : mResult['mapID']
 				}
 			    })
 		    };
@@ -182,7 +182,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(universe || error)
      */
     storeMap : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user','universe'],logger,callback)){
 	    return;
 	}
 	options.errors = options.errors || [];
@@ -196,7 +196,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    //get this map database options
 	    var db = map.options && map.options.database;
 	    //Object.erase(map.options,'database');
-	    if (db && db.mapID) {
+	    if (db && db.id) {
 		Object.erase(db,'new');
 		//remove tiles specified in db.tileDelete (array of points)
 		if (db && db.deleted) {
@@ -206,8 +206,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 			'WHERE universeID = ? ' +
 			'AND mapID = ? ',
 			[
-			options.universe.options.database.universeID,
-			db.mapID
+			options.universe.options.database.id,
+			db.id
 			],
 			function(err,info){
 			    if (err) {
@@ -223,7 +223,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 				}
 			    }
 			});
-		} else if (db.mapID) {
+		} else if (db.id) {
 		    //perform any deletes
 		    if (!update) update = RPG.Mysql.createQueue();
 		    update.queue('UPDATE maps ' +
@@ -234,8 +234,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 			[
 			map.options.property.mapName,
 			JSON.encode(map.options),
-			options.universe.options.database.universeID,
-			db.mapID
+			options.universe.options.database.id,
+			db.id
 			],
 			function(err,info){
 			    if (err) {
@@ -260,7 +260,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    'mapName = ?, ' +
 		    'options = ?',
 		    [
-		    options.universe.options.database.universeID,
+		    options.universe.options.database.id,
 		    map.options.property.mapName,
 		    JSON.encode(map.options),
 		    ],
@@ -273,7 +273,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    if (info && info.insertId) {
 
 				map.options.database = Object.merge({
-				    mapID : info.insertId,
+				    id : info.insertId,
 				    'new' : true
 				},RPG.getMapBounds(map.tiles));
 
@@ -290,9 +290,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 	});
 
 	//now that everything is all queued up:
-	options.user.logger.trace('Map Store Chain Started: ' + Object.keys(options.universe.maps));
+	//options.user.logger.trace('Map Store Chain Started: ' + Object.keys(options.universe.maps));
 	RPG.Mysql.executeQueues([remove,update,insert],true,function(){
-	    options.user.logger.trace('Map Store Chain Finiehd: ' + Object.keys(options.universe.maps));
+	    //options.user.logger.trace('Map Store Chain Finiehd: ' + Object.keys(options.universe.maps));
 	    if (options.errors && options.errors.length > 0) {
 		callback({
 		    error : options.errors
@@ -329,7 +329,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(maps || error)
      */
     listMaps : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user','universe'],logger,callback)){
 	    return;
 	}
 
@@ -344,11 +344,11 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    'ORDER BY mapName ASC',
 	    [
 	    options.user.options.userID,
-	    options.universe.options.database.universeID
+	    options.universe.options.database.id
 	    ],
 	    function(err,results) {
 		if (err) {
-		    options.user.logger.error('Map List: universeID:' + (options.universe.options.database.universeID) +' error: '+ JSON.encode(err));
+		    options.user.logger.error('Map List: universeID:' + (options.universe.options.database.id) +' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
@@ -360,7 +360,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    maps[result['mapName']] = {
 				options : Object.merge({
 				    database : {
-					mapID : result['mapID'],
+					id : result['mapID'],
 					universeID : result['universeID'],
 					totalArea : result['totalArea'],
 					totalObjects : result['totalObjects']
@@ -370,11 +370,11 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    )
 			    };
 			});
-			options.user.logger.error('Map List '+results.length+' from universeID:' + (options.universe.options.database.universeID));
+			options.user.logger.error('Map List '+results.length+' from universeID:' + (options.universe.options.database.id));
 			callback(maps);
 
 		    } else {
-			options.user.logger.error('Map List: universeID:' + (options.universe.options.database.universeID) +' error: No Maps Found.');
+			options.user.logger.error('Map List: universeID:' + (options.universe.options.database.id) +' error: No Maps Found.');
 			callback({
 			    error : 'No Maps found.'
 			});
@@ -408,7 +408,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * note. if you want to save these loaded tiles, you will need to merge it with a universe that has options
      */
     loadTiles : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
@@ -428,10 +428,10 @@ RPG.Map = new (RPG.MapClass = new Class({
 		}
 	    }
 	} else {
-	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.universeID');
+	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.id');
 	}
 
-	if (!RPG.Log.requiredOptions(options,['mapID','universeID'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['mapID','universeID'],logger,callback)){
 	    return;
 	}
 
@@ -547,7 +547,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      * callback(options.universe || errors)
      */
     storeTiles : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user','universe'],logger,callback)){
 	    return;
 	}
 
@@ -561,7 +561,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 	    //get this map database options
 	    var db = map.options && map.options.database;
-	    if (db && db.mapID && !db['new']) {
+	    if (db && db.id && !db['new']) {
 		var del = [];
 
 		//remove tiles specified in db.tileDelete (array of points)
@@ -583,8 +583,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    'AND point in ('+del.join(',')+') '+
 			    'AND mapID in (SELECT mapID FROM maps WHERE universeID = ?)',
 			    [
-			    db.mapID,
-			    options.universe.options.database.universeID
+			    db.id,
+			    options.universe.options.database.id
 			    ],
 			    function(err,info) {
 				if (err) {
@@ -622,8 +622,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    'AND point in ('+del.join(',')+') '+
 			    'AND mapID in (SELECT mapID FROM maps WHERE universeID = ?)',
 			    [
-			    db.mapID,
-			    options.universe.options.database.universeID
+			    db.id,
+			    options.universe.options.database.id
 			    ],
 			    function(err,info) {
 				if (err) {
@@ -642,25 +642,25 @@ RPG.Map = new (RPG.MapClass = new Class({
 		if (!insert) insert = RPG.Mysql.createQueue();
 		//insert incoming tiles:
 		var sql = 'INSERT INTO maptiles (mapID,point,tiles) VALUES ';
+		var inserts = [];
 		var arr = [];
 		Object.erase(db,'new');
 		Object.each(col, function(tiles,colNum) {
 		    if (tiles && tiles != 'null') {
 			colNum = Number.from(colNum);
-			sql += '(?,GeomFromText(\'POINT('+rowNum+' '+colNum+')\'),?),'
-			arr.push(db.mapID,JSON.encode(tiles));
+			inserts.push('(?,GeomFromText(\'POINT('+rowNum+' '+colNum+')\'),?)');
+			arr.push(db.id,JSON.encode(tiles));
 		    }
 		});
-		sql = sql.substr(0,sql.length-1);
 		if (arr && arr.length > 1) {
-		    insert.queue(sql,arr,
+		    insert.queue(sql+inserts.join(','),arr,
 			function(err,info) {
 			    if (err) {
 				options.user.logger.error('Map Store Tiles - Insert Incoming name: '+mapName+ ' error: '+ JSON.encode(err));
 				options.errors.push(err);
 			    } else {
 				if (info.insertId) {
-				    options.user.logger.trace('Map Store Tiles - Inserted '+arr.length+' Incoming from '+mapName);
+				    options.user.logger.trace('Map Store Tiles - Inserted '+inserts.length+' Incoming from '+mapName);
 				} else {
 				    options.user.logger.warn('Map Store Tiles - Insert 0 Incoming from '+mapName);
 				}
@@ -671,9 +671,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 	});
 	//now that everything is all queued up:
-	options.user.logger.trace('Map Store Tiles - Starting Store Queue: ' + Object.keys(options.universe.maps));
+	//options.user.logger.trace('Map Store Tiles - Starting Store Queue: ' + Object.keys(options.universe.maps));
 	RPG.Mysql.executeQueues([remove,insert],true,function(){
-	    options.user.logger.trace('Map Store Tiles - Finished Store Queue: ' + Object.keys(options.universe.maps));
+	    //options.user.logger.trace('Map Store Tiles - Finished Store Queue: ' + Object.keys(options.universe.maps));
 	    callback();
 	});
     },
@@ -691,7 +691,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      *	    bypassCache
      */
     loadCache : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
@@ -712,10 +712,10 @@ RPG.Map = new (RPG.MapClass = new Class({
 		}
 	    }
 	} else {
-	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.universeID');
+	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.id');
 	}
 
-	if (!RPG.Log.requiredOptions(options,['mapID','universeID'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['mapID','universeID'],logger,callback)){
 	    return;
 	}
 
@@ -737,7 +737,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 		paths[1] = paths[0];
 	    }
 	} else {
-	    options.user.logger.warn('Map Load Cache 0 paths for mapID:'+options.mapID);
+	    //options.user.logger.trace('Map Load Cache 0 paths for mapID:'+options.mapID);
 	    callback({});
 	    return;
 	}
@@ -791,7 +791,7 @@ RPG.Map = new (RPG.MapClass = new Class({
      *	    universe
      */
     storeCache : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user','universe'],logger,callback)){
 	    return;
 	}
 
@@ -813,10 +813,10 @@ RPG.Map = new (RPG.MapClass = new Class({
 		var db = tileOpts.database;
 
 		//check if the database object has a mapCacheID to do an update or delete
-		if (db && db.mapCacheID) {
+		if (db && db.id) {
 
 		    //ensure the mapCacheID is a number
-		    if (!Number.from(db.mapCacheID)) {
+		    if (!Number.from(db.id)) {
 			options.errors.push(mapName + ' The Map Cache ID for "'+ path+'" must be numeric.');
 			db = null;
 			return;
@@ -830,7 +830,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			remove.queue('DELETE FROM mapscache ' +
 			    'WHERE mapID = ? ' +
 			    'AND mapCacheID = ? ',
-			    Array.clone([map.options.database.mapID,db.mapCacheID]),
+			    Array.clone([map.options.database.id,db.id]),
 			    function(err,results) {
 				if (err) {
 				    options.user.logger.error('Map Store Cache - Delete error. path:'+path+' from: '+mapName+ ' error: '+ JSON.encode(err));
@@ -839,7 +839,14 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    if (results.affectedRows) {
 					options.user.logger.trace('Map Store Cache - Deleted path:'+path+' from: '+mapName);
 					var pathName = (path = JSON.decode(path)).pop();
-					Object.erase(Object.getFromPath(map.cache,path),pathName);
+					if (!options.bypassCache) {
+					    var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universe.options.database.id);
+					    if (!cachedUni.maps) cachedUni.maps = {};
+					    if (!cachedUni.maps[mapName]) cachedUni.maps[mapName] = {};
+					    Object.erase(Object.getFromPath(cachedUni.maps[mapName].cache,path)||{},pathName);
+					} else {
+					    Object.erase(Object.getFromPath(map.cache,path),pathName);
+					}
 				    } else {
 					options.user.logger.error('Map Store Cache - Delete error. path:'+path+' from: '+mapName+ ' error: 0 Affected Rows');
 					options.errors.push('Could not delete Cache item "'+ path+'" :(');
@@ -863,7 +870,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    [
 			    JSON.encode(oldPath),
 			    path,
-			    map.options.database.mapID
+			    map.options.database.id
 			    ],
 			    function(err,results) {
 				if (err) {
@@ -893,8 +900,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 			path,
 			tileOpts.property.tileName,
 			JSON.encode(tileOpts),
-			map.options.database.mapID,
-			db.mapCacheID
+			map.options.database.id,
+			db.id
 			],
 			function(err,results) {
 			    if (err) {
@@ -925,7 +932,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			'tileName = ?,' +
 			'options = ?',
 			Array.clone([
-			    map.options.database.mapID,
+			    map.options.database.id,
 			    path,
 			    tileOpts.property.folderName,
 			    tileOpts.property.tileName,
@@ -938,7 +945,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			    } else {
 				if (results.insertId) {
 				    tileOpts.database = {
-					mapCacheID : results.insertId
+					id : results.insertId
 				    };
 				    options.user.logger.trace('Map Store Cache - Inserted path:'+path+' id: '+results.insertId+' from: '+mapName);
 				} else {
@@ -952,9 +959,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    });
 	});
 	//now that everything is all queued up:
-	options.user.logger.trace('Map Store Cache - Starting Store Queue: ' + Object.keys(options.universe.maps));
+	//options.user.logger.trace('Map Store Cache - Starting Store Queue: ' + Object.keys(options.universe.maps));
 	RPG.Mysql.executeQueues([remove,update,insert],true,function(){
-	    options.user.logger.trace('Map Store Cache - Finished Store Queue: ' + Object.keys(options.universe.maps));
+	    //options.user.logger.trace('Map Store Cache - Finished Store Queue: ' + Object.keys(options.universe.maps));
 	    callback();
 	});
     }

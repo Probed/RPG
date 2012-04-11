@@ -3,6 +3,7 @@ var RPG = module.exports = {};
 Object.merge(RPG,
     require('./Universe.njs'),
     require('../Character/Character.njs'),
+//    require('../../common/Game/Generators/Test.js')
     require('../../common/Game/Generators/Dungeon.js'),
     require('../../common/Game/Generators/House.js'),
     require('../../common/Game/Generators/Terrain.js')
@@ -21,7 +22,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
      * characterID
      */
     startGame : function(game, callback) {
-	if (!RPG.Log.requiredOptions(game,['characterID','user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(game,['characterID','user'],logger,callback)){
 	    return;
 	}
 	game.user.logger.info('Starting Game for characterID: ' + game.characterID);
@@ -68,7 +69,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
      * character
      */
     newGame : function(game, callback) {
-	if (!RPG.Log.requiredOptions(game,['character','user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(game,['character','user'],logger,callback)){
 	    return;
 	}
 
@@ -121,8 +122,8 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 		Object.erase(game,'bypassCache');
 
 		game.character.location = {
-		    universeID : universe.options.database.universeID,
-		    mapID : universe.maps[mapName].options.database.mapID,
+		    universeID : universe.options.database.id,
+		    mapID : universe.maps[mapName].options.database.id,
 		    mapName : mapName,
 		    point : charStartPoint,
 		    dir : Array.getSRandom(RPG.dirs,rand)

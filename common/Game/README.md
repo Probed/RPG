@@ -16,7 +16,7 @@ The most basic `universe` looks like this:
 
 ```javascript
 var universe = {
-    options : { /* options populated using RPG.universe_options and /common/optionsConfig.js */ },
+    options : { /* options populated using RPG.universe_options and /common/Constraints.js */ },
     maps : { /* collection of Maps. see below Map*/}
 }
 ```
@@ -30,7 +30,7 @@ The most basic `map` looks like this:
 
 ```javascript
 var map = {
-    options : { /* options populated using RPG.map_options and /common/optionsConfig.js */ },
+    options : { /* options populated using RPG.map_options and /common/Constraints.js */ },
     cache : {}, //map.cache holds actual tiles
     tiles : {}, //map.tiles 2d object with tile paths
 };
@@ -109,13 +109,13 @@ var tiles = {
 var universe = Object.clone(RPG.universe);
 
 //Retrieve input table to fill out the universe options:
-var htmlOptionsTable = RPG.optionCreator.getOptionTable(RPG.universe_options,null,null,null,'uni_opts'); // /common/optionConfig.js
+var htmlOptionsTable = RPG.Constraints.getTable(RPG.universe_options,null,null,null,'uni_opts'); // /common/Constraints.js
 
 //After the user has completed entering thier options:
-universe.options = RPG.optionCreator.getOptionsFromTable(RPG.universe,null,null,null,'uni_opts'); // /common/optionConfig.js
+universe.options = RPG.Constraints.getFromInput(RPG.universe,null,null,null,'uni_opts'); // /common/Constraints.js
 
 //Validate the options
-var errors = RPG.optionValidator.validate(RPG.universe_options,universe.options); // /common/optionConfig.js
+var errors = RPG.Constraints.validate(RPG.universe_options,universe.options); // /common/Constraints.js
 
 
 /*
@@ -126,13 +126,13 @@ var errors = RPG.optionValidator.validate(RPG.universe_options,universe.options)
 var map = Object.clone(RPG.map);
 
 //Retrieve input table to fill out the map options
-var htmlOptionsTable = RPG.optionCreator.getOptionTable(RPG.map_options,null,null,null,'map_opts'); // /common/optionConfig.js
+var htmlOptionsTable = RPG.Constraints.getTable(RPG.map_options,null,null,null,'map_opts'); // /common/Constraints.js
 
 //After the user has completed entering thier options:
-map.options = RPG.optionCreator.getOptionsFromTable(RPG.map,null,null,null,'map_opts'); // /common/optionConfig.js
+map.options = RPG.Constraints.getFromInput(RPG.map,null,null,null,'map_opts'); // /common/Constraints.js
 
 //Validate the options
-var errors = RPG.optionValidator.validate(RPG.map_options,map.options); // /common/optionConfig.js
+var errors = RPG.Constraints.validate(RPG.map_options,map.options); // /common/Constraints.js
 
 
 /*

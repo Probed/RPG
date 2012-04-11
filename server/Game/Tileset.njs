@@ -57,7 +57,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			maxRow : tResult['maxRow'],
 			maxCol : tResult['maxCol']
 		    };
-		    tileset.options.database.tilesetID = tResult['tilesetID'];
+		    tileset.options.database.id = tResult['tilesetID'];
 
 		    RPG.Tileset.loadTiles(options,function(tileUni){
 			if (tileUni.error) {
@@ -137,7 +137,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 	    RPG.Tileset.checkDupeTilesetName({
 		name : tileset.options.property.name,
 		category : tileset.options.property.category,
-		tilesetID : (tileset.options.database && tileset.options.database.tilesetID?tileset.options.database.tilesetID:0)
+		id : (tileset.options.database && tileset.options.database.id?tileset.options.database.id:0)
 	    },function(dupeName) {
 		if (dupeName) {
 		    options.errors.push(dupeName);
@@ -145,7 +145,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 		}
 		//get this tileset database options
 		var db = Object.getFromPath(tileset,'options.database');
-		if (db && db.tilesetID) {
+		if (db && db.id) {
 
 		    //remove tiles specified in db.tileDelete (array of points)
 		    if (db && db.deleted) {
@@ -156,7 +156,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    'AND tilesetID = ? ',
 			    [
 			    options.user.options.userID,
-			    db.tilesetID
+			    db.id
 			    ],
 			    function(err,info){
 				if (err) {
@@ -169,7 +169,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 				    }
 				}
 			    });
-		    } else if (db.tilesetID) {
+		    } else if (db.id) {
 			//perform any deletes
 			if (!update) update = RPG.Mysql.createQueue();
 			update.queue('UPDATE tilesets ' +
@@ -182,7 +182,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    tileset.options.property.category,
 			    JSON.encode(tileset.options),
 			    options.user.options.userID,
-			    db.tilesetID
+			    db.id
 			    ],
 			    function(err,info){
 				if (err) {
@@ -215,7 +215,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 
 				if (info && info.insertId) {
 				    tileset.options.database = {
-					tilesetID : info.insertId
+					id : info.insertId
 				    }
 				} else {
 				    options.errors.push('Could not insert tileset item ' + tileset.options.property.name);
@@ -292,7 +292,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    tilesets[result['category']][result['name']] = {
 				options : Object.merge({
 				    database : {
-					tilesetID : result['tilesetID'],
+					id : result['tilesetID'],
 					userName : result['userName'],
 					totalArea : result['totalArea'],
 					totalObjects : result['totalObjects']
@@ -439,7 +439,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 
 	    //get this tileset database options
 	    var db = Object.getFromPath(tileset,'options.database');
-	    if (db && db.tilesetID) {
+	    if (db && db.id) {
 		var del = [];
 
 		//remove tiles specified in db.tileDelete (array of points)
@@ -460,7 +460,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    'AND point in ('+del.join(',')+') '+
 			    'AND tilesetID in (SELECT tilesetID FROM tilesets WHERE userID = ?)',
 			    [
-			    db.tilesetID,
+			    db.id,
 			    options.user.options.userID
 			    ],
 			    function(err,info) {
@@ -492,7 +492,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			'AND point in ('+del.join(',')+') '+
 			'AND tilesetID in (SELECT tilesetID FROM tilesets WHERE userID = ?)',
 			[
-			db.tilesetID,
+			db.id,
 			options.user.options.userID
 			],
 			function(err,info) {
@@ -510,7 +510,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 		    if (tiles && tiles != 'null') {
 			colNum = Number.from(colNum);
 			sql += '(?,GeomFromText(\'POINT('+rowNum+' '+colNum+')\'),?),'
-			arr.push(db.tilesetID,JSON.encode(tiles));
+			arr.push(db.id,JSON.encode(tiles));
 		    }
 		});
 		sql = sql.substr(0,sql.length-1);
@@ -520,7 +520,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    if (err) {
 				options.errors.push(err);
 			    }
-		});
+			});
 		}
 	    });
 
@@ -575,7 +575,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			error : err
 		    });
 		} else if (results && results[0]) {
-		    var cache = RPG.expandResultsCache(results,'tilesetCacheID');
+		    var cache = RPG.expandResultsCache(results,'tilesetID');
 
 		    if (!options.bypassCache) {
 			require('../Cache.njs').Cache.store(options.character.database.characterID,'tileset',cache);
@@ -608,9 +608,9 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 	    Object.each(flat,function(tileOpts,path,source){
 		var db = tileOpts.database;
 		Object.erase(tileOpts,'database');
-		if (db && db.tilesetCacheID) {
+		if (db && db.id) {
 
-		    if (!Number.from(db.tilesetCacheID)) {
+		    if (!Number.from(db.id)) {
 			options.errors.push('The Tileset Cache ID for "'+ path+'" must be numeric.');
 			db = null;
 			return;
@@ -621,7 +621,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			remove.queue('DELETE FROM tilesetscache ' +
 			    'WHERE tilesetID = ? ' +
 			    'AND tilesetCacheID = ? ',
-			    Array.clone([tileset.options.database.tilesetID,db.tilesetCacheID]),
+			    Array.clone([tileset.options.database.id,db.id]),
 			    function(err,results) {
 				if (err) {
 				    options.errors.push(err);
@@ -649,7 +649,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    Array.clone([
 				JSON.encode(oldPath),
 				path,
-				tileset.options.database.tilesetID
+				tileset.options.database.id
 				]),
 			    function(err,results) {
 				if (err) {
@@ -671,8 +671,8 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			    path,
 			    tileOpts.property.tileName,
 			    JSON.encode(tileOpts),
-			    tileset.options.database.tilesetID,
-			    db.tilesetCacheID
+			    tileset.options.database.id,
+			    db.id
 			    ]),
 			function(err,results) {
 			    if (err) {
@@ -695,7 +695,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			'tileName = ?,' +
 			'options = ?',
 			Array.clone([
-			    tileset.options.database.tilesetID,
+			    tileset.options.database.id,
 			    path,
 			    tileOpts.property.folderName,
 			    tileOpts.property.tileName,

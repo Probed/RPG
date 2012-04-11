@@ -4,7 +4,7 @@
  * Here we define tile types used by various different tiles
  * each can be overriden by providing an options argument
  *
- *  a TileType function returns an options constraints object that is compatible with RPG.optionsCreator and RPG.optionsValidator in /common/optionConfig.js
+ *  a TileType function returns an options constraints object that is compatible with RPG.Constraints and RPG.optionsValidator in /common/Constraints.js
  *
  *  The options constraint object is used to determine what values are allowed
  *
@@ -164,7 +164,7 @@ RPG.TileType.Trap = function(options) {
  *	    //etc
  *	}
  *
- *  @todo this will not display correctly in the Map Editor. need to fix optionsConfig to handle array of objects
+ *  @todo this will not display correctly in the Map Editor. need to fix Constraints to handle array of objects
   */
 RPG.TileType.Switch = function(options) {
     return {
@@ -234,7 +234,7 @@ RPG.TileType.Roam = function(options) {
 RPG.TileType.Container = function(options) {
     return {
 	container : Object.merge({
-	    items : [{}]//@todo this will not display correctly in the Map Editor. need to fix optionsConfig to handle array of objects
+	    items : [{}]//@todo this will not display correctly in the Map Editor. need to fix Constraints to handle array of objects
 	}
 	,options||{})
     };

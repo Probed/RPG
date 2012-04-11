@@ -17,9 +17,9 @@ if (typeof exports != 'undefined') {
 
 This file contains a free form object which should, in later development, be used in some way. It is currently loaded on both client and server but serves almost no function.
 
-## [optionsConfig.js](https://github.com/Probed/RPG/tree/master/common/optionsConfig.js)
+## [Constraints.js](https://github.com/Probed/RPG/tree/master/common/Constraints.js)
 
-**See [optionConfig.md](https://github.com/Probed/RPG/tree/master/common/optionsConfig.md) for more details.**
+**See [Constraints.md](https://github.com/Probed/RPG/tree/master/common/Constraints.md) for more details.**
 
 #### Understanding this file is critical to any understanding of `options` and `option_constraints` within the application.
 

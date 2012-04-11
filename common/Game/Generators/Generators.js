@@ -4,7 +4,7 @@ if (!RPG.Generators) RPG.Generators = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Log/Log.njs'));
     Object.merge(RPG,require('../../Character/Character.js'));
-    Object.merge(RPG,require('../../optionConfig.js'));
+    Object.merge(RPG,require('../../Constraints.js'));
     module.exports = RPG;
 }
 
@@ -81,7 +81,7 @@ RPG.MapGeneratorBaseClass = new Class({
 
 	//merge 'incoming options' with 'random options' so we can override some random ones if so desired
 	var randOptions = Object.merge(
-	    RPG.optionCreator.random(this.constraints,rand),
+	    RPG.Constraints.random(this.constraints,rand),
 	    options
 	    );
 
@@ -223,7 +223,7 @@ RPG.ItemGeneratorBaseClass = new Class({
 
 	//merge 'incoming options' with 'random options' so we can override some random ones if so desired
 	var randOptions = Object.merge(
-	    RPG.optionCreator.random(this.constraints,rand),
+	    RPG.Constraints.random(this.constraints,rand),
 	    options
 	    );
 
@@ -329,7 +329,7 @@ RPG.NPCGeneratorBaseClass = new Class({
 
 	//merge 'incoming options' with 'random options' so we can override some random ones if so desired
 	var randOptions = Object.merge(
-	    RPG.optionCreator.random(this.constraints,rand),
+	    RPG.Constraints.random(this.constraints,rand),
 	    options
 	    );
 

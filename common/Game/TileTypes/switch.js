@@ -11,6 +11,7 @@ if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
+    var logger = RPG.Log.getLogger('Switch');
     module.exports = RPG;
 }
 
@@ -37,8 +38,8 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 	//client
 	if (options.contents.auto) {
 	    RPG.Switch.show(options,{
-		success : function(state){
-		    callback(state);
+		success : function(switchState){
+		    callback(switchState);
 		},
 		fail : function() {
 		    callback({
@@ -47,13 +48,19 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 		}
 	    });
 	} else {
+	    var lastTile = RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles);
+	    if (!lastTile || !lastTile.path) {
+		callback();
+		return;
+	    }
 	    //automaically cycle through the states
-	    idx = Object.keys(options.contents.states).indexOf(options.contents.state);
-	    state = Object.keys(options.contents.states)[idx+1] || Object.keys(options.contents.states)[0];
+	    idx = Object.keys(lastTile.tile.options['switch'].states).indexOf(options.contents.state);
+	    state = Object.keys(lastTile.tile.options['switch'].states)[idx+1] || Object.keys(lastTile.tile.options['switch'].states)[0];
+	    var ret = {};
+	    //ret becomes like: { '["path","to","tile"]' : solution }
+	    ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles).path)] = state;
 	    callback({
-		'switch' : {
-		    state : state
-		}
+		'switch' : ret
 	    });
 	}
 
@@ -74,13 +81,13 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 	//aggragate all the paths for a single load from the db
 	paths = [];
 	options.contents.states[state].each(function(change){
-	    paths.push(JSON.encode(change.path.split('.')));
+	    paths.push(JSON.encode(change.path));
 	});
 
 	//make a call to the database since we cannot be assured the tiles will be in the cache
 	RPG.Map.loadCache({
 	    user : options.game.user,
-	    character: options.game.character,
+	    mapID: options.game.character.location.mapID,
 	    universe : options.game.universe,
 	    paths : paths,
 	    bypassCache : true
@@ -92,27 +99,50 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 		return;
 	    }
 
+	    var updateUni = {};
+	    var errors = [];
 	    //go through each statechange in the array
-	    options.contents.states[state].each(function(change) {
+	    options.game.user.logger.trace('Activating Switch - state: ' + state + ' tile: '+JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles).path));
+	    RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles).tile.options['switch'].states[state].each(function(change) {
 		var tile = Object.getFromPath(cache,change.path);
 		if (!tile) return;
-		Object.merge(tile.options,JSON.decode(change.options,true));
+
+		var uni = RPG.updateTile({
+		    universe : options.game.universe,
+		    mapName : options.game.character.location.mapName,
+		    tilePath : change.path,
+		    options : JSON.decode(change.options,true),
+		    updateUniverse : updateUni
+		});
+
+		if (uni.error) {
+		    errors.push(uni.error);
+		}
 	    });
+	    if (errors && errors.length > 0) {
+		callback({
+		    error : errors
+		});
+		return;
+	    }
+
 	    //now store updated tiles
-	    RPG.Game.updateGameTile(options,{
-		cache : cache
-	    },function(newUniverse) {
-		if (newUniverse.error) {
+	    RPG.Universe.store({
+		user : options.game.user,
+		universe : updateUni,
+		bypassCache : true
+	    },function(universe) {
+		if (universe.error) {
 		    callback({
-			error : newUniverse.error
+			error : universe.error
 		    });
 		    return;
 		}
 		//finally callback with the paths so that 'activateComplete' can use the list to remove tiles from the cache
 		callback({
-		    switchPaths : paths,
+		    //switchPaths : paths,
 		    game : {
-			universe : newUniverse
+			universe : updateUni
 		    }
 		});
 	    });
@@ -132,21 +162,21 @@ RPG.TileTypes['switch'].activateComplete = function(options,callback) {
 
 	//remove the tile from the current cached Universe so it will get reloaded from the database
 	//and the client should receive any switched ones
-	var paths = [];
-
-	//find and remove all tiles of the specified path
-	options.events.activate.switchPaths.each(function(path){
-	    path = JSON.decode(path);
-	    paths.push(path);
-	    var tiles = options.game.universe.maps[options.game.character.location.mapName].tiles;
-	    RPG.EachTile(tiles, true, function(tile) {
-		if (RPG.tilesContainsPath(tiles,path,[tile.row,tile.col])) {
-		    RPG.removeAllTiles(tiles,[tile.row,tile.col]);
-		}
-	    });
-	});
-	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache,paths);
-	Object.erase(options.events.activate,'switchPaths');
+	//	var paths = [];
+	//
+	//	//find and remove all tiles of the specified path
+	//	options.events.activate.switchPaths.each(function(path){
+	//	    path = JSON.decode(path);
+	//	    paths.push(path);
+	//	    var tiles = options.game.universe.maps[options.game.character.location.mapName].tiles;
+	//	    RPG.EachTile(tiles, true, function(tile) {
+	//		if (RPG.tilesContainsPath(tiles,path,[tile.row,tile.col])) {
+	//		    RPG.removeAllTiles(tiles,[tile.row,tile.col]);
+	//		}
+	//	    });
+	//	});
+	//	//	RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache,paths);
+	//	Object.erase(options.events.activate,'switchPaths');
 	callback();
 
     } else {
@@ -205,10 +235,11 @@ RPG.Switch = new (new Class({
 		    events : {
 			click : function() {
 			    if (this.puzzle && this.puzzle.isSolved()) {
+				var ret = {};
+				//ret becomes like: { '["path","to","tile"]' : solution }
+				ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles).path)] = this.puzzle.solution;
 				callbacks.success({
-				    'switch' : {
-					state : this.puzzle.solution
-				    }
+				    'switch' : ret
 				});
 				callbacks.fail = null;//set to null so onClose does not call again
 				this.puzzle.toElement().destroy();

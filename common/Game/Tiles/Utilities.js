@@ -2,10 +2,11 @@ if (!RPG) var RPG = {};
 
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Log/Log.njs'));
-    Object.merge(RPG,require('../../optionConfig.js'));
+    Object.merge(RPG,require('../../Constraints.js'));
     Object.merge(RPG,require('./Tiles.js'));
     Object.merge(RPG,require('./TileTypes.js'));
     Object.merge(RPG,require('../Generators/Utilities.js'));
+    var logger = RPG.Log.getLogger('TileUtilities');
     module.exports = RPG;
 }
 
@@ -364,10 +365,9 @@ RPG.createTile = function(path, cache, options) {
     }else {
 	obj = Object.pathToObject(null,newPath);
 	obj.child.options = options;
-	var defaults = {
-	    options : RPG.optionValidator.getConstraintOptions(path,RPG.Tiles)
-	};
-	obj.child.options = Object.merge(RPG.getTileDefaults({},defaults),obj.child).options;
+	obj.child.options = Object.merge(RPG.getTileDefaults({},{
+	    options : RPG.Constraints.getConstraints(path,RPG.Tiles)
+	}),obj.child).options;
 	Object.merge(cache,obj.root);
     }
     path = obj = cacheTile = null;
@@ -428,6 +428,20 @@ RPG.removeTile = function(tiles,path,point) {
     });
     rt.clean();
     return rt.length > 0?rt:false;
+}
+
+RPG.removeCacheTiles = function(cache,paths) {
+    if (!cache || !paths) return;
+    paths.each(function(path){
+	RPG.removeCacheTile(cache,path);
+    });
+}
+
+RPG.removeCacheTile = function(cache,path) {
+    var tileName = path.pop();
+    var rem = Object.getFromPath(cache,path);
+    if (!rem) return;
+    Object.erase(rem,tileName);
 }
 
 RPG.deleteTiles = function(map,paths,point) {
@@ -934,27 +948,62 @@ RPG.EachTile = function(tiles,allPoints,fn) {
     }
 }
 
+
+RPG.getFirstByTileType = function(map,tileType,tiles) {
+    if (!map || !map.tiles || !map.cache || !tileType || !tiles) return null;
+    var first = null;
+    tiles.each(function(tilePath){
+	if (first) return;
+	var tile = Object.getFromPath(map.cache,tilePath);
+	if (!tile) return;
+	if (tile.options && tile.options[tileType]) {
+	    first = {
+		tile : tile,
+		path : tilePath
+	    };
+	}
+    });
+    return first || null;
+}
+
+RPG.getLastByTileType = function(map,tileType,tiles) {
+    if (!map || !map.tiles || !map.cache || !tileType || !tiles) return null;
+    var last = null;
+    Array.clone(tiles).reverse().each(function(tilePath){
+	if (last) return;
+	var tile = Object.getFromPath(map.cache,tilePath);
+	if (!tile) return;
+	if (tile.options && tile.options[tileType]) {
+	    last = {
+		tile : tile,
+		path : tilePath
+	    };
+	}
+    });
+    return last || null;
+}
+
 /**
-     * Takes a cache object and flattens it.
-     * eg :
-     * terrina : {
-     *	    grass : {
-     *		options : {
-     *		    property : {
-     *			..stuff..
-     *		    }
-     *		}
-     *      },
-     *      dirt : { .. }
-     *}
-     *
-     *Results:
-     *{
-     *	'[`terrain`,`grass`]' : options : { property : { ..stuff.. } },
-     *	'[`terrain`,`dirt`]' : options : { property : { ..stuff.. } }
-     *}
-     *
-     */
+ * Takes a cache object and flattens it.
+ * eg :
+ * terrina : {
+ *	    grass : {
+ *		options : {
+ *		    property : {
+ *			..stuff..
+ *		    }
+ *		}
+ *      },
+ *      dirt : { .. }
+ *}
+ *
+ *Results:
+ *{
+ *	'[`terrain`,`grass`]' : options : { property : { ..stuff.. } },
+ *	'[`terrain`,`dirt`]' : options : { property : { ..stuff.. } }
+ *}
+ *
+ */
 RPG.flattenCache = function(cache,internal) {
     if (!internal) internal = {};
     if (!internal.path) internal.path = [];
@@ -988,14 +1037,395 @@ RPG.expandFlatCache = function(flat) {
     return cache;
 }
 
-RPG.expandResultsCache = function(results,id) {
+RPG.expandResultsCache = function(results,dbIDName) {
     var cache = {};
     results.each(function(result){
 	var dbOpts = {
-	    database : {}
+	    database : {
+		id : result[dbIDName]
+	    }
 	};
-	dbOpts.database[id] = result[id];
 	Object.pathToObject(cache,JSON.decode(result['path'],true)).child.options = Object.merge(JSON.decode(result['options'],true),dbOpts);
     });
     return cache;
+}
+
+/**
+ * This will take a source universe and mapName and create or update a skeleton universe
+ * options:
+ *	universe  //the existing universe from which to copy the 'options' from
+ *
+ * optional options:
+ *	mapName
+ *	updateUniverse
+ *
+ * returns
+ *	options.updateUniverse
+ */
+RPG.getUpdateUniverse = function(options) {
+    //create a empty universe with same options as current
+    //this universe is what gets saved since it only contains the updated tiles
+    var uni = options.updateUniverse = options.updateUniverse || {};
+    //grab the universe options from the 'source universe'  or the 'updateUniverse' or create new
+    uni.options = uni.options || Object.clone(options.universe.options || {});
+
+    if (options.mapName) {
+	Array.from(options.mapName).each(function(mapName){
+	    options.updateUniverse.maps = options.updateUniverse.maps || {};
+	    //ensure the mapName exists
+	    var map = options.updateUniverse.maps[mapName] = options.updateUniverse.maps[mapName] || {};
+
+	    //get the options from the 'source universe' or the 'updateUniverse'. these options are needed so the map knows where it is going to be stored.
+	    map.options = Object.clone(Object.getFromPath(options,['universe','maps',mapName,'options']) || Object.getFromPath(options,['updateUniverse','maps',mapName,'options']) || {});
+
+	    //ensure the tiles/cache exists in the map:
+	    map.tiles = map.tiles || Object.getFromPath(options,['updateUniverse','maps',mapName,'cache']) || {};
+	    map.cache = map.cache || Object.getFromPath(options,['updateUniverse','maps',mapName,'cache']) || {};
+	});
+    }
+
+    uni=map=null;
+    return options.updateUniverse;
+}
+
+
+/**
+ * This will update a tiles options on the given map within the given universe
+ *
+ * options:
+ *	universe : (source) the universe within which the tile exists
+ *	mapName : what map the tile is on
+ *	tilePath : the path of the tile eg. ['terrain','grass']
+ *	options : the tiles options to be merged eg. { property : { image : { name : 'newImageName.png' }}}
+ *	updateUniverse : the universe to put the changes into. a new one is created if one is not provided. this will be the results
+ *
+ *	returns (options.updateUniverse || {error:'..'});
+ */
+RPG.updateTile = function(options) {
+    var errors = [];
+    if (!RPG.Constraints.requiredOptions(options,['universe','mapName','tilePath','options'],null,function(){/*ignorecallback*/},errors)){
+	return {
+	    error : errors
+	};
+    }
+    errors = null;
+
+    //populate the 'options.updateUniverse' value (also returns it)
+    RPG.getUpdateUniverse(options);
+
+    //attempt to push a clone of the tile from the 'source universe' into the 'updateUniverse'
+    if (!RPG.cloneTile(
+	Object.getFromPath(options,['universe','maps',options.mapName]).cache, //clone from 'source universe'
+	options.tilePath, //clone this path
+	Object.getFromPath(options,['updateUniverse','maps',options.mapName]).cache, //place the clone into this map
+	options.options //set the cloned options to the incoming 'tile options'
+	)){
+	return {
+	    error : 'Failed to push updateTile to updateUniverse. map: '+options.mapName+' tile: '+options.tilePath
+	};
+    }
+
+    return options.updateUniverse;
+}
+
+
+
+/**
+* go through the move objects and move shit around.
+*
+* options:
+*   universe : (source) the universe within which the tile exists
+*   mapName : what map the tile is on
+*   updateUniverse : the universe to put the changes into. a new one is created if one is not provided. this will be the callback results
+*
+*   move : looks like:
+*       move {
+*	   [to] : {  //json encoed point. eg [1,1]
+*		[tilePath] : { //json encoded path eg ['terrain','grass']
+*		    from : [0,1], //array [num,num]
+*		    options : {...} //optional new options for this tile
+*		}
+*	     }
+*      }
+*
+*  returns (options.updateUniverse || {error:'..'});
+*/
+RPG.moveTiles  = function(options) {
+    var errors = [];
+    if (!RPG.Constraints.requiredOptions(options,['universe','mapName','move'],null,function(){/*ignorecallback*/},errors)){
+	return {
+	    error : errors
+	};
+    }
+
+    //populate the 'options.updateUniverse' value (also returns it)
+    RPG.getUpdateUniverse(options);
+
+    var updateMap = Object.getFromPath(options,['updateUniverse','maps',options.mapName]);
+
+    //the current game map where we will get the 'from' stuff.
+    var sourceMap = Object.getFromPath(options,['universe','maps',options.mapName]);
+
+    var moved = false;//make sure something has moved so we don't store needlessly'
+
+    //first copy all the tiles at to/from locations from the games current map, into our update map
+    Object.each(options.move,function(to,point){
+	if (!to) return;
+	point = JSON.decode(point,true);
+	if (!RPG.setTiles(updateMap.tiles, point,Array.clone(RPG.getTiles(sourceMap.tiles,point)))){
+	    errors.push('Could not put copy of "to" tiles on map: '+options.mapName+' at:'+point+ ' to updateUniverse');
+	}
+	//go through an copy all the 'from' location tiles to our updateMap
+	Object.each(to,function(moveInfo,path){
+	    if (!RPG.setTiles(updateMap.tiles, moveInfo.from,Array.clone(RPG.getTiles(sourceMap.tiles,moveInfo.from)))) {
+		errors.push('Could not put copy of "from" tiles on map: '+options.mapName+' at:'+moveInfo.from+ ' to updateUniverse');
+	    }
+	});
+    });
+
+    //next go through each to location and push them to the new map
+    Object.each(options.move,function(to,point){
+	if (!to) return;
+	point = JSON.decode(point,true);
+	Object.each(to,function(moveInfo,tilePath){
+	    if (!moveInfo) return;
+	    tilePath = JSON.decode(tilePath,true);
+
+	    //push the tile to the new location and set it's new options
+	    //this clones the tileoptions into the map.cache and pushes the path onto the map.tiles
+	    if (!RPG.pushTile(updateMap.tiles, point, (moveInfo.options && RPG.cloneTile(sourceMap.cache, tilePath, updateMap.cache, moveInfo.options)) || tilePath)){
+		errors.push('Could not move tile '+tilePath+' on map: '+options.mapName+' at:'+moveInfo.from+ ' to updateUniverse');
+	    }
+
+	    //remove the tile from the old location
+	    if (!RPG.removeTile(updateMap.tiles, tilePath, moveInfo.from)) {
+		errors.push('Could not remove old tile '+tilePath+' on map: '+options.mapName+' at:'+moveInfo.from+ ' to updateUniverse');
+	    }
+	    moved = true;
+	});
+    });
+
+    if (errors && errors.length > 0) {
+	return {
+	    error : errors
+	};
+    }
+
+    if (!moved) {
+	return null;
+    }
+
+    return options.updateUniverse;
+}
+
+/**
+ * Swaps all tiles at fromPoint (on fromMap)  to  toPoint (on toMap) as defined in the options.swap object
+ *
+ * (map and inventory work the same and can be used here)
+ *
+ * options:
+ *   universe : (source) the universe within which the tile exists
+ *   updateUniverse : the universe to put the changes into. a new one is created if one is not provided. this will be the callback results
+ *   swap : looks like:
+ *	{
+ *	    fromMap : name of the to map(or inventory)
+ *	    fromPoint
+ *	    toMap : name of the to map(or inventory)
+ *	    toPoint
+*	}
+*
+*   returns (options.updateUniverse || {error:'..'});
+*/
+RPG.swapTiles = function(options) {
+    var errors = [];
+    if (!RPG.Constraints.requiredOptions(options,['universe','swap'],null,function(){/*ignorecallback*/},errors)){
+	return {
+	    error : errors
+	};
+    }
+
+    var moved = false;
+    var done = false;
+
+    var swap = options.swap;
+
+    //populate the 'options.updateUniverse' value (also returns it)
+    options.mapName = [swap.fromMap,swap.toMap];//make an map entry for 'from' and 'to'
+    RPG.getUpdateUniverse(options);
+
+    var updateUni = options.updateUniverse;
+
+    //set the source maps where we will be getting the tiles from.
+    var fromMap = Object.getFromPath(options,['universe','maps',swap.fromMap]);
+    var toMap =  Object.getFromPath(options,['universe','maps',swap.toMap]);
+
+    //now grab the tiles that are going to be be swapped
+    var fromTiles = RPG.getTiles(fromMap.tiles,swap.fromPoint);
+    var toTiles = RPG.getTiles(toMap.tiles,swap.toPoint);
+
+    if (fromTiles && fromTiles.length == 0) {
+	fromTiles = null;
+    }
+    if (toTiles && toTiles.length == 0) {
+	toTiles = null;
+    }
+
+    if (!fromTiles && !toTiles) {
+	moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=errors=null;
+	return {
+	    error : 'Nothing to swap'
+	};
+    }
+
+    //set the new map tiles to the current tiles so we can update them in the new Map
+    // it is the new Map that will be saved. so any changes to it will get stored.
+    //we will use it to verify and build our changes.
+    if (!RPG.setTiles(updateUni.maps[swap.fromMap].tiles,swap.fromPoint, RPG.cloneTiles(fromMap.cache,fromTiles,updateUni.maps[swap.fromMap].cache))) {
+	errors.push('Unable to copy the "from" tiles ' + fromTiles + ' into updateUniverse');
+    }
+    RPG.setTiles(updateUni.maps[swap.toMap].tiles,swap.toPoint, RPG.cloneTile(toMap.cache,toTiles,updateUni.maps[swap.toMap].cache));
+
+    //Attempt to stack with the 'toTiles' first:
+    if (toTiles && toTiles.length > 0) {
+
+	var fromTile0 = Object.getFromPath(fromMap.cache,fromTiles[0]);
+	var toTile0 = Object.getFromPath(toMap.cache,toTiles[0]);
+
+
+	if (RPG.tilesContainsPartialPath(toMap.tiles,RPG.trimPathOfNameAndFolder(fromTiles[0]),swap.fromPoint)) {
+
+	    //check to see if they are of the same type:
+	    var fromImgName = Object.getFromPath(fromTile0,'options.property.image.name');
+	    var toImgName = Object.getFromPath(toTile0,'property.image.name');
+
+	    //check to see if they are stackable:
+	    if (fromImgName == toImgName && Object.getFromPath(fromTile0,'item.stacksize') > 1 && Object.getFromPath(toTile0,'item.stacksize') > 1) {
+
+
+		//Stack the tiles one at a time until exausted or stacksize limit is reached
+		fromTiles.each(function(fromTile){
+		    if (done) return;
+		    if (RPG.getTiles(updateUni.maps[swap.yoMap].tiles,swap.toPoint).length >= Object.getFromPath(toTile0,'item.stacksize')) {
+			done = true;
+
+		    } else {
+
+			//Push a copy of the 'fromTile' into the 'toPoint'
+			if (!RPG.pushTile(updateUni.maps[swap.toMap].tiles,swap.toPoint,
+			    RPG.cloneTile(fromMap.cache,fromTile,updateUni.maps[swap.toMap].cache,
+				swap.toMap != swap.fromMap?{
+				    database : {
+					id : 0 //make sure this gets inserted if events.toMap != events.fromMap
+				    }
+				}:{}))) {
+			    errors.push('(stack) Failed to push a clone to updateUniverse tile: "'+fromTile+'" from the toPoint: ' + swap.toPoint);
+			}
+
+			if (swap.toMap != swap.fromMap) {
+
+			    //marks the cache for deletion and remove the tiles from the 'from' Map
+			    if (!RPG.deleteTile(updateUni.maps,fromTile,swap.fromPoint)) {
+				errors.push('Unable to delete updateUniverse tile: "'+fromTile+'" from the fromPoint: ' + swap.fromPoint);
+			    }
+			} else {
+			    if (!RPG.removeTile(updateUni.maps[swap.fromMap].tiles,fromTile,swap.fromPoint)) {
+				errors.push('Unable to remove updateUniverse tile: "'+fromTile+'" from the fromPoint: ' + swap.fromPoint);
+			    }
+			}
+			moved = true;
+		    }
+		});
+	    }
+	}
+    }
+
+    //Ensure no other moves have occured in the code above. and make sure there is actually something to swap.
+    if (!moved && !done && fromTiles && fromTiles.length > 0) {
+
+	//Push a copy of the item being moved (from) into the position where the 'toPoint' is
+	if (!RPG.pushTiles(updateUni.maps[swap.toMap].tiles,swap.toPoint,
+	    RPG.cloneTiles(fromMap.cache,fromTiles,updateUni.maps[swap.toMap].cache,
+		swap.toMap != swap.fromMap?{
+		    database : {
+			id : 0 //make sure this gets inserted if events.toMap != events.fromMap
+		    }
+		}:{}))) {
+	    errors.push('Failed to push a clone to updateUniverse tile: "'+fromTile+'" from the toPoint: ' + swap.toPoint);
+
+	}
+
+	/**
+	 * Move the 'to' item into the 'from' position (if it exists)
+	 */
+	if (toTiles) {
+
+	    //Push a copy of the tile at the 'to' location, into the position where the 'fromPoint' is
+	    if (!RPG.pushTiles(updateUni.maps[swap.fromMap].tiles,swap.fromPoint,
+		RPG.cloneTiles(toMap.cache,toTiles,updateUni.maps[swap.fromMap].cache,
+		    swap.toMap != swap.fromMap?{
+			database : {
+			    id : 0 //make sure this gets inserted if events.toMap != events.fromMap
+			}
+		    }:{}))){
+		errors.push('Failed to push a clone to updateUniverse tiles: "'+fromTiles+'" from the fromPoint: ' + swap.toPoint);
+	    }
+
+	    if (swap.toMap != swap.fromMap) {
+		//if the Map containers are different, mark the item in the toMap container for deletion
+		//marks the cache for deletion and remove the tiles from the 'to' Map
+		if (!RPG.deleteTiles(updateUni.maps[swap.toMap],toTiles,swap.toPoint)) {
+		    errors.push('Failed to delete updateUniverse tiles: "'+toTiles+'" from the toPoint: ' + swap.toPoint);
+		}
+
+	    } else {
+
+		//if the Map containers are the same then no update of the 'tilecache' is necessary,
+		//just a removeal of this item tile at the 'toPoint' (since it has by now been placed in the fromPoint)
+		if (!RPG.removeTiles(updateUni.maps[swap.toMap].tiles,toTiles,swap.toPoint)) {
+		    errors.push('Failed to remove updateUniverse tiles: "'+toTiles+'" from the toPoint: ' + swap.toPoint);
+		}
+	    }
+	}
+
+	/**
+	 * Move the 'from' items into the 'to' position
+	 */
+	if (!RPG.pushTiles(updateUni.maps[swap.toMap].tiles,swap.toPoint,
+	    RPG.cloneTiles(fromMap.cache,fromTiles,updateUni.maps[swap.toMap].cache,
+		swap.toMap != swap.fromMap?{
+		    database : {
+			id : 0 //make sure this gets inserted if events.toMap != events.fromMap
+		    }
+		}:{}))) {
+	    errors.push('Failed to push a clone to updateUniverse tile: "'+fromTile+'" from the toPoint: ' + swap.toPoint);
+	}
+
+	if (swap.toMap != swap.fromMap) {
+
+	    //actually marks the cache for deletion and remove the tiles from the 'from' Map.
+	    if (!RPG.deleteTiles(updateUni.maps[swap.fromMap],fromTiles,swap.fromPoint)) {
+		errors.push('Failed to delete updateUniverse tiles: "'+fromTiles+'" from the fromPoint: ' + swap.fromPoint);
+	    }
+
+	} else {
+	    //if the Map containers are the same then no update of the 'tilecache' is necessary,
+	    //just a removeal of this item tile at the 'fromPoint' (since it has by now been placed in the toPoint)
+	    if (!RPG.removeTiles(updateUni.maps[swap.fromMap].tiles,fromTiles,swap.fromPoint)) {
+		errors.push('Failed to remove updateUniverse tiles: "'+fromTiles+'" from the fromPoint: ' + swap.fromPoint);
+	    }
+
+	}
+	moved = true;
+    }
+
+    if (errors.length > 0) {
+	moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=null;
+	return {
+	    error : errors
+	};
+    }
+
+    moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=errors=null;
+
+    return options.updateUniverse;
 }

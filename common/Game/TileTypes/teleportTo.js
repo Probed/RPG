@@ -176,8 +176,8 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    var updateCharacter = Object.clone(options.game.character);
 		    var newLoc = null;
 		    Object.merge(updateCharacter.location,newLoc ={
-			universeID : universe.options.database.universeID,
-			mapID : universe.maps[mapName].options.database.mapID,
+			universeID : universe.options.database.id,
+			mapID : universe.maps[mapName].options.database.id,
 			mapName : mapName,
 			point : charStartPoint
 		    });
@@ -241,7 +241,7 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		var updateCharacter = Object.clone(options.game.character);
 		var newLoc = null;
 		Object.merge(updateCharacter.location,newLoc = {
-		    mapID : options.game.universe.maps[options.contents.mapName].options.database.mapID,
+		    mapID : options.game.universe.maps[options.contents.mapName].options.database.id,
 		    mapName : options.contents.mapName,
 		    point : options.contents.point
 		});

@@ -44,10 +44,10 @@ RPG.Item = new Class({
 
 				RPG.TileTypes.item.inventorySwap({
 				    game : this.game,
-				    clientEvents : {
-					toInventory : droppable.get('inventory'),
+				    swap : {
+					toMap : droppable.get('inventory'),
 					toPoint : [Number.from(droppable.get('row')),Number.from(droppable.get('col'))],
-					fromInventory : this.from.get('inventory'),
+					fromMap : this.from.get('inventory'),
 					fromPoint : [Number.from(this.from.get('row')),Number.from(this.from.get('col'))]
 				    }
 				},function(results) {

@@ -25,7 +25,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * callback(universe)
      */
     load : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
@@ -51,7 +51,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	    }
 	}
 
-	if (!RPG.Log.requiredOptions(options,['universeID'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['universeID'],logger,callback)){
 	    return;
 	}
 
@@ -76,7 +76,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 
 		    universe.options = Object.merge({
 			database : {
-			    universeID : universeResult['universeID']
+			    id : universeResult['universeID']
 			}
 		    },JSON.decode(universeResult['options'],true));
 
@@ -124,7 +124,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * callsback(universe || error)
      */
     store : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user','universe'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user','universe'],logger,callback)){
 	    return;
 	}
 
@@ -137,138 +137,131 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	}
 	options.user.storingUniverse = true;
 	//check dupe name:
-	if (this.checkDupeName(options,function(dupeName){
-	    if (dupeName) {
+
+	//Check for update or insert
+	var db =  options.universe.options.database;
+	Object.erase(options.universe.options,'database');//remove the database stuff from the incoming universe
+
+	if (db && db.id) {
+	    if (Number.from(db.id) <= 0) {
+		options.user.logger.fatal('Universe Store error for: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: universe.options.database.id must be > 0.');
+		callback({
+		    error : 'The universe ID must be numeric.'
+		});
+		db = null;
 		options.user.storingUniverse = false;
-		callback(dupeName);
 		return;
 	    }
-
-	    //Check for update or insert
-	    var db =  options.universe.options.database;
-	    Object.erase(options.universe.options,'database');//remove the database stuff from the incoming universe
-
-	    if (db && db.universeID) {
-		if (Number.from(db.universeID) <= 0) {
-		    options.user.logger.fatal('Universe Store error for: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: universe.options.database.universeID must be > 0.');
-		    callback({
-			error : 'The universe ID must be numeric.'
-		    });
-		    db = null;
-		    options.user.storingUniverse = false;
-		    return;
-		}
-		/**
+	    /**
 		 * Update
 		 */
-		RPG.Mysql.query(
-		    'UPDATE universes ' +
-		    'SET universeName = ?, ' +
-		    'options = ? ' +
-		    'WHERE universeID = ? ' +
-		    'AND userID = ? ',
-		    [
-		    options.universe.options.property.universeName,
-		    JSON.encode(options.universe.options),
-		    db.universeID,
-		    options.user.options.userID
-		    ],
-		    function(err,info) {
-			if (err) {
-			    options.user.logger.error('Universe Store Update error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: '+ JSON.encode(err));
+	    RPG.Mysql.query(
+		'UPDATE universes ' +
+		'SET universeName = ?, ' +
+		'options = ? ' +
+		'WHERE universeID = ? ' +
+		'AND userID = ? ',
+		[
+		options.universe.options.property.universeName,
+		JSON.encode(options.universe.options),
+		db.id,
+		options.user.options.userID
+		],
+		function(err,info) {
+		    if (err) {
+			options.user.logger.error('Universe Store Update error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: '+ JSON.encode(err));
+			options.user.storingUniverse = false;
+			callback({
+			    error : err
+			});
+		    } else {
+			if (info.affectedRows) {
+			    options.universe.options.database = db;
+			    if (!options.bypassCache) {
+				require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+db.id,options.universe);
+				options.user.logger.trace('Universe Store Update (cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
+			    } else {
+				options.user.logger.trace('Universe Store Update (non-cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
+			    }
+			    if (options.universe.maps) {
+				RPG.Map.storeMap(options, function(universe) {
+				    options.user.storingUniverse = false;
+				    callback(universe);
+				});
+			    } else {
+				options.user.storingUniverse = false;
+				callback(options.universe);
+			    }
+			    db = null;
+			} else {
+			    options.user.logger.error('Universe Store Update error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: Universe not found.');
 			    options.user.storingUniverse = false;
 			    callback({
-				error : err
+				error : 'Could not locate the universe specified'
 			    });
-			} else {
-			    if (info.affectedRows) {
-				options.universe.options.database = db;
-				if (!options.bypassCache) {
-				    require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+db.universeID,options.universe);
-				    options.user.logger.trace('Universe Store Update (cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-				} else {
-				    options.user.logger.trace('Universe Store Update (non-cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-				}
-				if (options.universe.maps) {
-				    RPG.Map.storeMap(options, function(universe) {
-					options.user.storingUniverse = false;
-					callback(universe);
-				    });
-				} else {
-				    options.user.storingUniverse = false;
-				    callback(options.universe);
-				}
-				db = null;
-			    } else {
-				options.user.logger.error('Universe Store Update error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: Universe not found.');
-				options.user.storingUniverse = false;
-				callback({
-				    error : 'Could not locate the universe specified'
-				});
-			    }
 			}
 		    }
-		    );
+		}
+		);
 
-	    } else {
-		/**
+	} else {
+	    /**
 		 * Insert
 		 */
-		RPG.Mysql.query(
-		    'INSERT INTO universes ' +
-		    'SET universeName = ?, ' +
-		    'options = ?,' +
-		    'created = NOW(),' +
-		    'userID = ?',
-		    [
-		    options.universe.options.property.universeName,
-		    JSON.encode(options.universe.options),
-		    options.user.options.userID
-		    ],
-		    function(err,info) {
-			if (err) {
-			    options.user.logger.error('Universe Store Update error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: '+ JSON.encode(err));
+	    RPG.Mysql.query(
+		'INSERT INTO universes ' +
+		'SET universeName = ?, ' +
+		'options = ?,' +
+		'created = NOW(),' +
+		'userID = ?',
+		[
+		options.universe.options.property.universeName,
+		JSON.encode(options.universe.options),
+		options.user.options.userID
+		],
+		function(err,info) {
+		    if (err) {
+			options.user.logger.error('Universe Store Update error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: '+ JSON.encode(err));
+			options.user.storingUniverse = false;
+			callback({
+			    error : err
+			});
+		    } else {
+			if (info.insertId) {
+
+			    options.universe.options = Object.merge({
+				database : {
+				    id : info.insertId
+				}
+			    },options.universe.options);
+
+			    if (!options.bypassCache) {
+				require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+info.insertId,options.universe);
+				options.user.logger.trace('Universe Store Insert (cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
+			    } else {
+				options.user.logger.trace('Universe Store Insert (non-cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
+			    }
+
+			    if (options.universe.maps) {
+				RPG.Map.storeMap(options, function(universe) {
+				    options.user.storingUniverse = false;
+				    callback(universe);
+				});
+			    } else {
+				options.user.storingUniverse = false;
+				callback(options.universe);
+			    }
+			} else {
+			    options.user.logger.error('Universe Store Insert error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: No Rows Inserted.');
 			    options.user.storingUniverse = false;
 			    callback({
-				error : err
+				error : 'Failed to get newly inserted universe ID :( '
 			    });
-			} else {
-			    if (info.insertId) {
-
-				options.universe.options = Object.merge({
-				    database : {
-					universeID : info.insertId
-				    }
-				},options.universe.options);
-
-				if (!options.bypassCache) {
-				    require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+info.insertId,options.universe);
-				    options.user.logger.trace('Universe Store Insert (cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-				} else {
-				    options.user.logger.trace('Universe Store Insert (non-cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-				}
-
-				if (options.universe.maps) {
-				    RPG.Map.storeMap(options, function(universe) {
-					options.user.storingUniverse = false;
-					callback(universe);
-				    });
-				} else {
-				    options.user.storingUniverse = false;
-				    callback(options.universe);
-				}
-			    } else {
-				options.user.logger.error('Universe Store Insert error: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: No Rows Inserted.');
-				options.user.storingUniverse = false;
-				callback({
-				    error : 'Failed to get newly inserted universe ID :( '
-				});
-			    }
 			}
 		    }
-		    );
-	    }
-	}));
+		}
+		);
+	}
     },
 
     /*
@@ -285,16 +278,12 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * callback(dupeName || null if ok)
      */
     checkDupeName : function(options,callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
-	var uID = options.universeID || 0;
-	var uName = options.universeName || '';
-	if (options.universe) {
-	    uID = options.universe.options.database && options.universe.options.database.universeID || 0;
-	    uName = options.universe.options.property.universeName;
-	}
+	var uID = options.universeID || Object.getFromPath(options,'universe.options.database.id') || 0;
+	var uName = options.universeName || Object.getFromPath(options,'universe.options.property.universeName') || '';
 
 	if (!uName || uName.length < 2) {
 	    options.user.logger.warn('Universe Check DupeName warning: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: Min 2 Characters.');
@@ -347,7 +336,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      *
      */
     list : function(options, callback) {
-	if (!RPG.Log.requiredOptions(options,['user'],logger,callback)){
+	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
 	    return;
 	}
 
@@ -377,7 +366,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 			    universes[result['universeName']] = {
 				options : Object.merge({
 				    database : {
-					universeID : result['universeID'],
+					id : result['universeID'],
 					created : result['created'],
 					updated : result['updated'],
 					userName : options.user.options.name,

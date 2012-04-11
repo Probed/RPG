@@ -3,7 +3,7 @@ if (!RPG.Generator) RPG.Generator = {};
 
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Random.js'));
-    Object.merge(RPG,require('../../optionConfig.js'));
+    Object.merge(RPG,require('../../Constraints.js'));
     Object.merge(RPG,require('./Generators.js'));
     module.exports = RPG;
 }
@@ -27,12 +27,12 @@ RPG.Generator.Name = new (RPG.Generator.NameClass = new Class({
 
     random : function(rand,mapName,callback) {
 	if (!callback) {
-	    this.generate(RPG.optionCreator.random(this.constraints,rand),rand,function(generated){
+	    this.generate(RPG.Constraints.random(this.constraints,rand),rand,function(generated){
 		callback(generated);
 	    });
 	    return null;
 	} else {
-	    return this.generate(RPG.optionCreator.random(this.constraints,rand),rand);
+	    return this.generate(RPG.Constraints.random(this.constraints,rand),rand);
 	}
     },
 
@@ -129,12 +129,12 @@ RPG.Generator.Words = new (RPG.Generator.WordsClass = new Class({
     random : function(rand,mapName,callback) {
 	rand = rand || RPG.Random;
 	if (callback) {
-	    this.generate(RPG.optionCreator.random(this.constraints,rand),rand,function(generated){
+	    this.generate(RPG.Constraints.random(this.constraints,rand),rand,function(generated){
 		callback(generated);
 	    });
 	    return null;
 	} else {
-	    return this.generate(RPG.optionCreator.random(this.constraints,rand),rand);
+	    return this.generate(RPG.Constraints.random(this.constraints,rand),rand);
 	}
     },
 

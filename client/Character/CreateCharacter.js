@@ -706,7 +706,7 @@ RPG.CreateCharacter = new Class({
 
     createCharacter : function() {
 	var character = this.buildCharacter();
-	var errors = RPG.optionValidator.validate(character,RPG.character_options);
+	var errors = RPG.Constraints.validate(character,RPG.character_options);
 	/**
 	 * validate stats
 	 */
