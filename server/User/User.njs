@@ -20,6 +20,6 @@ RPG.User = new Class({
 	this.setOptions(options);
 	this.logger = RPG.Log.getLogger('User #'+ (this.options.userID || (this.options.id + 'Guest')));
 	this.logger.trace('Initialized.');
-	this.logger.setLevel('ALL');
+	this.logger.setLevel('WARN');
     }
 });
