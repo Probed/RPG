@@ -202,7 +202,7 @@ RPG.CharacterEquipment = new Class({
 	    });
 	    if (/Growth/.test(key) && ((slot.partOf && this.game.character[slot.partOf]))) {
 		add = true;
-	    } else {
+	    } else if (!/Growth/.test(key)) {
 		//fix rows where we need to colspan certain items for astetics
 		if (!this.game.character.GrowthHead && (/Head/.test(slot.partOf) || /Head/.test(key) || /^Neck$/.test(key) || /^LeftArm$/.test(key) || /^LeftHand$/.test(key) || /^LeftFinger3$/.test(key))) {
 		    if (/LeftEar/.test(key)) {
@@ -210,7 +210,7 @@ RPG.CharacterEquipment = new Class({
 		    } else if (/^LeftArm$/.test(key) || /^LeftHand$/.test(key) || /^LeftFinger3$/.test(key)) {
 			colOffset = -1;
 		    } else {
-			if (/Head/.test(key) || /Neck/.test(key)) {
+			if (!/Growth/.test(key) && (/Head/.test(key) || /Neck/.test(key))) {
 			    colSpan = 2;
 			    delete rows[slot.row][17];
 			}
@@ -239,7 +239,7 @@ RPG.CharacterEquipment = new Class({
 		}
 		rows[slot.row][slot.col+colOffset] = Object.merge({
 		    properties : {
-			'class' : 'ItemDrop',
+			'class' : 'ItemDrop textCenter',
 			row : slot.row,
 			col : slot.col,
 			inventory : 'equipment'

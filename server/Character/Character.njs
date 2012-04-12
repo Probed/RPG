@@ -96,12 +96,6 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	Object.erase(options.character,'LeftGrowthArm');
 	Object.erase(options.character,'GrowthHead');
 
-	options.character.RightGrowthLeg = true;
-	options.character.LeftGrowthLeg = true;
-	options.character.RightGrowthArm = true;
-	options.character.LeftGrowthArm = true;
-	options.character.GrowthHead = true;
-
 	//validate the incoming character
 	var errors = [];
 	errors = RPG.Constraints.validate(options.character,RPG.character_options);
@@ -185,27 +179,27 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 					var slots = [];
 					Object.each(RPG.CharacterSlots,function(slot,name){
 					    //filter out growth slots that are not a part of the character yet
-					    //if (!/Growth/.test(name) || (/Growth/.test(name) && storedCharacter[slot.partOf])) {
-					    var point = [slot.row,slot.col];
-					    slots.push(point);
+					    if (!/Growth/.test(name) || (/Growth/.test(name) && storedCharacter[slot.partOf])) {
+						var point = [slot.row,slot.col];
+						slots.push(point);
 
-					    //create some initial equipment
-					    //if (/Head/.test(name)) {
-					    var generated = RPG.Generator.Equipment.generate({
-						properties : {
-						    name : 'InitEquip',
-						    seed : (Math.random() * (99999999999 - 1) + 1),
-						    Difficulty : storedCharacter.Difficulty,
-						    type : 'item.earth.equip.'+slot.itemTypes[0],
-						    level : 1,
-						    point : point,
-						    identified : false
-						}
-					    });
-					    Object.merge(equipCache,generated.cache);
-					    Object.merge(equipTiles,generated.tiles);
-					//}
-					//}
+						//create some initial equipment
+						//if (/Head/.test(name)) {
+//						var generated = RPG.Generator.Equipment.generate({
+//						    properties : {
+//							name : 'InitEquip',
+//							seed : (Math.random() * (99999999999 - 1) + 1),
+//							Difficulty : storedCharacter.Difficulty,
+//							type : 'item.earth.equip.'+slot.itemTypes[0],
+//							level : 1,
+//							point : point,
+//							identified : false
+//						    }
+//						});
+//						Object.merge(equipCache,generated.cache);
+//						Object.merge(equipTiles,generated.tiles);
+					    //}
+					    }
 
 					});
 					return slots
@@ -270,13 +264,13 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		],
 		function(err,info) {
 		    if (err) {
-			options.user.logger.error('Character Update error: ' + JSON.encode(err)+ ' character:'+JSON.encode(options.character));
+			options.user.logger.error('Character Update error: ' + JSON.encode(err)+ ' characterID:'+db.characterID);
 			callback({
 			    error : err
 			});
 		    } else {
 			if (info.affectedRows) {
-			    options.user.logger.trace('Character Update success. id:' + db.characterID + ' character:'+JSON.encode(options.character));
+			    options.user.logger.trace('Character Update success. id:' + db.characterID);
 			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+db.characterID,Object.merge(options.character,{
 				database : {
 				    characterID : db.characterID
@@ -284,7 +278,7 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			    })));
 			    db = null;
 			} else {
-			    options.user.logger.error('Character not found. id:' + db.characterID + ' character:'+JSON.encode(options.character));
+			    options.user.logger.error('Character not found. characterID:'+db.characterID);
 			    callback({
 				error : 'Could not locate the character specified.'
 			    });

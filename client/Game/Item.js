@@ -13,7 +13,7 @@ RPG.Item = new Class({
 	this.tips = tips;
 	this.element = element;
 	if (!cache || !path) return;
-
+	element.setStyle('display','inline-block');
 	this.item = Object.getFromPath(this.itemCache,path)
 	if (!this.item) return;
 	element.addClass('Pointer');

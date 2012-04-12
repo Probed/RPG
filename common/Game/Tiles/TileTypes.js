@@ -199,7 +199,7 @@ RPG.TileType.NPC = function(options) {
 	npc : Object.merge(
 	    //clone and filter the character options:
 	    Object.filter(RPG.character_options,function(value,key){
-		return key != 'portrait' && key != 'name';
+		return key != 'portrait' && key != 'name' && !key.contains('Growth');
 	    }),
 	    //add some NPC only options
 	    {

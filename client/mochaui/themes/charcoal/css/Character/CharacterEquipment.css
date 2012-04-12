@@ -113,3 +113,9 @@
     -o-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
     border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
 }
+
+.ItemDrop {
+    -webkit-box-shadow: 0px 0px 1px 1px black;
+    -moz-box-shadow: 0px 0px 1px 1px black;
+    box-shadow: 0px 0px 1px 1px black;
+}

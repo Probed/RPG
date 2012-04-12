@@ -413,8 +413,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    },
 				    npc : RPG.Constraints.random(RPG.Tiles.npc.options.npc,rand),
 				    roam : Object.merge(RPG.Constraints.random(RPG.Tiles.npc.options.roam,rand),{
-					home : point,
-					distance : 0
+					home : point
 				    })
 				}));
 			}

@@ -463,6 +463,7 @@ RPG.CharacterSlots = {
 	desc : 'Your brain container.',
 	itemTypes : ['head'],
 	connectTo : 'GrowthNeck',
+	partOf : 'GrowthHead',
 	row : 2,
 	col : 10
     },
@@ -599,7 +600,7 @@ RPG.CharacterSlots = {
 	desc : '',
 	itemTypes : ['chest'],
 	connectTo : null,
-	partOf : null,
+	partOf : 'Chest',
 	row : 6,
 	col : 9
     },

@@ -1,4 +1,3 @@
-
 RPG.Map = new Class({
 
     rowOffset : 0,
@@ -43,6 +42,12 @@ RPG.Map = new Class({
 		'mouseup:relay(.M_tileHolder)' : function(event) {
 		    event.preventDefault();
 		//drag mouse up handled below in document events
+		}.bind(this),
+		'click:relay(.M_tileHolder)' : function(event) {
+		    event.preventDefault();
+		    if (!this.draggingMap) {
+			this.tileDetails(event.target);
+		    }
 		}.bind(this)
 	    }
 	});
@@ -649,5 +654,108 @@ RPG.Map = new Class({
 	    });
 	}
 
+    },
+
+    tileDetails : function(tileElement) {
+
+	var tiles = RPG.getTiles(this.game.universe.maps[this.game.character.location.mapName].tiles,[Number.from(tileElement.get('row'))+this.rowOffset,Number.from(tileElement.get('col'))+this.colOffset]);
+	if (!tiles) return;
+
+	if (this.detailDiv) {
+	    this.detailDiv.getElements('div').destroy();
+	    this.detailDiv.getElements('td').destroy();
+	    this.detailDiv.getElements('tr').destroy();
+	    this.detailDiv.getElements('table').destroy();
+	    this.detailDiv.destroy();
+	}
+	this.detailDiv = new Element('div',{
+	    'class' : 'NoWrap',
+	    styles : {
+		position : 'absolute',
+		top : 0,
+		left : 0,
+		'z-index' : 10001,
+		'max-height' : '500px',
+		'overflow-y' : 'auto',
+		'overflow-x' : 'hidden',
+		'background-color' : 'black'
+	    },
+	    events : {
+		click : function() {
+		    this.detailDiv.getElements('div').destroy();
+		    this.detailDiv.getElements('td').destroy();
+		    this.detailDiv.getElements('tr').destroy();
+		    this.detailDiv.getElements('table').destroy();
+		    this.detailDiv.destroy();
+		}.bind(this)
+	    }
+	});
+
+	document.body.adopt(this.detailDiv);
+
+	this.detailDiv.adopt(new HtmlTable({
+	    zebra : false,
+	    useKeyboard : false,
+	    sortable : false,
+	    selectable : false,
+	    properties : {
+		cellpadding : 2,
+		styles : {
+		    'border-collapse' : 'separate'
+		}
+	    },
+	    rows : (function(){
+		var rows = [];
+		tiles.each(function(tilePath){
+		    var styles = RPG.getMapTileStyles({
+			map : {
+			    cache : this.game.universe.maps[this.game.character.location.mapName].cache,
+			    tiles : [tilePath]
+			},
+			zoom : 24
+		    });
+
+		    rows.push([
+		    {
+			properties : {
+			    'class' : 'vTop',
+			    styles : {
+				'border-width': '6px 6px 6px 6px',
+				'-moz-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
+				'-webkit-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
+				' -o-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
+				' border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch'
+			    }
+			},
+			content : new Element('div',{
+			    styles : Object.merge(styles,{
+				'background-size' : '100%'
+			    }),
+			    html : '&nbsp;'
+			})
+		    },
+		    {
+			properties :{
+			    styles : {
+				'border-width': '6px 6px 6px 6px',
+				'-moz-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
+				'-webkit-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
+				' -o-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
+				' border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch'
+			    }
+			},
+			content : RPG.Constraints.getDisplayTable(Object.getFromPath(this.game.universe.maps[this.game.character.location.mapName].cache,tilePath).options)
+		    }
+		    ]);
+		}.bind(this));
+		return rows;
+	    }.bind(this)())
+	}));
+
+	this.detailDiv.setStyles({
+	    top : $('pnlMainContent').getPosition().y,
+	    left : $('pnlMainContent').getPosition().x,
+	    width : $(this.detailDiv).getSize().y >= 500?$(this.detailDiv).getSize().x + 24:$(this.detailDiv).getSize().x
+	});
     }
 });

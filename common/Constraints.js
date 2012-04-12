@@ -76,6 +76,8 @@ Object.extend({
     },
 
     /**
+     * @tod UNTESTED... probably dons't work
+     *
      * Recursivly traverse an object and call the 'leafFunc' function at each leaf and the 'branchFunc' at each branch
      *
      * branch/leaf Func arg object
@@ -94,19 +96,19 @@ Object.extend({
 	    internal.path.push(internal.key);
 	}
 	internal.content = source;
+
 	if (typeOf(source) != 'object') {
-	    leafFunc(internal);
+	    internal.returns = leafFunc(internal);
 	} else {
+	    branchFunc(internal);
 	    Object.each(source,function(content,key){
 		internal.key = key;
 		internal.content = content;
-		if (typeOf(source) != 'object') {
-		    branchFunc(internal);
-		}
-		Object.recurse(content,leafFunc,internal);
+		internal.returns = Object.recurse(content,leafFunc,internal);
 	    });
 	}
 	internal.path.pop();
+	return internal.returns;
     },
 
     diff : function(original,updated,diff,path,usingUpdated) {
@@ -455,6 +457,63 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
     tbl.pushMany(rows);
     optionsPath.pop();//pop off the last path name from the optionpath
     return tbl.toElement(); //return the table of options
+}
+
+RPG.Constraints.getDisplayTable = function(options,optionName,optionsPath) {
+    if (!optionsPath || (optionsPath && typeOf(optionsPath) != 'array')) {
+	optionsPath = [];
+    }
+    optionName && optionsPath.push(optionName);
+
+    /**
+	 * Reached the depth of the config.
+	 * use the content of the config to
+	 */
+    if (typeOf(options) != 'object') {
+	optionsPath.pop();
+	return new Element('div',{
+	    html : options,
+	    'class' : 'textLarge textLeft'
+	});
+    }
+
+
+    var tbl = new HtmlTable({
+	zebra : false,
+	selectable : false,
+	useKeyboard : false,
+	properties : {
+	    cellpadding : 2,
+	    styles : {
+		'background-color' : 'rgb('+ ((optionsPath.length+1)*25)+','+ ((optionsPath.length+1)*25)+','+ ((optionsPath.length+1)*25)+')'
+	    }
+	}
+    });
+
+    var rows = [];
+    Object.each(options,function(opt,k){
+	if (!['database','genOptions','generator','folderName','image'].contains(k) ) {
+	    rows.push([
+	    {
+		properties : {
+		    'class' : 'vTop textRight NoWrap textSmall'
+		},
+		content : k.capitalize().hyphenate().split('-').join(' ').capitalize() +':'
+	    },
+	    {
+		properties : {
+		    'class' : 'NoWrap'
+		},
+		content : RPG.Constraints.getDisplayTable(opt,k,optionsPath) //recursively load options
+	    }
+	    ]
+	    );
+	}
+    });
+    tbl.pushMany(rows);
+    optionsPath.pop();//pop off the last path name from the optionpath
+    return tbl.toElement(); //return the table of options
+
 }
 
 /**
