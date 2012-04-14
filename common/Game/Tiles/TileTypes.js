@@ -107,7 +107,7 @@ RPG.TileType.Traversable = function(options) {
 RPG.TileType.Lockable = function(options) {
     return {
 	lockable : Object.merge({
-	    locked : [false],   //is it locked?
+	    z0rt : [true],   //is it locked?
 	    type : ['tumbler'], //what puzzle to load to unlock the tile
 	    level : [1,100,1],  //how difficult it is to unlock the tile
 	    Difficulty : Object.keys(RPG.Difficulty), //difficulty setting

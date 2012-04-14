@@ -19,7 +19,6 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * optional:
      * character || mapID || mapName
      * tilePoints
-     * bypassCache
      *
      * Returns :
      * callback(universe)
@@ -33,22 +32,6 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
-	    if (!options.bypassCache) {
-		var universe = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.character.location.universeID);
-		options.user.logger.trace('Universe Load universeID: '+options.universeID+' (cached)');
-		if (universe) {
-		    options.universe = universe;
-		    RPG.Map.loadMap(options,function(mapUni){
-			if (mapUni.error) {
-			    callback(mapUni);
-			    return;
-			}
-			Object.merge(universe,mapUni)
-			callback(universe);
-		    });
-		    return;
-		}
-	    }
 	}
 
 	if (!RPG.Constraints.requiredOptions(options,['universeID'],logger,callback)){
@@ -86,12 +69,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    }
 		    options.universe = universe;
 
-		    if (!options.bypassCache) {
-			require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+universeResult['universeID'],Object.clone(universe));
-			options.user.logger.trace('Universe Loaded (cached) universeID: '+options.universeID);
-		    } else {
-			options.user.logger.trace('Universe Loaded (non-cached) universeID: '+options.universeID);
-		    }
+		    options.user.logger.trace('Universe Loaded universeID: '+options.universeID);
 
 		    RPG.Map.loadMap(options,function(mapUni){
 			if (mapUni.error) {
@@ -102,7 +80,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 			callback(universe);
 		    });
 		} else {
-		    options.user.logger.warn('Universe Load error universeID: '+options.universeID+' error: Nothing Found.');
+		    options.user.logger.trace('Universe Load error universeID: '+options.universeID+' error: Nothing Found.');
 		    callback({
 			error : 'The universe '+ (options.universeID || options.universeName) +' could not be found for user: '+options.user.options.userID+'.'
 		    });
@@ -118,8 +96,6 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
      * user
      * universe
      *
-     * optional:
-     * bypassCache
      *
      * callsback(universe || error)
      */
@@ -129,7 +105,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	}
 
 	if (options.user.storingUniverse) {
-	    options.user.logger.warn('Universe Store warning for: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: There is a universe already being saved.');
+	    options.user.logger.trace('Universe Store warning for: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: There is a universe already being saved.');
 	    callback({
 		error : 'Please allow the current Universe to finish saving.'
 	    });
@@ -177,12 +153,8 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 		    } else {
 			if (info.affectedRows) {
 			    options.universe.options.database = db;
-			    if (!options.bypassCache) {
-				require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+db.id,options.universe);
-				options.user.logger.trace('Universe Store Update (cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-			    } else {
-				options.user.logger.trace('Universe Store Update (non-cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-			    }
+			    options.user.logger.trace('Universe Store Update: universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
+
 			    if (options.universe.maps) {
 				RPG.Map.storeMap(options, function(universe) {
 				    options.user.storingUniverse = false;
@@ -235,12 +207,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 				}
 			    },options.universe.options);
 
-			    if (!options.bypassCache) {
-				require('../Cache.njs').Cache.store(options.user.options.userID,'universe_'+info.insertId,options.universe);
-				options.user.logger.trace('Universe Store Insert (cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-			    } else {
-				options.user.logger.trace('Universe Store Insert (non-cached): universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
-			    }
+			    options.user.logger.trace('Universe Store Insert: universe: '+Object.getFromPath(options,'universe.options.property.universeName'));
 
 			    if (options.universe.maps) {
 				RPG.Map.storeMap(options, function(universe) {
@@ -286,7 +253,7 @@ RPG.Universe = new (RPG.UniverseClass = new Class({
 	var uName = options.universeName || Object.getFromPath(options,'universe.options.property.universeName') || '';
 
 	if (!uName || uName.length < 2) {
-	    options.user.logger.warn('Universe Check DupeName warning: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: Min 2 Characters.');
+	    options.user.logger.trace('Universe Check DupeName warning: universe: '+Object.getFromPath(options,'universe.options.property.universeName')+' error: Min 2 Characters.');
 	    callback({
 		error : 'Invalid Universe name ' + uName + ' Min: 2 characters.'
 	    });

@@ -42,7 +42,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 	    'perim%' : [0,100,25],
 	    'center%' : [0,100,25],
 	    door : RPG.tileFolderList(RPG.Tiles,'world.earth.door'),
-	    doorsLocked : [false]
+	    doorsLocked : [true]
 	},
 	upStairs : {
 	    allow : [true],
@@ -446,7 +446,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    }
 				},
 				lockable : {
-				    locked : options.mainFloor.doorsLocked,
+				    locked : true,
 				    Difficulty : options.properties.Difficulty,
 				    level : options.properties.level,
 				    seed : options.properties.seed

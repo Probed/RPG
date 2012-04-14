@@ -89,8 +89,7 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 	    user : options.game.user,
 	    mapID: options.game.character.location.mapID,
 	    universe : options.game.universe,
-	    paths : paths,
-	    bypassCache : true
+	    paths : paths
 	}, function(cache) {
 	    if (cache.error) {
 		callback({
@@ -129,8 +128,7 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 	    //now store updated tiles
 	    RPG.Universe.store({
 		user : options.game.user,
-		universe : updateUni,
-		bypassCache : true
+		universe : updateUni
 	    },function(universe) {
 		if (universe.error) {
 		    callback({

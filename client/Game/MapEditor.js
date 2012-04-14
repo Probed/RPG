@@ -2466,10 +2466,19 @@ RPG.MapEditor = new Class({
 		    //console.log('Tile missing: ' + JSON.encode(options)+' ' + t + '\n');
 		    continue;
 		}
-		styles['background-image'] = 'url("/common/Game/Tiles/'+t.slice(1,t.length-1).join('/')+'/'+escape(theTile.options.property.image.name)+'"),' + styles['background-image'];
-		styles['background-position'] = (theTile.options.property.image.left?theTile.options.property.image.left+'% ':'0% ') + (theTile.options.property.image.top?theTile.options.property.image.top+'%,':'0%,') + styles['background-position'];
-		styles['background-size'] = (theTile.options.property.image.size?theTile.options.property.image.size+'%,':'100%,') + styles['background-size'];
-		styles['background-repeat'] = (theTile.options.property.image.repeat?theTile.options.property.image.repeat+',':'no-repeat,') + styles['background-repeat'];
+		for (var y=0;y<8;y++){
+		    if (theTile.options.property.image['name'+(!y?'':y)]) {
+			var imgs = theTile.options.property.image;
+			var left = imgs['left'+(!y?'':y)];
+			var top = imgs['top'+(!y?'':y)];
+			var size = imgs['size'+(!y?'':y)];
+			var repeat = imgs['repeat'+(!y?'':y)];
+			styles['background-image'] = 'url("'+RPG.getMapTileImage(t,theTile,y)+'"),' + styles['background-image'];
+			styles['background-position'] = (left?left+'% ':'0% ') + (top?top+'%,':'0%,') + styles['background-position'];
+			styles['background-size'] = (size?size+'%,':'100%,') + styles['background-size'];
+			styles['background-repeat'] = (repeat?repeat+',':'no-repeat,') + styles['background-repeat'];
+		    }
+		}
 		theTile = null;
 
 	    }

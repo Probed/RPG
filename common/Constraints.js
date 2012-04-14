@@ -158,6 +158,20 @@ Object.extend({
     }
 });
 
+Array.extend({
+    prejoin : function(source,str,join){
+	if (!source) return '';
+	var ret = '';
+	source.each(function(value,index){
+	    ret += str + value;
+	    if (join && index<source.length-1) {
+		ret += join;
+	    }
+	});
+	return ret;
+    }
+});
+
 /**
      * Returns a Div Element Tabbed Input Form for a option constraints object
      *
@@ -492,7 +506,7 @@ RPG.Constraints.getDisplayTable = function(options,optionName,optionsPath) {
 
     var rows = [];
     Object.each(options,function(opt,k){
-	if (!['database','genOptions','generator','folderName','image'].contains(k) ) {
+	if (!['database','genOptions','generator','property'].contains(k) ) {
 	    rows.push([
 	    {
 		properties : {

@@ -41,12 +41,16 @@ RPG.Generator.Consumable = new (RPG.Generator.ConsumableClass = new Class({
 	    tiles : {},
 	    cache : {},
 	    itemOptions : {
-		generator : this.name,
 		genOptions : options
 	    }
 	};
 	//generate item:
+	if (!options.properties.identified) {
+	    consumableObj.itemOptions.identified = false;
 
+	} else {
+
+	}
 	if (!options.properties.point) {
 	    options.properties.point = [0,0];
 	} else if (typeof options.properties.point == 'string') {

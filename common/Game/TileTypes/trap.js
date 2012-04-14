@@ -65,8 +65,7 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 
 		RPG.Universe.store({
 		    user : options.game.user,
-		    universe : updateUni,
-		    bypassCache : true
+		    universe : updateUni
 		},function(universe){
 		    if (universe.error) {
 			callback(universe);
@@ -140,8 +139,7 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 
 		RPG.Universe.store({
 		    user : options.game.user,
-		    universe : updateUni,
-		    bypassCache : true
+		    universe : updateUni
 		},function(universe){
 		    if (universe.error) {
 			callback(universe);

@@ -33,6 +33,7 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	rand = rand || RPG.Random;
 	rand.seed = Number.from(options.properties.seed) || Math.floor((Math.random() * (99999999999 - 1)));
 
+	//if no type was provided, randomly select a type
 	if (!options.properties.type) {
 	    options.properties.type = Array.getSRandom(this.constraints.properties.type,rand);
 	}
@@ -44,29 +45,41 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    path : options.properties.type.split('.'),
 	    tileConstraints : RPG.Constraints.getConstraints(options.properties.type.split('.'),RPG.Tiles).item,
 	    itemOptions : {
-		genOptions : options
+		generator : this.name,
+		genOptions : options,
+		level : options.properties.level
 	    }
 	};
 
-	//generate random options:
-	Object.merge(equipmentObj.itemOptions,RPG.Constraints.random(equipmentObj.tileConstraints,rand));
 
 
-	//generate item generic
-	var numStats = 0;
-	var maxStats = RPG.difficultyVal(options.properties.Difficulty,'item.equip.maxStats')(Math.floor(Number.from(options.properties.level)));
-	//randomly get a number between 0 and maxStats to become the new maxStats
-	maxStats = Math.round(rand.random(0,maxStats-1));
+	if (!options.properties.point) {
+	    options.properties.point = [0,0];
+	} else if (typeof options.properties.point == 'string') {
+	    options.properties.point = options.properties.point.split(',');
+	} else if (typeof options.properties.point != 'array') {
+	    options.properties.point = Array.from(options.properties.point);
+	}
 
-	equipmentObj.itemOptions.level = Number.from(options.properties.level);
-	equipmentObj.itemOptions.durability = Math.ceil(equipmentObj.itemOptions.durability);
-
-	//reset the randomized stats.
-	Object.each(equipmentObj.itemOptions.Stats,function(stat,name){
-	    equipmentObj.itemOptions.Stats[name] = 0;
-	});
-
+	//If the item should become identified:
 	if (options.properties.identified) {
+
+	    //generate random options:
+	    Object.merge(equipmentObj.itemOptions,RPG.Constraints.random(equipmentObj.tileConstraints,rand));
+
+
+	    //generate item generic
+	    var numStats = 0;
+	    var maxStats = RPG.difficultyVal(options.properties.Difficulty,'item.equip.maxStats')(Math.floor(Number.from(options.properties.level)));
+	    //randomly get a number between 0 and maxStats to become the new maxStats
+	    maxStats = Math.round(rand.random(0,maxStats-1));
+
+	    equipmentObj.itemOptions.durability = Math.ceil(equipmentObj.itemOptions.durability);
+
+	    //reset the randomized stats.
+	    Object.each(equipmentObj.itemOptions.Stats,function(stat,name){
+		equipmentObj.itemOptions.Stats[name] = 0;
+	    });
 
 	    var usedStats = [];
 	    //apply up to max stats to the item:
@@ -91,15 +104,14 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 		    equipmentObj.itemOptions.Stats[rStat.key] = stat;
 		}
 	    }
-	}
-	//trim 0 stats to save bandwidth
-	Object.each(equipmentObj.itemOptions.Stats,function(stat,name){
-	    if (!equipmentObj.itemOptions.Stats[name]) {
-		Object.erase(equipmentObj.itemOptions.Stats,name);
-	    } else {
 
+	    //trim 0 stats to save bandwidth
+	    Object.each(equipmentObj.itemOptions.Stats,function(stat,name){
+		if (!equipmentObj.itemOptions.Stats[name]) {
+		    Object.erase(equipmentObj.itemOptions.Stats,name);
+		}
+	    });
 	}
-	});
 
 
 	//generate item specifics by calling a function corrospoding to the type: eg ammo,arm,chest etc:
@@ -107,29 +119,40 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    this[equipmentObj.path[equipmentObj.path.length-1]](options,equipmentObj);
 	}
 
-	if (!options.properties.point) {
-	    options.properties.point = [0,0];
-	} else if (typeof options.properties.point == 'string') {
-	    options.properties.point = options.properties.point.split(',');
-	} else if (typeof options.properties.point != 'array') {
-	    options.properties.point = Array.from(options.properties.point);
-	}
-
 	var randImg = RPG.getRandomTileImage(options.properties.type,rand);
 	RPG.pushTile(equipmentObj.tiles, options.properties.point,
 	    equipmentObj.path = RPG.createTile(options.properties.type,equipmentObj.cache,{
 		property : {
-		    tileName : 'Level ' + equipmentObj.itemOptions.level + ' ' + equipmentObj.itemOptions.type + ' ' +options.properties.point.join(),
+		    tileName : options.properties.point.join(),
 		    folderName : options.properties.name,
 		    image : {
 			name : randImg && randImg.image || '',
 			size : 50,
 			top : 50,
-			left : 50
+			left : 50,
+			name1 : '../../unk1.png',
+			size1 : 50,
+			top1 : 50,
+			left1 : 50
+
 		    }
 		},
 		item : equipmentObj.itemOptions
 	    }));
+
+	if (!options.properties.identified) {
+	    var tile = Object.getFromPath(equipmentObj.cache,equipmentObj.path);
+	    //remove options that are not identified.
+	    var keep = ['generator','genOptions','identified','level','weight','type'];
+	    Object.each(tile.options.item,function(c,k,s){
+		if (!keep.contains(k)) {
+		    Object.erase(tile.options.item,k);
+		}
+	    });
+	    tile.options.item.cost = Math.floor(rand.random(1,5)); //make unidentified items cheap
+	    tile.options.item.weight = Math.floor(rand.random(1,5));
+	    console.log(JSON.encode(equipmentObj.cache));
+	}
 
 	//finally callback with the equipmentObj
 	return equipmentObj;

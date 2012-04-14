@@ -263,7 +263,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Hand Weapon',
 	desc : 'Left Hand Weapon',
-	itemTypes : ['weapon','sheild'],
+	itemTypes : ['weapon','shield'],
 	connectTo : 'LeftHand',
 	partOf : 'LeftArm',
 	row : 6,
@@ -336,7 +336,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Left Growth Hand Weapon',
 	desc : 'Left Growth Hand Weapon',
-	itemTypes : ['weapon','sheild'],
+	itemTypes : ['weapon','shield'],
 	connectTo : 'LeftGrowthHand',
 	partOf : 'LeftGrowthArm',
 	row : 3,
@@ -402,9 +402,9 @@ RPG.CharacterSlots = {
 	desc : 'Your left growth arm.',
 	itemTypes : ['arm'],
 	connectTo : 'Chest',
-	partOf : 'Chest',
-	row : 3,
-	col : 13
+	partOf : 'LeftGrowthArm',
+	row : 4,
+	col : 12
     },
 
     /**
@@ -417,9 +417,9 @@ RPG.CharacterSlots = {
 	desc : 'Your Right Growth Arm.',
 	itemTypes : ['arm'],
 	connectTo : 'Chest',
-	partOf : 'Chest',
-	row : 3,
-	col : 4
+	partOf : 'RightGrowthArm',
+	row : 4,
+	col : 5
     },
 
     /**
@@ -508,7 +508,7 @@ RPG.CharacterSlots = {
 	visible : true,
 	title : 'Head',
 	desc : 'Overflow parking.',
-	itemTypes : ['ear'],
+	itemTypes : ['head'],
 	connectTo : 'Neck',
 	partOf : 'Head',
 	row : 2,
@@ -944,7 +944,7 @@ RPG.CharacterSlots = {
 	desc : 'Your left leg.',
 	itemTypes : ['leg'],
 	connectTo : 'Waist',
-	partOf : 'Waist',
+	partOf : 'LeftGrowthLeg',
 	row : 12,
 	col : 12
     },
@@ -958,7 +958,7 @@ RPG.CharacterSlots = {
 	desc : 'Your right growth leg.',
 	itemTypes : ['leg'],
 	connectTo : 'Waist',
-	partOf : 'Waist',
+	partOf : 'RightGrowthLeg',
 	row : 12,
 	col : 5
     }

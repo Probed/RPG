@@ -1,12 +1,12 @@
 var RPG = module.exports = {};
-Object.merge(RPG,
-    require('./init.njs'),
-    require('./Universe.njs'),
-    require('./Map.njs'),
-    require('./Tileset.njs'),
-    require('./Inventory.njs'),
-    require('../../common/Game/TileTypes/item.js')
-    );
+
+Object.merge(RPG,require('./init.njs'));
+Object.merge(RPG,require('./Universe.njs'));
+Object.merge(RPG,require('./Map.njs'));
+Object.merge(RPG,require('./Tileset.njs'));
+Object.merge(RPG,require('./Inventory.njs'));
+Object.merge(RPG,require('../../common/Game/TileTypes/item.js'));
+Object.merge(RPG,require('../Cache.njs'));
 
 RPG.Game = new (RPG.GameClass = new Class({
     routeAccepts : ['PlayCharacter','MoveCharacter','ActivateTile','InventorySwap'],
@@ -37,96 +37,93 @@ RPG.Game = new (RPG.GameClass = new Class({
 	    return;
 	}
 
-	RPG.InitGame.startGame({
-	    user : request.user,
-	    characterID : request.url.query.characterID
-	}, function(game) {
-	    if (!game || game.error) {
-		response.onRequestComplete(response,{
-		    error : game.error
-		});
-		return;
-	    }
-
-	    RPG.Game.loadGame(game,function(game) {
-		if (game.error) {
+	//check the cache to see if we have a game for this character
+	var game = RPG.Cache.retrieve(request.user.options.userID,'game'+request.url.query.characterID);
+	if (!game) {
+	    //no game found. initialize the game and store it in the cache
+	    RPG.InitGame.startGame({
+		user : request.user,
+		characterID : request.url.query.characterID
+	    },function(loadedGame) {
+		if (loadedGame && loadedGame.error) {
 		    response.onRequestComplete(response,{
-			error : game.error
+			error : loadedGame.error
 		    });
 		    return;
 		}
-		switch (true) {
-		    //process game commands:
-
-		    /**
-		     * Move a Character from One Tile to another.
-		     *
-		     * Casues a 'tick' and 'tickComplete' event upon successful move
-		     *
-		     */
-		    case request.url.query.m == 'MoveCharacter' :
-			game.dir = request.url.query.dir;
-			game.clientEvents = JSON.decode(request.data,true);
-			RPG.Game.moveCharacter(game, function(events){
-			    RPG.Game.requestComplete(game,events,response);
-			});
-			break;
-
-		    /**
-		     * Activate the tile the character is currently on
-		     *
-		     */
-		    case request.url.query.m == 'ActivateTile' :
-			game.clientEvents = JSON.decode(request.data,true);
-			game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
-			RPG.activateTile(game, function(events){
-			    RPG.Game.requestComplete(game,events,response);
-			});
-			break;
-
-		    /**
-		     * Swap an inventory item
-		     */
-		    case request.url.query.m == 'InventorySwap' :
-			var options = {};
-			options.game = game;
-			options.swap = JSON.decode(request.data,true);
-			RPG.TileTypes.item.inventorySwap(options, function(events){
-			    RPG.Game.requestComplete(game,events,response);
-			});
-			break;
-
-		    default :
-			/**
-			 * This gets called at the start of playing
-			 *
-			 *  returns the full contents of the cached game.
-			 */
-			RPG.Game.getViewableTiles(game,function(universe){
-			    if (universe.error) {
-				response.onRequestComplete(response,universe);
-				return;
-			    }
-			    Object.merge(game.universe,universe);
-
-			    //remove some options that get set in load/save/etc that we don't want to send to the client
-			    Object.erase(game,'mapID');
-			    Object.erase(game,'universeID');
-			    Object.erase(game,'characterID');
-			    Object.erase(game,'inventoryID');
-			    Object.erase(game,'user');
-			    Object.erase(game,'tilePoints');
-
-			    //send out the loaded game
-			    game.require = RPG.Game.require;
-			    response.onRequestComplete(response,RPG.Game.removeSecrets(game));
-			    Object.erase(game,'require');
-			});
-			break
-		}
-
+		RPG.Cache.store(request.user.options.userID,'game'+request.url.query.characterID,loadedGame);
+		//call this.onRequest again now that our cache has been populated.
+		RPG.Game.onRequest(request,response);
 	    });
-	});
+	    return; //exit the function and wait for InitGame to complete and call this.onRequest again.
+	} else {
+	    game.user = request.user;
+	}
+
+	//At this point the cache has been populated and we can process the incoming request.
+
+
+	switch (true) {
+	    //process game commands:
+
+	    /**
+	     * Move a Character from One Tile to another.
+	     *
+	     * Casues a 'tick' and 'tickComplete' event upon successful move
+	     *
+	     */
+	    case request.url.query.m == 'MoveCharacter' :
+		game.dir = request.url.query.dir;
+		game.clientEvents = JSON.decode(request.data,true);
+		RPG.Game.moveCharacter(game, function(events){
+		    RPG.Game.requestComplete(game,events,response);
+		});
+		break;
+
+	    /**
+	     * Activate the tile the character is currently on
+	     *
+	     */
+	    case request.url.query.m == 'ActivateTile' :
+		game.clientEvents = JSON.decode(request.data,true);
+		game.moveTo = game.character.location.point;//don't move anywhere but need to set moveTo for compatibility
+		RPG.activateTile(game, function(events){
+		    RPG.Game.requestComplete(game,events,response);
+		});
+		break;
+
+	    /**
+	     * Swap an inventory item
+	     */
+	    case request.url.query.m == 'InventorySwap' :
+		var options = {};
+		options.game = game;
+		options.swap = JSON.decode(request.data,true);
+		RPG.TileTypes.item.inventorySwap(options, function(events){
+		    RPG.Game.requestComplete(game,events,response);
+		});
+		break;
+
+	    default :
+		/**
+		 * This gets called at the start of playing
+		 *
+		 *  returns the full contents of the cached game.
+		 */
+		RPG.Game.getViewableTiles(game,function(universe){
+		    if (universe.error) {
+			response.onRequestComplete(response,universe);
+			return;
+		    }
+		    Object.merge(game.universe,universe);//update game cache with viewable tiles
+
+		    //send out the loaded game
+		    game.require = RPG.Game.require;
+		    response.onRequestComplete(response,RPG.Game.removeSecrets(game));
+		    Object.erase(game,'require');
+		});
+		break
+	}
 
     },
 
@@ -137,6 +134,16 @@ RPG.Game = new (RPG.GameClass = new Class({
 	if (!internal.path) internal.path = [];
 	if (!internal.cloned) {
 	    internal.cloned = true;
+
+	    //before we clone, we will remove stuff we don't wnat in the cache
+	    Object.erase(game,'mapID');
+	    Object.erase(game,'mapName');
+	    Object.erase(game,'universeID');
+	    Object.erase(game,'characterID');
+	    Object.erase(game,'inventoryID');
+	    Object.erase(game,'tilePoints');
+	    Object.erase(game,'user');
+
 	    game = Object.clone(game);
 	}
 
@@ -166,7 +173,6 @@ RPG.Game = new (RPG.GameClass = new Class({
      * All TileTypes may modify the 'game' object to remove tiles etc then getViewableTiles will reload thoes tiles for sending to the client
      */
     requestComplete : function(game, events, response) {
-	Object.erase(game,'bypassCache');//incease it is here..
 
 	RPG.Game.getViewableTiles(game, function(universeChanges) {
 
@@ -213,45 +219,36 @@ RPG.Game = new (RPG.GameClass = new Class({
     },
 
     /**
-     * Required options:
-     * user
-     * character
-     *
-     * callback(game || error)
-     */
-    loadGame : function(game,callback) {
-
-	RPG.Universe.load(game,function(universe) {
-	    if (!universe || universe.error) {
-		callback(universe);
-		return;
-	    }
-
-	    game.universe = universe;
-	    callback(game);
-
-	});
-    },
-
-
-    /**
      * required options:
      * user,
      * character,
      * universe
      *
-     * returns : object from RPG.Map.loadMap excluding cached tiles
+     * returns : universe with newly visible tiles in it
      */
     getViewableTiles : function(game,callback) {
-
 	var circle = RPG.Game.getViewableArea(game);
+	var tiles = Object.getFromPath(game,['universe','maps',game.character.location.mapName,'tiles']);
+	var newlyVisible = [];
+	//remove tilepoints that are already cached.
+	circle.area.each(function(point){
+	    if (tiles && tiles[point[0]] && tiles[point[0]][point[1]]) {
+	    //ignore cached tiles since they should already exist in on the client
+	    } else {
+		newlyVisible.push(point);
+	    }
+	});
 	Object.merge(game,{
-	    tilePoints : circle.area
+	    tilePoints : newlyVisible
 	});
 
-	RPG.Map.loadMap(game,function(universe){
-	    callback(universe,circle);
-	});
+	if (newlyVisible && newlyVisible.length > 0) {
+	    RPG.Map.loadMap(game,function(universe){
+		callback(universe,circle,newlyVisible);
+	    });
+	} else {
+	    callback({},circle,newlyVisible);
+	}
     },
 
     getViewableArea : function(game) {

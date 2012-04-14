@@ -162,8 +162,7 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		//we just want to save the new universe to the database.
 		var storeoptions = {
 		    user : options.game.user,
-		    universe : newUniverse,
-		    bypassCache : true
+		    universe : newUniverse
 		};
 		RPG.Universe.store(storeoptions,function(universe) {
 		    if (!universe || universe.error) {
@@ -175,7 +174,7 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    //start at a point in that universe.
 		    var updateCharacter = Object.clone(options.game.character);
 		    var newLoc = null;
-		    Object.merge(updateCharacter.location,newLoc ={
+		    Object.merge(updateCharacter.location, newLoc = {
 			universeID : universe.options.database.id,
 			mapID : universe.maps[mapName].options.database.id,
 			mapName : mapName,
@@ -193,10 +192,19 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 			//merge the new character data into the cached character.
 			Object.merge(options.game.character,updateCharacter);
 
+
+			//remove these before we merge into the cache so that the client does not receive the whole new map
+			universe.maps[mapName].tiles = {};
+			universe.maps[mapName].cache = {};
+
+			//merge the new universe data into the cached universe.
+			Object.merge(options.game.universe,universe);
+
 			//stop a traverse :
 			if (!options.events.onBeforeEnter) options.events.onBeforeEnter = {};
 			options.events.onBeforeEnter.traverse = false;
 
+			//compile the data we want to send to the client:
 			var toClient = {
 			    game : {
 				character : {
@@ -218,6 +226,7 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 				}
 			    }
 			}
+			//finally callback with our toClient event
 			callback(toClient);
 		    });
 		});
@@ -238,10 +247,14 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		    callback(universe);
 		    return;
 		}
+
+		//make a character clone for updating:
 		var updateCharacter = Object.clone(options.game.character);
 		var newLoc = null;
+		//change the updateCharacters location information.
+
 		Object.merge(updateCharacter.location,newLoc = {
-		    mapID : options.game.universe.maps[options.contents.mapName].options.database.id,
+		    mapID : universe.maps[options.contents.mapName].options.database.id,
 		    mapName : options.contents.mapName,
 		    point : options.contents.point
 		});
@@ -254,12 +267,11 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 		var storeoptions = {
 		    user : options.game.user,
 		    universe : updateUniverse,
-		    character : updateCharacter,
-		    bypassCache : true
+		    character : updateCharacter
 		};
-		RPG.Universe.store(storeoptions,function(universe) {
-		    if (!universe || universe.error) {
-			callback(universe);
+		RPG.Universe.store(storeoptions,function(storedUniverse) {
+		    if (!storedUniverse || storedUniverse.error) {
+			callback(storedUniverse);
 			return;
 		    }
 
@@ -271,6 +283,9 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 
 			//merge the new character data into the cached character.
 			Object.merge(options.game.character,updateCharacter);
+
+			//merge the new universe data into the cached universe.
+			Object.merge(options.game.universe,universe,storedUniverse);
 
 			//stop a traverse :
 			if (!options.events.onBeforeEnter) options.events.onBeforeEnter = {};

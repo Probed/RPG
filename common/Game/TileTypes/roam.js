@@ -97,8 +97,7 @@ RPG.TileTypes.roam.tickComplete = function(options,callback) {
 
 	RPG.Universe.store({
 	    user : options.game.user,
-	    universe : moveUni,
-	    bypassCache : true
+	    universe : moveUni
 	},function(universe){
 	    if (universe && universe.error) {
 		callback({

@@ -71,7 +71,6 @@ RPG.TileTypes.item.activate = function(options,callback) {
 		user : options.game.user,
 		character : options.game.character,
 		universe : updateUniverse,
-		bypassCache : false,
 		inventory : {
 		    character : inv = {
 			options : cachedInv.options,
@@ -175,10 +174,19 @@ RPG.TileTypes.item.activate = function(options,callback) {
 			    callback(inventory);
 			    return;
 			}
+
 			universe.options = {};//no universe options changed
 			Object.each(universe.maps,function(map){
 			    map.options = {};//no map options changed
 			});
+			inventory.options = {}; //no options changed;
+			Object.each(inventory,function(inv){
+			    inv.options = {};//no inv options changed
+			});
+
+			Object.merge(options.game.universe,universe);
+			Object.merge(options.game.inventory,inventory);
+
 			var toClient = {
 			    item : item,
 			    game : {
@@ -186,9 +194,6 @@ RPG.TileTypes.item.activate = function(options,callback) {
 				universe : universe
 			    }
 			};
-			if (errors.length > 0) {
-			    toClient.error = errors;
-			}
 			callback(toClient);
 		    });
 		});
@@ -200,21 +205,9 @@ RPG.TileTypes.item.activate = function(options,callback) {
     }
 }
 
-RPG.TileTypes.item.activateComplete = function(options,callback) {
-    if (typeof exports == 'undefined') {
-	//client-side
-	callback();
-
-    } else if (typeof exports != 'undefined') {
-	//server-side
-	var item = options.events.activate && options.events.activate.item;
-	if (item) {
-	    //remove all the tiles from the cache so that the client will receive new ones
-	    RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles,options.game.character.location.point);
-	}
-	callback();
-    }
-}
+//RPG.TileTypes.item.activateComplete = function(options,callback) {
+//    callback();
+//}
 
 //RPG.TileTypes.item.onBeforeLeave = function(options,callback) {
 //    callback();
@@ -260,6 +253,10 @@ RPG.TileTypes.item.inventorySwap = function(options,callback) {
 		callback(inventory);
 		return;
 	    }
+
+	    //update the game cache
+	    Object.merge(options.game.inventory,inventory);
+
 	    callback({
 		inventory : true //don't need to return anything except success because the client will have generated exaclty the same results (hopefully)'
 	    });

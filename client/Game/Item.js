@@ -72,6 +72,7 @@ RPG.Item = new Class({
 			    }
 			    this.drag.detach();
 			    this.tips.attach(element);
+			    $$('.accept_'+this.item.options.item.type).removeClass('EquipAccepts');
 			}.bind(this),
 
 			onSnap : function() {
@@ -87,7 +88,7 @@ RPG.Item = new Class({
 			}.bind(this),
 
 			onComplete : function(element) {
-
+			    $$('.accept_'+this.item.options.item.type).removeClass('EquipAccepts');
 			}.bind(this),
 
 			onCancel : function(element) {
@@ -95,6 +96,7 @@ RPG.Item = new Class({
 			    this.from.adopt(element);
 			    this.drag.detach();
 			    this.tips.attach(element);
+			    $$('.accept_'+this.item.options.item.type).removeClass('EquipAccepts');
 			}.bind(this)
 		    });
 		}
@@ -109,6 +111,9 @@ RPG.Item = new Class({
 		this.drag.attach().start(event);
 		this.tips.detach(element);
 		this.tips.hide();
+		if (this.item.options.item.identified) {
+		    $$('.accept_'+this.item.options.item.type).addClass('EquipAccepts');
+		}
 	    }.bind(this),
 
 	    mouseup : function() {
@@ -168,44 +173,7 @@ RPG.Item = new Class({
 		]
 		]
 	    })).toElement(),
-	    tipText : (new HtmlTable({
-		zebra : true,
-		selectable : false,
-		useKeyboard : false,
-		properties : {
-		    cellpadding : 2,
-		    align : 'left',
-		    'class' : 'textLarge',
-		    styles : {
-			'background-color' : 'black',
-			color : 'white',
-			width : '100%'
-		    }
-		},
-		rows : (function(){
-		    var rows = [];
-		    Object.each(item.options.item,function(content,key){
-			var row = [{
-			    content : key.capitalize()
-			}];
-			var value = '';
-			if (typeof content == 'object') {
-			    Object.each(content,function(c,k){
-				value += k.capitalize() +': '+ c + ', '
-			    });
-			    row.push({
-				content : JSON.stringify(value)
-			    });
-			} else {
-			    row.push({
-				content : JSON.stringify(content)
-			    });
-			}
-			rows.push(row);
-		    });
-		    return rows;
-		}())
-	    }).toElement())
+	    tipText : RPG.Constraints.getDisplayTable(this.item.options.item)
 	});
 	item = null;
 	return this.element;

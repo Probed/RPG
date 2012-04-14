@@ -28,26 +28,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 
 	if (options.character) {
 	    options.universeID = options.character.location.universeID;
-
 	    if (!options.mapName) {
 		options.mapID = options.character.location.mapID;
 		options.mapName = options.character.location.mapName;
-	    }
-	    if (!options.bypassCache) {
-		var universe = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID);
-		options.user.logger.trace('Map Load universeID: '+options.universeID+' map: "'+options.mapName+'" (cached)');
-		if (universe && universe.maps && universe.maps[options.mapName]) {
-		    options.universe = universe;
-		    RPG.Map.loadTiles(options,function(tileUni){
-			if (tileUni.error) {
-			    callback(tileUni);
-			    return;
-			}
-			Object.merge(universe,Object.clone(tileUni));
-			callback(tileUni);
-		    });
-		    return;
-		}
 	    }
 	}
 	if (!options.mapID && !options.mapName) {
@@ -106,14 +89,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    };
 		    options.mapID = mResult['mapID'];
 		    options.universeID = mResult['universeID'];
-
-		    if (!options.bypassCache) {
-			require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+mResult['universeID'],Object.clone(universe));
-			options.user.logger.trace('Map Loaded (cached) universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName));
-		    } else {
-			options.user.logger.trace('Map Loaded (non-cached) universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName));
-		    }
-
+		    options.user.logger.trace('Map Loaded map: ' + (options.mapID || options.mapName));
 
 		    RPG.Map.loadTiles(options,function(tileUni){
 			if (tileUni.error) {
@@ -124,7 +100,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 			callback(universe);
 		    });
 		} else {
-		    options.user.logger.warn('Map Load universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName) +' error: Nothing Found.');
+		    options.user.logger.trace('Map Load universeID: '+options.universeID+' map: ' + (options.mapID || options.mapName) +' error: Nothing Found.');
 		    callback({});
 		}
 	    });
@@ -420,13 +396,6 @@ RPG.Map = new (RPG.MapClass = new Class({
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
-	    if (!options.bypassCache) {
-		var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID);
-		options.user.logger.trace('Map Load Tiles (cached) '+options.character.location.mapName);
-		if (cachedUni && cachedUni.maps && cachedUni.maps[options.character.location.mapName] && cachedUni.maps[options.character.location.mapName].tiles) {
-		    cachedTiles = cachedUni.maps[options.character.location.mapName].tiles;
-		}
-	    }
 	} else {
 	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.id');
 	}
@@ -510,13 +479,8 @@ RPG.Map = new (RPG.MapClass = new Class({
 		    universe.maps[mapName] = {
 			tiles : tiles
 		    };
+		    options.user.logger.trace('Map Loaded '+mResults.length+' Tiles: universeID: ' + (options.universeID) +' mapID: ' + (options.mapID));
 
-		    if (!options.bypassCache) {
-			require('../Cache.njs').Cache.merge(options.user.options.userID,'universe_'+universeID,Object.clone(universe));
-			options.user.logger.trace('Map Loaded '+mResults.length+' Tiles (cached): universeID: ' + (options.universeID) +' mapID: ' + (options.mapID));
-		    } else {
-			options.user.logger.trace('Map Loaded '+mResults.length+' Tiles (non-cached): universeID: ' + (options.universeID) +' mapID: ' + (options.mapID));
-		    }
 
 		    RPG.Map.loadCache(options,function(cache) {
 			if (cache.error) {
@@ -594,7 +558,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    if (info.affectedRows) {
 					options.user.logger.trace('Map Store Tiles - Deleted '+info.affectedRows+' Specific from '+mapName);
 				    } else {
-					options.user.logger.warn('Map Store Tiles - Deleted 0 Specific from '+mapName);
+					options.user.logger.trace('Map Store Tiles - Deleted 0 Specific from '+mapName);
 				    }
 				}
 			    });
@@ -633,7 +597,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    if (info.affectedRows) {
 					options.user.logger.trace('Map Store Tiles - Deleted '+info.affectedRows+' Incoming from '+mapName);
 				    } else {
-					options.user.logger.warn('Map Store Tiles - Deleted 0 Incoming from '+mapName);
+					options.user.logger.trace('Map Store Tiles - Deleted 0 Incoming from '+mapName);
 				    }
 				}
 			    });
@@ -662,7 +626,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 				if (info.insertId) {
 				    options.user.logger.trace('Map Store Tiles - Inserted '+inserts.length+' Incoming from '+mapName);
 				} else {
-				    options.user.logger.warn('Map Store Tiles - Insert 0 Incoming from '+mapName);
+				    options.user.logger.trace('Map Store Tiles - Insert 0 Incoming from '+mapName);
 				}
 			    }
 			});
@@ -687,8 +651,6 @@ RPG.Map = new (RPG.MapClass = new Class({
      * optional
      *	    character
      *
-     * optional:
-     *	    bypassCache
      */
     loadCache : function(options,callback) {
 	if (!RPG.Constraints.requiredOptions(options,['user'],logger,callback)){
@@ -699,18 +661,14 @@ RPG.Map = new (RPG.MapClass = new Class({
 	    callback({});
 	    return;
 	}
-	var cachedTileCache = null;
+	var existingTileCache = null;
 
 	if (options.character) {
 	    options.mapID = options.character.location.mapID;
 	    options.universeID = options.character.location.universeID;
-	    if (!options.bypassCache) {
-		var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID) || {};
-		options.user.logger.trace('Map Load Cache (cached) '+options.character.location.mapName);
-		if (cachedUni.maps && cachedUni.maps[options.character.location.mapName]) {
-		    cachedTileCache = cachedUni.maps[options.character.location.mapName].cache;
-		}
-	    }
+
+	    existingTileCache = Object.getFromPath(options,['universe','maps',options.character.location.mapName,'cache']);
+
 	} else {
 	    options.universeID = options.universeID || Object.getFromPath(options,'universe.options.database.id');
 	}
@@ -722,7 +680,7 @@ RPG.Map = new (RPG.MapClass = new Class({
 	var paths = [];
 	var pathSql = [];
 	options.paths.each(function(path,index) {
-	    if (cachedTileCache && Object.getFromPath(cachedTileCache,JSON.decode(path,true))) {
+	    if (existingTileCache && Object.getFromPath(existingTileCache,JSON.decode(path,true))) {
 	    //ignore already cached paths
 	    } else {
 		pathSql.push("?");
@@ -757,29 +715,16 @@ RPG.Map = new (RPG.MapClass = new Class({
 	RPG.Mysql.query(sql,arr,
 	    function(err,results) {
 		if (err) {
-		    options.user.logger.error('Map Load Tiles - Insert Incoming name: '+options.mapID+ ' error: '+ JSON.encode(err));
+		    options.user.logger.error('Map Load Cache - Insert Incoming name: '+options.mapID+ ' error: '+ JSON.encode(err));
 		    callback({
 			error : err
 		    });
 		} else if (results && results[0]) {
-
-		    var cache = RPG.expandResultsCache(results,'mapCacheID');
-
-		    if (!options.bypassCache) {
-			var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universeID);
-			if (!cachedUni.maps) cachedUni.maps = {};
-			if (!cachedUni.maps[results[0]['mapName']]) cachedUni.maps[results[0]['mapName']] = {};
-			Object.merge(cachedUni.maps[results[0]['mapName']],{
-			    cache : cache
-			});
-			options.user.logger.trace('Map Loaded '+results.length +' Tiles (cached) from '+options.mapID);
-		    } else {
-			options.user.logger.trace('Map Loaded '+results.length +' Tiles (non-cached) from '+options.mapID);
-		    }
-		    callback(cache);
+		    options.user.logger.trace('Map Cache Loaded '+results.length +' TileCache from '+options.mapID);
+		    callback(RPG.expandResultsCache(results,'mapCacheID'));
 
 		} else {
-		    options.user.logger.warn('Map Load Cache - mapID: '+options.mapID+' error: None Found');
+		    options.user.logger.trace('Map Load Cache - mapID: '+options.mapID+' error: None Found');
 		    callback({});
 		}
 	    });
@@ -839,14 +784,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 				    if (results.affectedRows) {
 					options.user.logger.trace('Map Store Cache - Deleted path:'+path+' from: '+mapName);
 					var pathName = (path = JSON.decode(path)).pop();
-					if (!options.bypassCache) {
-					    var cachedUni = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'universe_'+options.universe.options.database.id);
-					    if (!cachedUni.maps) cachedUni.maps = {};
-					    if (!cachedUni.maps[mapName]) cachedUni.maps[mapName] = {};
-					    Object.erase(Object.getFromPath(cachedUni.maps[mapName].cache,path)||{},pathName);
-					} else {
-					    Object.erase(Object.getFromPath(map.cache,path),pathName);
-					}
+
+					Object.erase(Object.getFromPath(map.cache,path),pathName);
+
 				    } else {
 					options.user.logger.error('Map Store Cache - Delete error. path:'+path+' from: '+mapName+ ' error: 0 Affected Rows');
 					options.errors.push('Could not delete Cache item "'+ path+'" :(');

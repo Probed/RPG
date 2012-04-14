@@ -96,6 +96,12 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	Object.erase(options.character,'LeftGrowthArm');
 	Object.erase(options.character,'GrowthHead');
 
+	options.character.RightGrowthLeg = true;
+	options.character.LeftGrowthLeg = true;
+	options.character.RightGrowthArm = true;
+	options.character.LeftGrowthArm = true;
+	options.character.GrowthHead = true;
+
 	//validate the incoming character
 	var errors = [];
 	errors = RPG.Constraints.validate(options.character,RPG.character_options);
@@ -183,21 +189,21 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 						var point = [slot.row,slot.col];
 						slots.push(point);
 
-						//create some initial equipment
-						//if (/Head/.test(name)) {
-//						var generated = RPG.Generator.Equipment.generate({
-//						    properties : {
-//							name : 'InitEquip',
-//							seed : (Math.random() * (99999999999 - 1) + 1),
-//							Difficulty : storedCharacter.Difficulty,
-//							type : 'item.earth.equip.'+slot.itemTypes[0],
-//							level : 1,
-//							point : point,
-//							identified : false
-//						    }
-//						});
-//						Object.merge(equipCache,generated.cache);
-//						Object.merge(equipTiles,generated.tiles);
+					    //create some initial equipment
+					    //if (/Head/.test(name)) {
+					    //						var generated = RPG.Generator.Equipment.generate({
+					    //						    properties : {
+					    //							name : 'InitEquip',
+					    //							seed : (Math.random() * (99999999999 - 1) + 1),
+					    //							Difficulty : storedCharacter.Difficulty,
+					    //							type : 'item.earth.equip.'+slot.itemTypes[0],
+					    //							level : 1,
+					    //							point : point,
+					    //							identified : false
+					    //						    }
+					    //						});
+					    //						Object.merge(equipCache,generated.cache);
+					    //						Object.merge(equipTiles,generated.tiles);
 					    //}
 					    }
 
@@ -271,11 +277,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		    } else {
 			if (info.affectedRows) {
 			    options.user.logger.trace('Character Update success. id:' + db.characterID);
-			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+db.characterID,Object.merge(options.character,{
+			    callback(Object.merge(options.character,{
 				database : {
 				    characterID : db.characterID
 				}
-			    })));
+			    }));
 			    db = null;
 			} else {
 			    options.user.logger.error('Character not found. characterID:'+db.characterID);
@@ -311,11 +317,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		    } else {
 			if (info.insertId) {
 			    options.user.logger.trace('Character Update success. id:' + info.insertId + ' character:'+JSON.encode(options.character));
-			    callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+info.insertId,Object.merge(options.character,{
+			    callback(Object.merge(options.character,{
 				database : {
 				    characterID : info.insertId
 				}
-			    })));
+			    }));
 			} else {
 			    options.user.logger.error('Character Insert Failed. No ID character:'+JSON.encode(options.character));
 			    callback({
@@ -390,8 +396,6 @@ RPG.Character = new (RPG.CharacterClass = new Class({
      * user,
      * characterID || character
      *
-     * optional options
-     * bypassCache
      *
      * callback(character || error)
      */
@@ -399,18 +403,6 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	options.characterID = options.characterID || (options.character && options.character.database.characterID);
 	if (!RPG.Constraints.requiredOptions(options,['user','characterID'],logger,callback)){
 	    return;
-	}
-
-	/**
-	 * Check the cache first
-	 */
-	if (!options.bypassCache) {
-	    var chr = require('../Cache.njs').Cache.retrieve(options.user.options.userID,'character_'+options.characterID);
-	    if (chr) {
-		options.user.logger.trace('Loaded Character (cache): '+options.characterID);
-		callback(chr);
-		return;
-	    }
 	}
 
 	/**
@@ -435,13 +427,13 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 		    if (results && results[0]) {
 			var result = results[0];
 			options.user.logger.trace('Character Load Successful: characterID:' + options.characterID);
-			callback(require('../Cache.njs').Cache.store(options.user.options.userID,'character_'+options.characterID, Object.merge({
+			callback(Object.merge({
 			    database : {
 				characterID : result['characterID']
 			    }
 			},
 			JSON.decode(result['options'],true))
-			    ));
+			    );
 
 		    } else {
 			options.user.logger.error('Character Load error: Not found. characterID:'+options.characterID);
@@ -487,7 +479,6 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 			    characterID : options.characterID
 			});
 			options.user.logger.error('Character Delete Success: characterID:'+options.characterID);
-			require('../Cache.njs').Cache.remove(options.user.options.userID,'character_'+options.characterID);
 
 		    } else {
 			options.user.logger.error('Character Delete error: Not found. characterID:'+options.characterID);

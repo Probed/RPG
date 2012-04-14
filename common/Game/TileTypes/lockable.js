@@ -74,8 +74,7 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 
 		RPG.Universe.store({
 		    user : options.game.user,
-		    universe : updateUni,
-		    bypassCache : true
+		    universe : updateUni
 		},function(universe){
 		    if (universe.error) {
 			callback(universe);
@@ -137,22 +136,9 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 //    callback();
 //}
 
-RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = function(options,callback) {
-
-
-    if (typeof exports != 'undefined') {
-	//server
-
-	if (Object.getFromPath(options, 'events.activate.lockable') || Object.getFromPath(options, 'events.onBeforeEnter.lockable')) {
-    //remove the tile from the current Universe so it will get reloaded from the database
-    //and the client should receive the the cloned tile created above.
-    //RPG.removeAllTiles(options.game.universe.maps[options.game.character.location.mapName].tiles, options.game.moveTo);
-    //RPG.removeCacheTiles(options.game.universe.maps[options.game.character.location.mapName].cache, options.tiles);
-    }
-    }
-    callback();
-
-}
+//RPG.TileTypes.lockable.activateComplete = RPG.TileTypes.lockable.onEnter = function(options,callback) {
+//    callback();
+//}
 
 /**
  * Client side unlock window

@@ -13,11 +13,9 @@ rand.seed = 2271981.4012012;
 
 exports.options = RPG.TileType.Item({
     generator : ['Equipment'],
-    type : ['ammo','arm','chest','ear','foot','leg','hand', 'head','neck','ring','waist','weapon','sheild'],
+    type : ['ammo','arm','chest','ear','foot','leg','hand', 'head','neck','ring','waist','weapon','shield'],
     durability : [0,100,100],//%
-    //    broken : [false],
-    //    charges : [0,100,0],
-
+    stacksize : [1,1,1],
     equip : 'All.'.repeat(3).split('.').slice(0,-1).append(['Light','Medium','Heavy']).shuffleS(rand),
     Race : 'All.'.repeat(Object.keys(RPG.Race).length).split('.').slice(0,-1).append(Object.keys(RPG.Race)).shuffleS(rand),
     Gender : 'All.'.repeat(Object.keys(RPG.Gender).length).split('.').slice(0,-1).append(Object.keys(RPG.Gender)).shuffleS(rand),

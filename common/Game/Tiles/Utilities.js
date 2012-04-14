@@ -3,6 +3,7 @@ if (!RPG) var RPG = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Log/Log.njs'));
     Object.merge(RPG,require('../../Constraints.js'));
+    Object.merge(RPG,require('../../Character/CharacterSlots.js'));
     Object.merge(RPG,require('./Tiles.js'));
     Object.merge(RPG,require('./TileTypes.js'));
     Object.merge(RPG,require('../Generators/Utilities.js'));
@@ -42,10 +43,20 @@ RPG.getMapTileStyles = function(options) {
 
 		continue;
 	    }
-	    styles['background-image'] = 'url("'+RPG.getMapTileImage(path,theTile)+'"),' + styles['background-image'];
-	    styles['background-position'] = (theTile.options.property.image.left?theTile.options.property.image.left+'% ':'0% ') + (theTile.options.property.image.top?theTile.options.property.image.top+'%,':'0%,') + styles['background-position'];
-	    styles['background-size'] = (theTile.options.property.image.size?theTile.options.property.image.size+'%,':'100%,') + styles['background-size'];
-	    styles['background-repeat'] = (theTile.options.property.image.repeat?theTile.options.property.image.repeat+',':'no-repeat,') + styles['background-repeat'];
+
+	    for (var y=0;y<8;y++){
+		if (theTile.options.property.image['name'+(!y?'':y)]) {
+		    var imgs = theTile.options.property.image;
+		    var left = imgs['left'+(!y?'':y)];
+		    var top = imgs['top'+(!y?'':y)];
+		    var size = imgs['size'+(!y?'':y)];
+		    var repeat = imgs['repeat'+(!y?'':y)];
+		    styles['background-image'] = 'url("'+RPG.getMapTileImage(path,theTile,y)+'"),' + styles['background-image'];
+		    styles['background-position'] = (left?left+'% ':'0% ') + (top?top+'%,':'0%,') + styles['background-position'];
+		    styles['background-size'] = (size?size+'%,':'100%,') + styles['background-size'];
+		    styles['background-repeat'] = (repeat?repeat+',':'no-repeat,') + styles['background-repeat'];
+		}
+	    }
 	    theTile = null;
 
 	}
@@ -69,8 +80,8 @@ RPG.getMapTileCursor = function(path,tile) {
     };
 }
 
-RPG.getMapTileImage = function(path,tile) {
-    return escape('/common/Game/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+tile.options.property.image.name);
+RPG.getMapTileImage = function(path,tile,index) {
+    return escape('/common/Game/Tiles/'+path.slice(1,path.length-1).join('/')+'/'+tile.options.property.image['name'+(!index?'':index)]);
 }
 
 /**
@@ -386,10 +397,10 @@ RPG.cloneTile = function(original_cache, clonePath, new_cache, options) {
     if (!orig || !orig.options) return null;
 
     //merge together the options from the original cache, and the incoming options
-    options = Object.merge(Object.clone(orig.options),options);
+    Object.pathToObject(new_cache,clonePath).child.options = Object.merge(Object.clone(orig.options),options);
 
     //create the tile in the new_cache
-    return RPG.createTile(RPG.trimPathOfNameAndFolder(clonePath),new_cache,options);
+    return clonePath;
 }
 
 RPG.cloneTiles = function(original_cache, clonePaths, new_cache, options) {
@@ -1277,6 +1288,56 @@ RPG.swapTiles = function(options) {
 	};
     }
 
+    var fromTile0 = Object.getFromPath(fromMap.cache,fromTiles[0]);
+    if (!fromTile0) {
+	moved=done=swap=updateUni=fromMap=toMap=toTiles=errors=null;
+	return {
+	    error : 'From Tile '+fromTiles[0]+' Cache item not found.'
+	};
+    }
+
+    var found = false;
+    switch (toMap.options.property.name) {
+	case 'equipment' :
+	    found = false;
+	    if (!Object.getFromPath(fromTile0,'options.item.type')) {
+		moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=errors=null;
+		return {
+		    error : 'Cannot equip that item.'
+		};
+	    }
+	    if (!Object.getFromPath(fromTile0,'options.item.identified')) {
+		moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=errors=null;
+		return {
+		    error : 'Cannot equip unidentified items.'
+		};
+	    }
+	    Object.each(RPG.CharacterSlots,function(slot,name){
+		if (slot.row == swap.toPoint[0] && slot.col == swap.toPoint[1] && slot.itemTypes.contains(fromTile0.options.item.type) && RPG.areaContainsPoint(toMap.options.property.slots,swap.toPoint)) {
+		    found = true;
+		}
+	    });
+	    if (!found) {
+		moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=errors=null;
+		return {
+		    error : 'The item does not fit there.'
+		};
+	    }
+	    break;
+	case 'inventory' :
+	    found = false;
+	    if (swap.toPoint[0] >= 0 && swap.toPoint[1] >=0 && swap.toPoint[0] < toMap.options.property.maxRows && swap.toPoint[1] < toMap.options.property.maxCols) {
+		found = true;
+	    }
+	    if (!found) {
+		moved=done=swap=updateUni=fromMap=toMap=fromTiles=toTiles=errors=null;
+		return {
+		    error : 'Invetory slot does not exist.'
+		};
+	    }
+	    break;
+    }
+
     //set the new map tiles to the current tiles so we can update them in the new Map
     // it is the new Map that will be saved. so any changes to it will get stored.
     //we will use it to verify and build our changes.
@@ -1288,7 +1349,6 @@ RPG.swapTiles = function(options) {
     //Attempt to stack with the 'toTiles' first:
     if (toTiles && toTiles.length > 0) {
 
-	var fromTile0 = Object.getFromPath(fromMap.cache,fromTiles[0]);
 	var toTile0 = Object.getFromPath(toMap.cache,toTiles[0]);
 
 

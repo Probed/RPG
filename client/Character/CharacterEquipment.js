@@ -103,7 +103,7 @@ RPG.CharacterEquipment = new Class({
 			this.refresh();
 			$('characterEquipmentWindow').addEvents({
 			    mousedown : function(event) {
-			    //event.preventDefault();
+				event.preventDefault();
 			    }
 			});
 			$('characterEquipmentWindow').adopt(
@@ -239,7 +239,7 @@ RPG.CharacterEquipment = new Class({
 		}
 		rows[slot.row][slot.col+colOffset] = Object.merge({
 		    properties : {
-			'class' : 'ItemDrop textCenter',
+			'class' : 'ItemDrop textCenter ' + Array.prejoin(slot.itemTypes,'accept_',' '),
 			row : slot.row,
 			col : slot.col,
 			inventory : 'equipment'

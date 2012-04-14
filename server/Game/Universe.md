@@ -21,8 +21,6 @@ If any `tiles` exist within the maps they will be stored also. see [Tile](https:
 * `options` *required*
     * `user` **:** the [User](#) making the request
     * `universe` **:** the `universe` object to be stored
-* `options` *optional*
-    * `bypassCache` **:** does not attempt to load from, or store in, the game cache
 
 * *Returns*
     * `callback`(`universe` *or* `error`) **:** a universe object or a `{error:'message'}` object
@@ -55,7 +53,6 @@ RPG.Universe.store({
 * `options` *optional*
     * `mapID` *or* `mapName` **:** load the specified map into the universe
     * `tilePoints` **:** load the specified tiles into the map
-    * `bypassCache` **:** does not attempt to load from, or store in, the game cache
 
 * *Returns*
     * `callback`(`universe` *or* `error`) **:** a universe object or a `{error:'message'}` object

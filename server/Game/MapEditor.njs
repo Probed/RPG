@@ -206,8 +206,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		    //Store the universe in the database:
 		    RPG.Universe.store({
 			user : request.user,
-			universe : uni,
-			bypassCache : true
+			universe : uni
 		    },function(universe){
 			//remove all tiles since the clinet should have these already
 			Object.each(universe.maps,function(map,mapName){
@@ -236,8 +235,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	RPG.Universe.load({
 	    user : request.user,
 	    universeID : options.universeID,
-	    tilePoints : RPG.getRectangleArea(options.start,options.end).area,
-	    bypassCache : true
+	    tilePoints : RPG.getRectangleArea(options.start,options.end).area
 	},function(universe){
 	    if (universe.error) {
 		response.onRequestComplete(response,universe);
@@ -245,8 +243,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    }
 	    RPG.Map.listMaps({
 		user : request.user,
-		universeID : options.universeID,
-		bypassCache : true
+		universeID : options.universeID
 	    },function(maplist) {
 		if (maplist.error) {
 		    response.onRequestComplete(response,maplist);
@@ -275,8 +272,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    user : request.user,
 	    mapID : Number.from(request.url.query.mapID) || 0,
 	    universeID : request.url.query.universeID,
-	    tilePoints : [],
-	    bypassCache : true
+	    tilePoints : []
 	};
 
 	var tileLookup = JSON.decode(request.data,true);

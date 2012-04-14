@@ -532,9 +532,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
      * required options:
      *	    user
      *	    paths : json encoded paths
-     *
-     * optional:
-     *	    bypassCache
      */
     loadCache : function(options,callback) {
 
@@ -575,12 +572,7 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
 			error : err
 		    });
 		} else if (results && results[0]) {
-		    var cache = RPG.expandResultsCache(results,'tilesetID');
-
-		    if (!options.bypassCache) {
-			require('../Cache.njs').Cache.store(options.character.database.characterID,'tileset',cache);
-		    }
-		    callback(cache);
+		    callback(RPG.expandResultsCache(results,'tilesetID'));
 		} else {
 		    callback({});
 		}
@@ -593,8 +585,6 @@ RPG.Tileset = new (RPG.TilesetClass = new Class({
      *	    character
      *	    universe
      *
-     * optional:
-     *	    bypassCache
      */
     storeCache : function(options,callback) {
 	options.errors = options.errors || [];

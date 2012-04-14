@@ -108,12 +108,41 @@ RPG.Users = new (RPG.UsersClass = new Class({
 			    /**
 			     * Cookie id not found
 			     */
+			    var rand = Math.floor((Math.random() * (99999999999 - 1) + 1));
+			    apiKey = (rand + 'Guest').toMD5();
 			    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
-				name : 'Guest User #'+ (++this.userIDs),
-				id : this.userIDs
+				name : 'Guest #'+ rand,
+				id : rand,
+				email : 'test@test.test',
+				apiKey : apiKey
 			    }));
-			    user.logger.error('User Not Found: '+apiKey);
-			    callback(user);
+			    cookies.set(this.options.cookieOptions.name,apiKey,this.options.cookieOptions);
+			    RPG.Mysql.query('INSERT INTO user '+
+				'SET name = ?,'+
+				'email = ?,'+
+				'passwordHash = ?,'+
+				'verifyKey = ?,'+
+				'apiKey = ?,'+
+				'role = ?,'+
+				'enabled = ?,'+
+				'emailUpdates = ?,'+
+				'settings = ?, ' +
+				'created = NOW()',
+				[user.options.name,user.options.email,'test','',apiKey,2,1,0,JSON.encode(this.options.defaultSettings)],
+				function(err,info) {
+				    if (err) {
+					callback({
+					    error : err
+					});
+				    } else {
+					if (info && info.insertId) {
+					    user.isLoggedIn = true;
+					    user.options.userID = info.insertId;
+					    require('../Cache.njs').Cache.merge('users',apiKey, user);
+					}
+					callback(user);
+				    }
+				});
 			}
 		    } else {
 
@@ -146,13 +175,14 @@ RPG.Users = new (RPG.UsersClass = new Class({
 	    * @todo testing only. auto create user and log them in
 	    */
 	    var rand = Math.floor((Math.random() * (99999999999 - 1) + 1));
+	    apiKey = (rand + 'Guest').toMD5();
 	    require('../Cache.njs').Cache.store('users',apiKey, user = new RPG.User({
 		name : 'Guest #'+ rand,
 		id : rand,
 		email : 'test@test.test',
 		apiKey : apiKey
 	    }));
-
+	    cookies.set(this.options.cookieOptions.name,apiKey,this.options.cookieOptions);
 	    RPG.Mysql.query('INSERT INTO user '+
 		'SET name = ?,'+
 		'email = ?,'+

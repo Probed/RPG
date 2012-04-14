@@ -3,7 +3,7 @@ var RPG = module.exports = {};
 Object.merge(RPG,
     require('./Universe.njs'),
     require('../Character/Character.njs'),
-//    require('../../common/Game/Generators/Test.js')
+    //    require('../../common/Game/Generators/Test.js')
     require('../../common/Game/Generators/Dungeon.js'),
     require('../../common/Game/Generators/House.js'),
     require('../../common/Game/Generators/Terrain.js')
@@ -55,9 +55,23 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 		 */
 		game.character = character;
 		if (!character.location) {
+
+		    //create a new universe and store it in the game
 		    RPG.InitGame.newGame(game, callback);
+
 		} else {
-		    callback(game);
+
+		    //load the existing universe
+		    RPG.Universe.load(game,function(universe) {
+			if (!universe || universe.error) {
+			    callback(universe);
+			    return;
+			}
+
+			game.universe = universe;
+			callback(game);
+
+		    });
 		}
 	    });
 	});
@@ -73,7 +87,7 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	    return;
 	}
 
-	game.user.logger.info('New Game Detected for characterID: ' + game.character.database.characterID);
+	game.user.logger.trace('New Game Detected for characterID: ' + game.character.database.characterID);
 
 	var mapName = 'StartMap';
 	var universe = {
@@ -112,14 +126,16 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 	    var charStartPoint = Array.getSRandom(random.generated.possibleStartLocations,rand);
 
 	    game.universe = universe;
-	    game.bypassCache = true; //prevent the game from being saved into the cache since we do not want to send the client the full new universe.
 
 	    RPG.Universe.store(game, function(universe) {
 		if (!universe || universe.error) {
 		    callback(universe);
 		    return;
 		}
-		Object.erase(game,'bypassCache');
+
+		//now that the universe has been saved we can remove the tiles/cache from map so the client doesn't recieve them.
+		game.universe.maps[mapName].tiles = {};
+		game.universe.maps[mapName].cache = {};
 
 		game.character.location = {
 		    universeID : universe.options.database.id,
@@ -138,7 +154,5 @@ RPG.InitGame = new (RPG.InitGameClass = new Class({
 		});
 	    });
 	});
-
-
     }
 }))();
