@@ -107,7 +107,7 @@ RPG.TileType.Traversable = function(options) {
 RPG.TileType.Lockable = function(options) {
     return {
 	lockable : Object.merge({
-	    z0rt : [true],   //is it locked?
+	    locked : [true],   //is it locked?
 	    type : ['tumbler'], //what puzzle to load to unlock the tile
 	    level : [1,100,1],  //how difficult it is to unlock the tile
 	    Difficulty : Object.keys(RPG.Difficulty), //difficulty setting
@@ -256,4 +256,41 @@ RPG.TileType.Item = function(options) {
 	}
 	,options||{})
     };
+}
+
+/**
+ * Equipment Item:
+ */
+RPG.TileType.Equip = function(options) {
+    return RPG.TileType.Item(Object.merge({
+	generator : ['Equipment'],
+	type : ['ammo','arm','chest','ear','foot','leg','hand', 'head','neck','ring','waist','weapon','shield'],
+	durability : [0,100,100],//%
+	stacksize : [1,1,1],
+
+	equip : ['All','Light','Medium','Heavy'],
+	Race : ['All'].append(Object.keys(RPG.Race)),
+	Gender : ['All'].append(Object.keys(RPG.Gender)),
+	Class : ['All'].append(Object.keys(RPG.Class)),
+
+	//	equip : 'All.'.repeat(3).split('.').slice(0,-1).append(['Light','Medium','Heavy']).shuffleS(rand),
+	//	Race : 'All.'.repeat(Object.keys(RPG.Race).length).split('.').slice(0,-1).append(Object.keys(RPG.Race)).shuffleS(rand),
+	//	Gender : 'All.'.repeat(Object.keys(RPG.Gender).length).split('.').slice(0,-1).append(Object.keys(RPG.Gender)).shuffleS(rand),
+	//	Class : 'All.'.repeat(Object.keys(RPG.Class).length).split('.').slice(0,-1).append(Object.keys(RPG.Class)).shuffleS(rand),
+
+	//Stat Modifiers
+	Stats : (function(){
+	    var stats = {};
+	    Object.each(Object.merge({
+		hp : 0,
+		mana : 0,
+		xp : 0,
+		ac : 0
+	    },
+	    RPG.Stats),function(stat,name) {
+		stats[name] = [-100,100,0];
+	    });
+	    return stats;
+	}())
+    },options||{}));
 }

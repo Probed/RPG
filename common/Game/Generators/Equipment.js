@@ -45,8 +45,10 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    path : options.properties.type.split('.'),
 	    tileConstraints : RPG.Constraints.getConstraints(options.properties.type.split('.'),RPG.Tiles).item,
 	    itemOptions : {
-		generator : this.name,
-		genOptions : options,
+		identified : options.properties.identified,
+		secret : {
+		    genOptions : options
+		},
 		level : options.properties.level
 	    }
 	};
@@ -65,7 +67,7 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	if (options.properties.identified) {
 
 	    //generate random options:
-	    Object.merge(equipmentObj.itemOptions,RPG.Constraints.random(equipmentObj.tileConstraints,rand));
+	    equipmentObj.itemOptions = Object.merge(RPG.Constraints.random(equipmentObj.tileConstraints,rand),equipmentObj.itemOptions);
 
 
 	    //generate item generic
@@ -129,12 +131,7 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 			name : randImg && randImg.image || '',
 			size : 50,
 			top : 50,
-			left : 50,
-			name1 : '../../unk1.png',
-			size1 : 50,
-			top1 : 50,
-			left1 : 50
-
+			left : 50
 		    }
 		},
 		item : equipmentObj.itemOptions
@@ -142,6 +139,12 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 
 	if (!options.properties.identified) {
 	    var tile = Object.getFromPath(equipmentObj.cache,equipmentObj.path);
+	    Object.merge(tile.options.property.image,{
+		name1 : '../../unk1.png',
+		size1 : 50,
+		top1 : 50,
+		left1 : 50
+	    });
 	    //remove options that are not identified.
 	    var keep = ['generator','genOptions','identified','level','weight','type'];
 	    Object.each(tile.options.item,function(c,k,s){
@@ -162,6 +165,8 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 
     ammo : function(options,equipmentObj){
 	equipmentObj.itemOptions.weight = 0.001;
+	equipmentObj.itemOptions.stacksize = 100;
+
     },
     arm : function(options,equipmentObj){
 	equipmentObj.itemOptions.weight = equipmentObj.tileConstraints.equip.indexOf(equipmentObj.itemOptions.equip);

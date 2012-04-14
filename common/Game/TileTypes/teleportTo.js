@@ -86,7 +86,7 @@ RPG.TileTypes.teleportTo.activateComplete = RPG.TileTypes.teleportTo.onEnter = f
 	    RPG.Generator[options.contents.generator].random(mapName,{
 		properties : {
 		    Difficulty : options.game.character.Difficulty,
-		    level : options.game.character.level
+		    level : Math.floor(rand.random(1,100))
 		}
 	    },rand,function(random){
 

@@ -1,8 +1,7 @@
 /**
  * Equipment - Weapons
  */
-exports.options = require('../../../../TileTypes.js').TileType.Item({
-    generator : ['Equipment'],
+exports.options = require('../../../../TileTypes.js').TileType.Equip({
     cost : [25,100,50],
     type : ['weapon'],
     weapon : {

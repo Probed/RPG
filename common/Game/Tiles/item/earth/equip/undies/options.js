@@ -1,7 +1,7 @@
 /**
- * Equipment - head
+ * Equipment - Undies
  */
 exports.options = require('../../../../TileTypes.js').TileType.Equip({
-    cost : [15,50,25],
-    type : ['head']
+    cost : [5,30,25],
+    type : ['undies']
 });

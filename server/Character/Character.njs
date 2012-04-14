@@ -96,11 +96,11 @@ RPG.Character = new (RPG.CharacterClass = new Class({
 	Object.erase(options.character,'LeftGrowthArm');
 	Object.erase(options.character,'GrowthHead');
 
-	options.character.RightGrowthLeg = true;
-	options.character.LeftGrowthLeg = true;
-	options.character.RightGrowthArm = true;
-	options.character.LeftGrowthArm = true;
-	options.character.GrowthHead = true;
+//	options.character.RightGrowthLeg = true;
+//	options.character.LeftGrowthLeg = true;
+//	options.character.RightGrowthArm = true;
+//	options.character.LeftGrowthArm = true;
+//	options.character.GrowthHead = true;
 
 	//validate the incoming character
 	var errors = [];

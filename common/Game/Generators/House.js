@@ -389,7 +389,8 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 				    seed : rand.seed,
 				    Difficulty : options.properties.Difficulty,
 				    level : options.properties.level,
-				    point : point
+				    point : point,
+				    identified : rand.random() > 0.5?true:false
 				}
 			    },rand);
 			    Object.merge(house.cache,results.cache);
