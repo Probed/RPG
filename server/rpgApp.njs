@@ -21,6 +21,33 @@ RPG.App = new (RPG.AppClass = new Class({
 	// Load in the basic html template
 	this.htmlTemplate = fs.readFileSync(this.options.htmlTemplate,'utf8');
 
+	/**
+	 * Build Character Portrait list from directories
+	 */
+	logger.info('Building Character Portraits...');
+	var portraits = require('fs').readdirSync('./common/Character/portrait');
+	RPG.Portraits = {};
+	portraits.each(function(gender){
+	    RPG.Portraits[gender] = require('fs').readdirSync('./common/Character/portrait/'+gender);
+	}.bind(this));
+	var str = '/*This File is Generated in /server/rpgApp.njs*/if (!RPG) var RPG = {};RPG.Portraits=';
+	str += JSON.encode(RPG.Portraits);
+	str += ';if (typeof exports != "undefined") {module.exports = RPG;}';
+	require('fs').writeFileSync('./common/Character/Portraits.js',str,'utf8');
+
+
+	logger.info('Building Map Tiles...');
+	var constraints = this.buildTileConstraints(['./common','Game','Tiles']);
+	str = '/*This File is Generated in /server/rpgApp.njs*/if (!RPG) var RPG = {};RPG.Tiles=';
+	str += JSON.encode(constraints);
+	str += ';if (typeof exports != "undefined") {module.exports = RPG;}';
+	require('fs').writeFileSync('./common/Game/Tiles/Tiles.js',str,'utf8');
+	Object.merge(RPG,{
+	    Tiles : constraints
+	});
+
+	constraints = null;
+
 	logger.info('Initialized.');
     },
     start : function() {
@@ -79,6 +106,7 @@ RPG.App = new (RPG.AppClass = new Class({
 		request.user.logger.trace('Template Requested')
 		//No xhr request means we send them the Html Template for the site.
 		//afterwards all requests made to the server will be xhr
+		this.htmlTemplate = fs.readFileSync(this.options.htmlTemplate,'utf8');
 
 		this.onRequestComplete(response,this.htmlTemplate.replace('CLIENT_APP_OPTIONS',JSON.stringify(RPG.Users.getApplicationOptions(request.user))));
 
@@ -255,5 +283,42 @@ RPG.App = new (RPG.AppClass = new Class({
 	if (error) {
     //throw output;
     }
+    },
+
+
+    /**
+     * buildTileConstraints Here we recursivly traverse the /common/Game/Tiles  directory and build up the RPG.Tiles object
+     * Each folder can have an options.js file which will be imported and merged into the tile to give the tile it's unique abilities.
+     * option.js files will reference TileTypes.js for the different types available
+     *
+     */
+    buildTileConstraints : function(dir,constraints) {
+	if (!constraints) constraints = {};
+
+	var folders = require('fs').readdirSync(dir.join('/'));
+
+	if (require('path').existsSync(dir.join('/')+'/options.js')) {
+	    constraints.options = require('./.'+dir.join('/')+'/options.js').options;
+	}
+	folders.each(function(name){
+	    if (name == 'options.js') return;
+	    var stat = require('fs').statSync(dir.join('/')+'/'+name);
+	    if (stat.isFile() && /bmp|gif|png|jpg$/i.test(name)) {
+		if (!constraints.options) constraints.options = {};
+		if (!constraints.options.property) constraints.options.property = {};
+		if (!constraints.options.property.image) constraints.options.property.image = {};
+		if (!constraints.options.property.image.name) constraints.options.property.image.name = [];
+		constraints.options.property.image.name.push(name);
+
+	    } else if (stat.isDirectory()) {
+		constraints[name] = {};
+		dir.push(name);
+		this.buildTileConstraints(dir,constraints[name]);
+		dir.pop();
+	    }
+
+	}.bind(this));
+	return constraints;
     }
+
 }))().start();

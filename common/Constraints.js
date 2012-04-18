@@ -178,81 +178,16 @@ Array.extend({
      * Recursivly traverses an option constrain object an generates tabs for the first level of constraints, the nested tables for all sub level constraints
      */
 RPG.Constraints.getTabs = function(content,key,optPath,loadOptions,id) {
-    var tabMenu = null;
-    var tabBody = new Element('div');
-    var tabs = new Element('div',{
-	id : id+'_mapTileConfigTabs'
-    }).adopt(
-	new Element('div',{
-	    'class' : 'toolBarTabs'
-	}).adopt(
-	    tabMenu = new Element('ul',{
-		'class' : 'tab-menu NoWrap',
-		id : 'mapTileConfigTabs'
-	    }),
-	    new Element('div',{
-		'class' : 'clear'
-	    })
-	    )
-	);
-    var rows = {};
+    var tabs = new Jx.TabBox({
+	scroll : false
+    });
     Object.each(content,function(opt,key) {
-	rows[key] = [];
-	rows[key].push([{
-	    content : RPG.Constraints.getTable(opt,key,[],loadOptions,id)
-	}]);
+	tabs.add(new Jx.Tab({
+	    label: key.capitalize(),
+	    content: RPG.Constraints.getTable(opt,key,[],loadOptions,id)
+	}));
     }.bind(this));
-
-    tabMenu.adopt(
-	new Element('li',{
-	    'class' : 'selected ConstraintsTab'
-	}).adopt(
-	    new Element('a',{
-		html:'All',
-		events : {
-		    click : function(event) {
-			tabMenu.getElements('li').addClass('selected');
-			$$('.ConstraintsBody').show();
-		    }
-		}
-	    })
-	    ));
-    Object.each(rows, function(r,k){
-	tabMenu.adopt(
-	    new Element('li',{
-		id : 'ConstraintsTab'+k,
-		'class' : 'selected ConstraintsTab'
-	    }).adopt(
-		new Element('a',{
-		    html:k.capitalize().hyphenate().split('-').join(' ').capitalize(),
-		    events : {
-			click : function(event) {
-			    $$('.ConstraintsTab').removeClass('selected');
-			    $$('.ConstraintsBody').hide();
-			    $('ConstraintsTab'+k).addClass('selected');
-			    $('ConstraintsBody'+k).show();
-			}.bind(this)
-		    }
-		})
-		));
-	tabBody.adopt(new HtmlTable({
-	    zebra : false,
-	    selectable : false,
-	    useKeyboard : false,
-	    properties : {
-		id : 'ConstraintsBody'+k,
-		'class' : 'ConstraintsBody',
-		cellpadding : 0
-	    },
-	    rows : r
-	}).toElement());
-    });
-    return new HtmlTable({
-	zebra : false,
-	selectable : false,
-	useKeyboard : false,
-	rows : [[tabs],[tabBody]]
-    });
+    return tabs.toElement();
 }
 
 /**
@@ -292,6 +227,8 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 	var type1 = (typeOf(constraint_options) == 'array' && typeOf(con1)) || null;
 	var type2 = (typeOf(constraint_options) == 'array' && typeOf(con2)) || null;
 
+	var path = Array.clone(optionsPath);
+
 	switch (true) {
 
 	    /**
@@ -302,7 +239,7 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 		elm = new Element('div').adopt(
 		    new Element('input',{
 			type : 'text',
-			id : optionsPath.join('__'),
+			id : path.join('__'),
 			value : (value?value:''+con2),
 			size : (value?value:''+con2).length > 3?(value?value:''+con2).length:3,
 			title : '(Min:'+con0+' Max:'+con1+')',
@@ -311,15 +248,12 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 		    new Element('span',{
 			html : '&nbsp;&nbsp;'
 		    }),
-		    RPG.elementFactory.buttons.actionButton({
-			'class' : 'randomFor_'+id,
-			html : 'Random',
-			events : {
-			    click : function(event) {
-				this.getParent().getElements('input')[0].value = RPG.Random.random(this.retrieve('min') || 0,this.retrieve('max'));
-			    }
+		    new Jx.Button({
+			label : 'Random',
+			onClick : function(event) {
+			    $(path.join('__')).value = RPG.Random.random(con0 || 0,con1);
 			}
-		    }).store('min',con0).store('max',con1)
+		    }).toElement()
 		    );
 		break;
 
@@ -330,7 +264,7 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 		elm = new Element('div').adopt(
 		    new Element('input',{
 			type : 'text',
-			id : optionsPath.join('__'),
+			id : path.join('__'),
 			value : (value?value:''+(con3 || '')),
 			size : 10,
 			title : '(Min:'+con1+' Max:'+con2+')',
@@ -339,27 +273,19 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 		    new Element('span',{
 			html : '&nbsp;&nbsp;'
 		    }),
-		    RPG.elementFactory.buttons.actionButton({
+		    new Jx.Button({
 			'class' : 'randomFor_'+id,
-			html : 'Random',
-			events : {
-			    click : function(event) {
-				var n = null;
-				if (typeof exports != 'undefined') {
-				    n = require('./Game/Generators/Words.js').Generator.Name;
-				} else {
-				    n = RPG.Generator.Name;
+			label : 'Random',
+			onClick : function(event) {
+			    $(path.join('__')).value = RPG.Generator.Name.generate({
+				name : {
+				    seed : RPG.Random.seed,
+				    length :  RPG.Random.random(con1,con2)
 				}
-				this.getParent().getElements('input')[0].value = n.generate({
-				    name : {
-					seed : RPG.Random.seed,
-					length :  RPG.Random.random(this.retrieve('min'),this.retrieve('max'))
-				    }
-				});
+			    });
 
-			    }
 			}
-		    }).store('min',con1).store('max',con2)
+		    }).toElement()
 		    );
 		break;
 
@@ -368,30 +294,28 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 		 * Array: [string[..]]
 		 */
 	    case (type0 == 'string') :
-		var select = new Element('select',{
-		    id : optionsPath.join('__'),
-		    'class' : className
+		var select = new Jx.Field.Select({
+		    id : path.join('__'),
+		    containerClass : 'configFor_' + id
 		});
 		constraint_options.each(function(opt){
-		    select.adopt(new Element('option',{
-			html : ''+opt,
+		    select.addOption({
+			value :''+opt,
+			text : ''+opt,
 			selected : (value==opt?true:false)
-		    }));
+		    });
 		});
 		elm = new Element('div').adopt(
 		    select,
 		    new Element('span',{
 			html : '&nbsp;&nbsp;'
 		    }),
-		    RPG.elementFactory.buttons.actionButton({
-			'class' : 'randomFor_'+id,
-			html : 'Random',
-			events : {
-			    click : function(event) {
-				this.getParent().getElements('select')[0].value = Array.getSRandom(this.retrieve('opts'));
-			    }
+		    new Jx.Button({
+			label : 'Random',
+			onClick : function(event) {
+			    this.getParent().getElements('select')[0].value = Array.getSRandom(constraint_options);
 			}
-		    }).store('opts',Array.clone(constraint_options))
+		    }).toElement()
 		    );
 		break;
 
@@ -404,7 +328,7 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 		elm = new Element('textarea',{
 		    cols : 30,
 		    rows : 3,
-		    id : optionsPath.join('__'),
+		    id : path.join('__'),
 		    html : (value?value:constraint_options),
 		    'class' : className
 		});
@@ -416,7 +340,7 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 	    case (constraint_options && (typeOf(constraint_options[0]) == 'boolean' || constraint_options === 'true' || constraint_options === 'false')) :
 		elm = new Element('input',{
 		    type : 'checkbox',
-		    id : optionsPath.join('__'),
+		    id : path.join('__'),
 		    checked : (value?value:typeOf(constraint_options)=='array'?constraint_options[0]:constraint_options),
 		    'class' : className
 		});
@@ -428,7 +352,7 @@ RPG.Constraints.getTable = function(constraint_options,optionName,optionsPath,lo
 	    default:
 		elm = new Element('input',{
 		    type : 'text',
-		    id : optionsPath.join('__'),
+		    id : path.join('__'),
 		    value : (value?value:constraint_options),
 		    size : (typeOf(constraint_options) == 'number'?3:10),
 		    'class' : className
@@ -553,9 +477,12 @@ RPG.Constraints.getFromInput = function(pID,id) {
 	    case ['input'].contains(elm.nodeName.toLowerCase()) && elm.type.toLowerCase() == 'checkbox' :
 		parentObj[key] = elm.checked;
 		break
-	    case ['input','select','textarea'].contains(elm.nodeName.toLowerCase()):
+	    case ['input','textarea'].contains(elm.nodeName.toLowerCase()):
 		parentObj[key] = elm.value;
 		break;
+	    case 'span' == elm.nodeName.toLowerCase() :
+		parentObj[key] = $$('#'+elm.id+' select')[0].value
+		break
 
 	    default:
 		break;

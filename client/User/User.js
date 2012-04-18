@@ -37,13 +37,22 @@ RPG.User = new Class({
 		[
 		{
 		    properties : {
-			'class' : 'textRight Email_rev textMedium'
+			colspan : 2,
+			'class' : 'textCenter'
+		    },
+		    content : 'Login Now!'
+		}
+		],
+		[
+		{
+		    properties : {
+			'class' : 'textRight textLarge vBottom'
 		    },
 		    content : 'Login Email'
 		},
 		{
 		    properties : {
-
+			'class' : 'textLarge vBottom'
 		    },
 		    content : this.loginWindowEmailInput = new Element('input',{
 			id : 'loginWindowEmailInput',
@@ -63,13 +72,13 @@ RPG.User = new Class({
 		[
 		{
 		    properties : {
-			'class' : 'textRight textMedium'
+			'class' : 'textRight textLarge vTop'
 		    },
 		    content : 'Password'
 		},
 		{
 		    properties : {
-
+			'class' : 'textLarge vTop'
 		    },
 		    content : this.loginWindowPasswordInput = new Element('input',{
 			id : 'loginWindowPasswordInput',
@@ -90,143 +99,24 @@ RPG.User = new Class({
 		{
 		    properties : {
 			colspan : 2,
-			'class' : 'textCenter textSmall'
+			'class' : 'textRight'
 		    },
-		    content : new Element('span',{
-			styles : {
-			    display : 'inline-block'
-			}
-		    }).adopt(
-			new Element('br'),
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getRegistrationLink(),
+		    content : new Jx.Button({
+			label : 'Login',
+			image: '/client/jx/themes/dark/images/lock--arrow.png',
+			tooltip: 'Log into your game.',
+			toggle : false,
+			onClick : function(event) {
+			    this.doWindowLogin();
+			}.bind(this)
 
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getForgotLink(),
-
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getVerifyLink(),
-			new Element('span',{
-			    html : ' -- '
-			})
-			)
+		    }).toElement()
 		}
 		]
 		]
 
 	    })
 	    );
-
-	/**
-		 * Small Login tabe
-		 */
-	this.smallLoginDiv = new Element('div',{
-	    id : 'smallLoginDiv'
-	}).adopt(
-	    new HtmlTable({
-		zebra : false,
-		selectable : false,
-		useKeyboard : false,
-		properties : {
-		    align : 'center',
-		    cellpadding : 2
-		},
-		rows : [
-		[
-		{
-		    properties : {
-			'class' : 'textLeft textSmall'
-		    },
-		    content : 'Email'
-		},
-		{
-		    properties : {
-			'class' : 'textRight textTiny NoWrap'
-		    },
-		    content : this.getRegistrationLink().set('html','(Register Free)')
-		}
-		],
-		[
-		{
-		    properties : {
-			colspan : 2
-		    },
-		    content : this.smallLoginEmailInput = new Element('input',{
-			id : 'smallLoginEmailInput',
-			type : 'text',
-			name : 'email',
-			maxlength : '100',
-			events : {
-			    keypress : function(event) {
-				if (event.code == 13) {
-				    this.doSmallDivLogin();
-				}
-			    }.bind(this)
-			}
-		    })
-		}
-		],
-		[
-		{
-		    properties : {
-			'class' : 'textLeft textSmall'
-		    },
-		    content : 'Password'
-		},
-		{
-		    properties : {
-			'class' : 'textRight textTiny NoWrap'
-		    },
-		    content : this.getForgotLink().set('html','(Fogot?)')
-		}
-		],
-		[
-		{
-		    properties : {
-			colspan : 2
-		    },
-		    content : this.smallLoginPasswordInput = new Element('input',{
-			id : 'smallLoginPasswordInput',
-			type : 'password',
-			name : 'password',
-			maxlength : '100',
-			events : {
-			    keypress : function(event) {
-				if (event.code == 13) {
-				    this.doSmallDivLogin();
-				}
-			    }.bind(this)
-			}
-		    })
-		}
-		],
-		[
-		{
-		    properties : {
-			colspan : 2,
-			'class' : 'textRight textSmall'
-		    },
-		    content : RPG.elementFactory.buttons.actionButton({
-			html : '<span class="Login_rev textMedium">Login</span>',
-			events : {
-			    click : function(event) {
-				this.doSmallDivLogin();
-			    }.bind(this)
-			}
-		    })
-		}
-		]
-		]
-
-	    })
-	    );
-
 
 	this.registerWindowDiv = new Element('div',{
 	    id : 'registerWindowDiv'
@@ -339,6 +229,24 @@ RPG.User = new Class({
 			type : 'checkbox'
 		    })
 		}
+		],
+		[
+		{
+		    properties : {
+			colspan : 2,
+			'class' : 'textRight'
+		    },
+		    content : new Jx.Button({
+			label : 'Complete Registration',
+			image: '/client/jx/themes/dark/images/pencil--plus.png',
+			tooltip: 'Submit your completed registration',
+			toggle : false,
+			onClick : function(event) {
+			    this.doWindowRegister();
+			}.bind(this)
+
+		    }).toElement()
+		}
 		]
 		]
 	    })
@@ -389,32 +297,19 @@ RPG.User = new Class({
 		[
 		{
 		    properties : {
-			'class' : 'textCenter textSmall'
+			colspan : 2,
+			'class' : 'textRight'
 		    },
-		    content : new Element('span',{
-			styles : {
-			    display : 'inline-block'
-			}
-		    }).adopt(
-			new Element('br'),
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getLoginLink(),
+		    content : new Jx.Button({
+			label : 'Verify Account',
+			image: '/client/jx/themes/dark/images/link.png',
+			tooltip: 'Verify your account email address.',
+			toggle : false,
+			onClick : function(event) {
+			    this.doWindowVerify();
+			}.bind(this)
 
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getRegistrationLink(),
-
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getForgotLink(),
-			new Element('span',{
-			    html : ' -- '
-			})
-			)
+		    }).toElement()
 		}
 		]
 		]
@@ -466,32 +361,19 @@ RPG.User = new Class({
 		[
 		{
 		    properties : {
-			'class' : 'textCenter textSmall'
+			colspan : 2,
+			'class' : 'textRight'
 		    },
-		    content : new Element('span',{
-			styles : {
-			    display : 'inline-block'
-			}
-		    }).adopt(
-			new Element('br'),
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getLoginLink(),
+		    content : new Jx.Button({
+			label : 'Reset Password',
+			image: '/client/jx/themes/dark/images/question.png',
+			tooltip: 'Send the reset email to your email address.',
+			toggle : false,
+			onClick : function(event) {
+			    this.doWindowForgot();
+			}.bind(this)
 
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getRegistrationLink(),
-
-			new Element('span',{
-			    html : ' -- '
-			}),
-			this.getVerifyLink(),
-			new Element('span',{
-			    html : ' -- '
-			})
-			)
+		    }).toElement()
 		}
 		]
 		]
@@ -500,89 +382,6 @@ RPG.User = new Class({
 
     },
 
-    /**
-     * Returns a new span containing three spans: 'Login', '/', 'Register
-     */
-    getLoginRegisterLinks : function() {
-	return new Element('span',{
-	    styles : {
-		display : 'inline-block'
-	    }
-	}).adopt(
-	    this.getLoginLink(),
-	    new Element('span',{
-		html : ' / '
-	    }),
-	    this.getRegistrationLink()
-	    );
-    },
-
-    /**
-     * Returns a clickablespan that shows the login window
-     */
-
-    getLoginLink : function() {
-	return new Element('span',{
-	    'class' : 'Pointer Login_rev pageLink',
-	    html : 'Sign In',
-	    events : {
-		click : function(event) {
-		    this.showLoginWindow();
-		}.bind(this)
-	    }
-	});
-    },
-
-
-    /**
-     * Creates(if not created) and displays the login window
-     */
-    showLoginWindow : function() {
-	this.minimizeAllUserWindows();
-	this.loginWindow = new MUI.Window({
-	    id : 'loginWindow',
-	    title : 'Log into your Account',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.loginWindowDiv,
-	    collapsible : false,
-	    storeOnClose : true,
-	    resizable : false,
-	    maximizable : false,
-	    closable : true
-	});
-	if (!this.loginWindowButton) {
-	    this.loginWindowButton = RPG.elementFactory.buttons.actionButton({
-		'class' : 'WinFootRight',
-		html : '<span class="Login_rev textMedium">Login</span>',
-		events : {
-		    click : function(event) {
-			this.doWindowLogin();
-		    }.bind(this)
-		}
-	    });
-	    this.loginWindowCancelButton = RPG.elementFactory.buttons.cancelButton({
-		'class' : 'WinFootLeft',
-		events : {
-		    click : function(event) {
-			this.loginWindow.minimize();
-		    }.bind(this)
-		}
-	    });
-	    $('loginWindow').adopt(this.loginWindowButton,this.loginWindowCancelButton);
-	}
-	$(this.loginWindowEmailInput).focus();
-    },
-
-    /**
-     * perform the login operation from the contents of the smallLoginDiv
-     */
-    doSmallDivLogin : function() {
-	this.login({
-	    email : this.smallLoginEmailInput.value,
-	    password : this.smallLoginPasswordInput.value
-	});
-    },
     /**
      * perform the login operation from the contents of the loginWindow
      */
@@ -608,37 +407,14 @@ RPG.User = new Class({
 	new Request.JSON({
 	    url : '/index.njs?xhr=true&a=login&'+Object.toQueryString(options),
 	    onFailure : function(error) {
-		if (this.loginWindow) {
-		    this.loginWindow.hideSpinner();
-		}
-		RPG.Error.show(error);
+		RPG.Dialog.error(error);
 	    }.bind(this),
 	    onSuccess : function(appOptions) {
 		this.setOptions(appOptions.user);
-		MUI.notification('Login Successful<br>Welcome: '+appOptions.user.name);
-		if (this.loginWindow) {
-		    this.loginWindow.hideSpinner();
-		    this.minimizeAllUserWindows();
-		}
 		this.fireEvent('login',[appOptions]);
 	    }.bind(this)
 	}).get();
 
-    },
-
-    /**
-     * Returns a span with an onclick event to logout the user
-     */
-    getLogoutLink : function() {
-	return new Element('span',{
-	    'class' : 'Pointer Logout_rev',
-	    html : 'Logout',
-	    events : {
-		click : function(event) {
-		    this.logout();
-		}.bind(this)
-	    }
-	});
     },
 
     /**
@@ -649,79 +425,14 @@ RPG.User = new Class({
 	new Request.JSON({
 	    url : '/index.njs?xhr=true&a=logout',
 	    onFailure : function(error) {
-		RPG.Error.show(error);
+		RPG.Dialog.error(error);
 	    }.bind(this),
 	    onSuccess : function(appOptions) {
-		MUI.notification('Logout Successful<br>Please don\'t go '+this.options.name + ' :(');
 		this.setOptions(appOptions.user);
 		this.options.isLoggedIn = false;
 		this.fireEvent('logout',[appOptions]);
 	    }.bind(this)
 	}).get();
-    },
-
-    /**
-     * Return a clickable span to show the registration window
-     */
-    getRegistrationLink : function() {
-	return new Element('span',{
-	    'class' : 'Pointer pageLink',
-	    html : 'Register Free',
-	    events : {
-		click : function(event) {
-		    this.showRegistration();
-		}.bind(this)
-	    }
-	});
-    },
-
-    /**
-     * Create(if not already created) and show the Registration Window
-     */
-    showRegistration : function() {
-	this.minimizeAllUserWindows();
-	this.registerWindow = new MUI.Window({
-	    id : 'registerWindow',
-	    title : 'Register your new Account for Free!',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.registerWindowDiv,
-	    collapsible : false,
-	    storeOnClose : true,
-	    resizable : false,
-	    maximizable : false,
-	    closable : true,
-	    width : 400,
-	    height : 200,
-	    require : {
-		js : ['/client/mootools/Form.PasswordStrength.js'],
-		onloaded : function() {
-		    new Form.PasswordStrength(this.registerWindowPasswordInput);
-		}.bind(this)
-	    }
-	});
-	if (!this.registerWindowButton) {
-	    this.registerWindowButton = RPG.elementFactory.buttons.newButton({
-		'class' : 'WinFootRight',
-		html : '<span class="Add textMedium">Submit your Registration</span>',
-		events : {
-		    click : function(event) {
-			this.doWindowRegister();
-		    }.bind(this)
-		}
-	    });
-	    this.registerWindowCancelButton = RPG.elementFactory.buttons.cancelButton({
-		'class' : 'WinFootLeft',
-		events : {
-		    click : function(event) {
-			this.registerWindow.minimize();
-		    }.bind(this)
-		}
-	    });
-	    $('registerWindow').adopt(this.registerWindowButton,this.registerWindowCancelButton);
-	}
-	$(this.registerWindowEmailInput).focus();
-
     },
 
     doWindowRegister : function() {
@@ -733,80 +444,15 @@ RPG.User = new Class({
      * Options : (see serverside User.js for all possible options)
      */
     register : function(querystring) {
-	if (this.registerWindow) {
-	    this.registerWindow.showSpinner();
-	}
 	new Request.JSON({
 	    url : '/index.njs?xhr=true&a=register&'+querystring,
 	    onFailure : function(error) {
-		RPG.Error.show(error);
-		if (this.registerWindow) {
-		    this.registerWindow.hideSpinner();
-		}
+		RPG.Dialog.error(error);
 	    }.bind(this),
 	    onSuccess : function(success) {
-		RPG.Success.show(success);
-		MUI.notification('Registration Successful. Check your Email.');
-		if (this.registerWindow) {
-		    this.registerWindow.hideSpinner();
-		}
+		RPG.Dialog.success(success);
 	    }.bind(this)
 	}).get();
-    },
-
-    /**
-     * Return a clickable span to show the registration window
-     */
-    getForgotLink : function() {
-	return new Element('span',{
-	    'class' : 'Pointer pageLink',
-	    html : 'Forgot Password',
-	    events : {
-		click : function(event) {
-		    this.showForgotWindow();
-		}.bind(this)
-	    }
-	});
-    },
-
-    /**
-     * Creates(if not created) and displays the forgot window
-     */
-    showForgotWindow : function() {
-	this.minimizeAllUserWindows();
-	this.forgotWindow = new MUI.Window({
-	    id : 'forgotWindow',
-	    title : 'Forgotten Password Resetter',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.forgotWindowDiv,
-	    collapsible : false,
-	    storeOnClose : true,
-	    resizable : false,
-	    maximizable : false,
-	    closable : true
-	});
-	if (!this.forgotWindowButton) {
-	    this.forgotWindowButton = RPG.elementFactory.buttons.actionButton({
-		'class' : 'WinFootRight',
-		html : '<span class="textMedium">Send Reset Email</span>',
-		events : {
-		    click : function(event) {
-			this.doWindowForgot();
-		    }.bind(this)
-		}
-	    });
-	    this.forgotWindowCancelButton = RPG.elementFactory.buttons.cancelButton({
-		'class' : 'WinFootLeft',
-		events : {
-		    click : function(event) {
-			this.forgotWindow.minimize();
-		    }.bind(this)
-		}
-	    });
-	    $('forgotWindow').adopt(this.forgotWindowButton,this.forgotWindowCancelButton);
-	}
-	$(this.forgotWindowEmailInput).focus();
     },
 
     /**
@@ -828,83 +474,16 @@ RPG.User = new Class({
      *
      */
     forgot : function(options) {
-	if (this.forgotWindow) {
-	    this.forgotWindow.showSpinner();
-	}
 	new Request.JSON({
 	    url : '/index.njs?xhr=true&a=forgot&'+Object.toQueryString(options),
 	    onFailure : function(error) {
-		if (this.forgotWindow) {
-		    this.forgotWindow.hideSpinner();
-		}
-		RPG.Error.show(error);
+		RPG.Dialog.error(error);
 	    }.bind(this),
 	    onSuccess : function(success) {
-		RPG.Success.show(success);
-		MUI.notification('Email sent to: ' + options.email);
-		if (this.forgotWindow) {
-		    this.forgotWindow.hideSpinner();
-		    this.minimizeAllUserWindows();
-		}
+		RPG.Dialog.success(success);
 	    }.bind(this)
 	}).get();
 
-    },
-
-
-    /**
-     * Return a clickable span to show the registration window
-     */
-    getVerifyLink : function() {
-	return new Element('span',{
-	    'class' : 'Pointer pageLink',
-	    html : 'Verify Account',
-	    events : {
-		click : function(event) {
-		    this.showVerifyWindow();
-		}.bind(this)
-	    }
-	});
-    },
-
-    /**
-     * Creates(if not created) and displays the login window
-     */
-    showVerifyWindow : function() {
-	this.minimizeAllUserWindows();
-	this.verifyWindow = new MUI.Window({
-	    id : 'verifyWindow',
-	    title : 'Verify your new Account',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.verifyWindowDiv,
-	    collapsible : false,
-	    storeOnClose : true,
-	    resizable : false,
-	    maximizable : false,
-	    closable : true
-	});
-	if (!this.verifyWindowButton) {
-	    this.verifyWindowButton = RPG.elementFactory.buttons.actionButton({
-		'class' : 'WinFootRight',
-		html : '<span class="textMedium">Verify my Account</span>',
-		events : {
-		    click : function(event) {
-			this.doWindowVerify();
-		    }.bind(this)
-		}
-	    });
-	    this.verifyWindowCancelButton = RPG.elementFactory.buttons.cancelButton({
-		'class' : 'WinFootLeft',
-		events : {
-		    click : function(event) {
-			this.verifyWindow.minimize();
-		    }.bind(this)
-		}
-	    });
-	    $('verifyWindow').adopt(this.verifyWindowButton,this.verifyWindowCancelButton);
-	}
-	$(this.verifyWindowKeyInput).focus();
     },
 
     /**
@@ -926,42 +505,16 @@ RPG.User = new Class({
      *
      */
     verify : function(options) {
-	if (this.verifyWindow) {
-	    this.verifyWindow.showSpinner();
-	}
 	new Request.JSON({
 	    url : '/index.njs?xhr=true&a=verify&'+Object.toQueryString(options),
 	    onFailure : function(error) {
-		if (this.verifyWindow) {
-		    this.verifyWindow.hideSpinner();
-		}
-		RPG.Error.show(error);
+		RPG.Dialog.error(error);
 	    }.bind(this),
 	    onSuccess : function(appOptions) {
 		this.setOptions(appOptions.user);
-		MUI.notification('Verification Successful<br>Welcome: '+appOptions.user.name);
-		if (this.verifyWindow) {
-		    this.verifyWindow.hideSpinner();
-		    this.minimizeAllUserWindows();
-		}
 		this.fireEvent('login',[appOptions]);
 	    }.bind(this)
 	}).get();
 
-    },
-
-    minimizeAllUserWindows : function() {
-	if (this.loginWindow) {
-	    this.loginWindow.minimize();
-	}
-	if (this.verifyWindow) {
-	    this.verifyWindow.minimize();
-	}
-	if (this.forgotWindow) {
-	    this.forgotWindow.minimize();
-	}
-	if (this.registerWindow) {
-	    this.registerWindow.minimize();
-	}
     }
 });

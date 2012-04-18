@@ -1,6 +1,0 @@
-/**
- *
- * RPG initialization:
- *
- */
-var RPG = {};

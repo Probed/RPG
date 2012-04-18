@@ -8,7 +8,6 @@ if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.trap) RPG.TileTypes.trap = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
-    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
@@ -205,71 +204,45 @@ RPG.Disarm = new (new Class({
      *
      */
     show : function(options,callbacks) {
-	if ($('disarmWindow')) {
-	    MUI.closeWindow($('disarmWindow'));
-	}
-
-	new MUI.Window({
-	    id : 'disarmWindow',
-	    title : 'This needs disarming...',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.contentDiv = new Element('div'),
-	    collapsible : false,
-	    storeOnClose : false,
+	this.trapkDialog = new Jx.Dialog.Confirm({
+	    id : 'trapkDialog',
+	    label : 'It\'s a trap...',
+	    question : this.contentDiv = new Element('div'),
+	    minimize : false,
+	    destroyOnClose : true,
 	    resizable : true,
 	    maximizable : false,
-	    minimizable : false,
-	    closable : true,
-	    height : 180,
-	    width : 350,
-	    onClose : function() {
-		callbacks.fail && callbacks.fail();
-	    },
-	    require : {
-		css : ['/client/Game/Puzzles/trap/'+options.contents.type+'.css'],
-		js : ['/client/Game/Puzzles/trap/'+options.contents.type+'.js'],
-		onloaded : function() {
-		    this.puzzle = new RPG.Puzzles.trap[options.contents.type](options,callbacks);
-		    this.contentDiv.adopt(this.puzzle.toElement());
-		}.bind(this)
-	    },
-	    onContentLoaded : function() {
-		$('disarmWindow').adopt(RPG.elementFactory.buttons.actionButton({
-		    'class' : 'WinFootRight',
-		    html : 'Attempt Disarm',
-		    events : {
-			click : function() {
-			    if (this.puzzle && this.puzzle.isSolved()) {
-				var ret = {};
-				//ret becomes like: { '["path","to","tile"]' : solution }
-				ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path)] = this.puzzle.solution;
-				callbacks.success({
-				    'disarm' : ret
-				});
-				callbacks.fail = null;//set to null so onClose does not call again
-				this.puzzle.toElement().destroy();
-				$('disarmWindow').retrieve('instance').close();
-
-			    } else {
-				MUI.notification('Attempt Failed. Try again.');
-			    }
-			}.bind(this)
-		    }
-		}));
-
-		$('disarmWindow').adopt(RPG.elementFactory.buttons.closeButton({
-		    'class' : 'WinFootLeft',
-		    events : {
-			click : function() {
-			    callbacks.fail();
-			    callbacks.fail = null;//set to null so onClose does not call again
-			    $('disarmWindow').retrieve('instance').close();
-			}
-		    }
-		}));
+	    height : 300,
+	    width : 360,
+	    onClose : function(dialog, value) {
+		if (value && this.puzzle && this.puzzle.isSolved()) {
+		    var ret = {};
+		    //ret becomes like: { '["path","to","tile"]' : solution }
+		    ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path)] = this.puzzle.solution;
+		    callbacks && callbacks.success && callbacks.success({
+			disarm : ret
+		    });
+		    this.puzzle.toElement().destroy();
+		} else {
+		    callbacks && callbacks.fail && callbacks.fail();
+		    this.puzzle.toElement().destroy();
+		}
 	    }.bind(this)
 	});
+
+	this.trapkDialog.open();
+
+	if (!Object.getFromPath(RPG,['Puzzles','trap',options.contents.type])) {
+	    this.trapkDialog.setBusy(true);
+	    require(['/client/Game/Puzzles/trap/'+options.contents.type+'.js'],function(){
+		this.trapkDialog.setBusy(false);
+		this.puzzle = new RPG.Puzzles.trap[options.contents.type](options,callbacks);
+		this.contentDiv.adopt(this.puzzle.toElement());
+	    }.bind(this));
+	} else {
+	    this.puzzle = new RPG.Puzzles.trap[options.contents.type](options,callbacks);
+	    this.contentDiv.adopt(this.puzzle.toElement());
+	}
     },
 
     //serverside solution checking

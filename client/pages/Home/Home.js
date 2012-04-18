@@ -21,7 +21,7 @@ RPG.pageHome = new Class({
     populate : function(page) {
 	this.element.empty();
 	if (page && page.pageContents) {
-	    RPG.elementFactory.page.createElementRecurse(this.element,page.pageContents);
+	    RPG.App.createElementRecurse(this.element,page.pageContents);
 	}
 	return this;
     }

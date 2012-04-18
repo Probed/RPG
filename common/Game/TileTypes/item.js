@@ -205,68 +205,115 @@ RPG.TileTypes.item.activate = function(options,callback) {
     }
 }
 
-//RPG.TileTypes.item.activateComplete = function(options,callback) {
-//    callback();
-//}
-
-//RPG.TileTypes.item.onBeforeLeave = function(options,callback) {
-//    callback();
-//}
-
-//RPG.TileTypes.item.onBeforeEnter = function(options,callback) {
-//    callback();
-//}
-
-//RPG.TileTypes.item.onLeave = function(options,callback) {
-//    callback();
-//}
-
-//RPG.TileTypes.item.onEnter = function(options,callback) {
-//    callback();
-//}
-
 RPG.TileTypes.item.inventorySwap = function(options,callback) {
 
-    //create a fakeUni because we are dealing with an 'inventory' type map thingy
-    var fakeUni = RPG.swapTiles({
-	universe : {
-	    maps : options.game.inventory
-	},
-	swap : options.swap
-    });
+    var updateUni = null;
+    var invChanges = {};
+    var tmpUni = null;
+    if (options.swap.fromMap == null) {
+	//from map is null. use the characters current loction:
+	options.swap.fromMap = options.game.character.location.mapName;
+	options.swap.fromPoint = options.game.character.location.point;
 
-    if (!fakeUni || fakeUni.error) {
+	//create a temp universe with both the characters map and the invenory map. this will be used as the 'source' universe
+	tmpUni = RPG.getUpdateUniverse({
+	    universe : options.game.universe,
+	    mapName : options.swap.fromMap
+	});
+	tmpUni.maps[options.swap.fromMap] = options.game.universe.maps[options.swap.fromMap];
+	tmpUni.maps[options.swap.toMap] = options.game.inventory[options.swap.toMap];
+
+	//make the swap and record the changes in updateUni
+	updateUni = RPG.swapTiles({
+	    universe : tmpUni,
+	    swap : options.swap
+	});
+
+	//remove the 'inventory' map from our actual universe. the inventory is saved seperatly
+	invChanges[options.swap.toMap] = Object.erase(updateUni.maps,options.swap.toMap);
+	//remove the point so it gets sent to the server without these points
+	options.swap.fromMap = null;
+	options.swap.fromPoint = null;
+
+    } else if (options.swap.toMap == null) {
+	//from map is null. use the characters current loction:
+	options.swap.toMap = options.game.character.location.mapName;
+	options.swap.toPoint = options.game.character.location.point;
+
+	//create a temp universe with both the characters map and the invenory map. this will be used as the 'source' universe
+	tmpUni = RPG.getUpdateUniverse({
+	    universe : options.game.universe,
+	    mapName : options.swap.toMap
+	});
+	tmpUni.maps[options.swap.toMap] = options.game.universe.maps[options.swap.toMap];
+	tmpUni.maps[options.swap.fromMap] = options.game.inventory[options.swap.fromMap];
+
+	//make the swap and record the changes in updateUni
+	updateUni = RPG.swapTiles({
+	    universe : tmpUni,
+	    swap : options.swap
+	});
+
+	//remove the 'inventory' map from our actual universe. the inventory is saved seperatly
+	invChanges[options.swap.fromMap] = Object.erase(updateUni.maps,options.swap.fromMap);
+
+	//remove the point so it gets sent to the server without these points
+	options.swap.toMap = null;
+	options.swap.toPoint = null;
+
+    } else {
+	//when both maps are named we are dealing with 'inventory' maps
+	updateUni = RPG.swapTiles({
+	    universe : {
+		maps : options.game.inventory
+	    },
+	    swap : options.swap
+	});
+
+	invChanges = updateUni.maps;
+    }
+
+    if (!updateUni || updateUni.error) {
 	callback({
-	    error : (fakeUni && fakeUni.error) || 'Inventory Swap Failed. Nothing Moved.'
+	    error : (updateUni && updateUni.error) || 'Item Swap Failed. Nothing Moved.'
 	});
 	return;
     }
 
+
     if (typeof exports != 'undefined') {
 	//server
-	RPG.Inventory.storeInventory({
+	RPG.Universe.store({
 	    user : options.game.user,
-	    character : options.game.character,
-	    inventory : fakeUni.maps
-	}, function(inventory) {
-	    if (inventory && inventory.error) {
-		callback(inventory);
+	    universe : (tmpUni && updateUni) || null
+	}, function(universe){
+	    if (tmpUni && universe && universe.error) {
+		callback(universe);
 		return;
 	    }
-
-	    //update the game cache
-	    Object.merge(options.game.inventory,inventory);
-
-	    callback({
-		inventory : true //don't need to return anything except success because the client will have generated exaclty the same results (hopefully)'
+	    RPG.Inventory.storeInventory({
+		user : options.game.user,
+		character : options.game.character,
+		inventory : invChanges
+	    }, function(inventory) {
+		if (inventory && inventory.error) {
+		    callback(inventory);
+		    return;
+		}
+		//update the game cache
+		Object.merge(options.game.inventory,inventory);
+		callback({
+		    inventory : true //don't need to return anything except success because the client will have generated exaclty the same results (hopefully)'
+		});
 	    });
-	});
+	})
 
     } else {
+	//client
 	new Request.JSON({
 	    url : '/index.njs?xhr=true&a=Play&m=InventorySwap&characterID='+options.game.character.database.characterID,
 	    onFailure : function(results) {
-		RPG.Error.notify(results);
+		RPG.Dialog.notify(results);
 		if (results.responseText) {
 		    var resp = JSON.decode(results.responseText,true);
 		    if (resp) {
@@ -280,10 +327,11 @@ RPG.TileTypes.item.inventorySwap = function(options,callback) {
 	    },
 	    onSuccess : function(results) {
 		if (Object.getFromPath(results,'events.error')) {
-		    RPG.Error.show(results.events.error);
+		    RPG.Dialog.error(results.events.error);
 		}
 		if (Object.getFromPath(results,'events.inventory')) {
-		    Object.merge(options.game.inventory,fakeUni.maps);
+		    tmpUni && Object.merge(options.game.universe,tmpUni);
+		    Object.merge(options.game.inventory,invChanges);
 		}
 		options.game.events = results && results.events;
 		Object.merge(options.game,results);
@@ -309,140 +357,118 @@ RPG.ItemList = new (new Class({
      *
      */
     show : function(options,callbacks) {
-	if ($('itemWindow')) {
-	    MUI.closeWindow($('itemWindow'));
-	}
 	var itemCount = 0;
-	new MUI.Window({
-	    id : 'itemWindow',
-	    title : 'What do you want to take?',
-	    type : 'window',
-	    loadMethod : 'html',
-	    collapsible : false,
-	    storeOnClose : false,
-	    resizable : true,
-	    maximizable : false,
-	    minimizable : false,
-	    closable : true,
-	    height : 180,
-	    width : 350,
-	    onClose : function() {
-		callbacks.fail && callbacks.fail();
-	    },
-	    onContentLoaded : function() {
-		$('itemWindow').adopt(RPG.elementFactory.buttons.actionButton({
-		    'class' : 'WinFootRight',
-		    html : 'Take All',
-		    events : {
-			click : function() {
-			    callbacks.success({
-				item : 'all'
-			    });
-			    callbacks.fail = null;//set to null so onClose does not call again
-			    $('itemWindow').retrieve('instance').close();
-			}.bind(this)
-		    }
-		}));
-
-		$('itemWindow').adopt(RPG.elementFactory.buttons.closeButton({
-		    'class' : 'WinFootLeft',
-		    events : {
-			click : function() {
-			    callbacks.fail();
-			    callbacks.fail = null;//set to null so onClose does not call again
-			    $('itemWindow').retrieve('instance').close();
-			}
-		    }
-		}));
-	    }.bind(this),
-	    content : new HtmlTable({
-		zebra : false,
-		selectable : false,
-		useKeyboard : false,
-		properties : {
-		    cellpadding : 0,
-		    border : 0,
-		    align : 'center',
-		    styles : {
-			'border-spacing' : '8px',
-			'border-collapse' : 'separate'
-		    }
-		},
-		rows : (function(){
-		    var rows = [];
-		    var row = null;
-		    var r = 0;
-		    var c = 0;
-
-		    var map = options.game.universe.maps[options.game.character.location.mapName];
-		    var tmp = {
-			tiles : {},
-			cache : {}
-		    };
-
-		    //go through each of the tiles at the charcters current location
-		    options.tiles.each(function(tilePath){
-			var tile = Object.getFromPath(map.cache,tilePath);
-
-			//check to see if the tile is an item
-			if (tile && tile.options && tile.options.item) {
-			    //push the item to our tmp map for display
-			    RPG.pushTile(tmp.tiles,[r,c],RPG.createTile(RPG.trimPathOfNameAndFolder(tilePath),tmp.cache,tile.options));
-			    itemCount++;
-			    r++;
-			    if ((r % 3) == 0) {
-				r = 0;
-				c++;
-			    }
-			    if ((c % 3) == 0) {
-				c = 0;
-			    }
-			}
-		    });
-
-		    for (r=0;r<3;r++) {
-			row = [];
-			for (c=0;c<3;c++) {
-
-			    var styles = RPG.getMapTileStyles({
-				map : tmp,
-				row : r,
-				col : c,
-				rowOffset : 0,
-				colOffset : 0,
-				zoom : 32
-			    });
-			    row.push({
-				properties : {
-				    'class' : 'textTiny',
-				    styles : Object.merge(styles,{
-					border : '1px solid white',
-					'background-size' : '100% 100%',
-					'background-position' : '0% 0%'
-				    })
-				},
-				content : '&nbsp;'
-			    });
-			}
-			rows.push(row);
-		    }
-		    return rows;
-		})()
-	    }).toElement()
+	options.tiles.each(function(tilePath){
+	    var tile = Object.getFromPath(options.game.universe.maps[options.game.character.location.mapName].cache,tilePath);
+	    if (tile && tile.options && tile.options.item) {
+		itemCount++;
+	    }
 	});
 
-	if (itemCount == 1) {
+	if (itemCount == 1) {//@todo 11 is test only so we can see dialog in action
 	    //automatically take all
 	    callbacks.success({
 		item : 'all'
 	    });
-	    callbacks.fail = null;//set to null so onClose does not call again
-	    $('itemWindow').retrieve('instance').close();
 	} else if (itemCount == 0) {
 
 	    callbacks.fail();
-	    callbacks.fail = null;//set to null so onClose does not call again
-	    $('itemWindow').retrieve('instance').close();
+	} else {
+	    if (this.itemDialog && this.itemDialog.close) {
+		this.itemDialog.close();
+	    }
+
+	    this.itemDialog = new Jx.Dialog({
+		id : 'itemDialog',
+		label : 'Select any items you want',
+		minimizable : false,
+		destroyOnClose : true,
+		resize : true,
+		maximizable : false,
+		modal : false,
+		height : 192,
+		width : 235,
+		onClose : function(dialog, value) {
+		    callbacks.success({
+			item : 'all'
+		    });
+		}.bind(this),
+		content : new HtmlTable({
+		    zebra : false,
+		    selectable : false,
+		    useKeyboard : false,
+		    properties : {
+			cellpadding : 0,
+			border : 0,
+			align : 'center',
+			styles : {
+			    'background-color' : '#3e3e3e',
+			    'border-collapse' : 'separate'
+			}
+		    },
+		    rows : (function(){
+			var rows = [];
+			var row = null;
+			var r = 0;
+			var c = 0;
+
+			var map = options.game.universe.maps[options.game.character.location.mapName];
+			var tmp = {
+			    tiles : {},
+			    cache : {}
+			};
+			//go through each of the tiles at the charcters current location
+			options.tiles.each(function(tilePath){
+			    var tile = Object.getFromPath(map.cache,tilePath);
+			    //check to see if the tile is an item
+			    if (tile && tile.options && tile.options.item) {
+				//push the item to our tmp map for display
+				RPG.pushTile(tmp.tiles,[r,c],RPG.createTile(RPG.trimPathOfNameAndFolder(tilePath),tmp.cache,tile.options));
+				r++;
+				if ((r % 3) == 0) {
+				    r = 0;
+				    c++;
+				}
+				if ((c % 3) == 0) {
+				    c = 0;
+				}
+			    }
+			});
+
+			for (r=0;r<3;r++) {
+			    row = [];
+			    for (c=0;c<3;c++) {
+
+				var styles = RPG.getMapTileStyles({
+				    map : tmp,
+				    row : r,
+				    col : c,
+				    rowOffset : 0,
+				    colOffset : 0,
+				    zoom : 32
+				});
+				row.push({
+				    properties : {
+					'class' : 'textTiny CharacterInventory'
+				    },
+				    content : (new RPG.Item(options.game,tmp.cache,tmp.tiles[r] && tmp.tiles[r][c] && tmp.tiles[r][c][0],new Element('div',{
+					html : '&nbsp;',
+					styles : Object.merge(styles,{
+					    'background-size' : '100% 100%',
+					    'background-position' : '0% 0%',
+					    //'background-color' : '#3e3e3e',
+					    'display' : 'inline-block'
+					})
+				    }))).toElement()
+				});
+			    }
+			    rows.push(row);
+			}
+			return rows;
+		    })()
+		}).toElement()
+	    });
+	    this.itemDialog.open();
 	}
     }
 

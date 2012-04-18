@@ -1,963 +1,694 @@
-RPG.rpgApplication = new Class({
-    Implements:[Options,Events],//mootools events and options
-    pageHandlers : [],
-    options : {
+/**
+ * Initialize our global namespace object.
+ */
+var RPG = {};
 
-    },
-    initialize : function(options) {
-	this.setOptions(options);
+define([
+    "./jx/jxlib.standalone",
+    "./mootools/MooHashChange",
+    "../common/string.utf8",
+    "../common/string.md5",
+    "../common/appInfo",
+    "./User/User",
+    "./Character/ListCharacters",
+    "../common/pages",
+    ], function() {
 
-	/**
-	 * Initialize the user
-	 */
-	RPG.AppUser = new RPG.User(this.options.user);
+	RPG.rpgApplication = new Class({
+	    Implements:[Options,Events],//mootools events and options
+	    pageHandlers : [],
+	    options : {
 
-	/**
-	 * Initialize primary Application Tips
-	 */
-	this.tips = new Tips([],{
-	    showDelay : 250,
-	    fixed : true,
-	    offset : {
-		x : 0,
-		y : 30
-	    }
-	});
-	this.menuTips = new Tips([],{
-	    showDelay : 100,
-	    fixed : true,
-	    offset : {
-		x : 200,
-		y : -10
-	    }
-	});
-
-	/**
-	 * Create the DOM elements that will comprise the skeleton of the MochaUI
-	 * Currently :
-	 * Desktop
-	 *	- Desktop Header
-	 *	    - desktopTitlebarWrapper
-	 *		- desktopTitlebar
-	 *	    - desktopNavbar
-	 *	- Dock Wrapper
-	 *	    - Dock
-	 *		- Dock Placement
-	 *		- Dock AutoHide
-	 *		- Dock Sort
-	 *		    - Dock Clear
-	 *	- Page Wrapper
-	 *	- Desktop Footer Wrapper
-	 *	    - Desktop Footer
-	 */
-	this.desktop = new Element('div',{
-	    id : 'desktop'
-	}).adopt(
-	    this.desktopHeader = new Element('div',{
-		id : 'desktopHeader'
-	    }),
-	    this.dockWrapper = new Element('div',{
-		id : 'dockWrapper'
-	    }),
-	    this.pageWrapper = new Element('div',{
-		id : 'pageWrapper'
-	    })
-	    //	    ,
-	    //	    this.desktopFooterWrapper = new Element('div',{
-	    //		id : 'desktopFooterWrapper'
-	    //	    })
-	    );
-
-	this.desktopHeader.adopt(
-	    (this.desktopTitlebarWrapper = new Element('div',{
-		id : 'desktopTitlebarWrapper'
-	    })).adopt(
-		this.desktopTitlebar = new Element('div',{
-		    id : 'desktopTitlebar'
-		})
-		)
-	    );
-	this.desktopTitlebar.adopt(
-	    (this.topNav = new Element('div',{
-		id : 'topNav'
-	    })).adopt(
-		this.getTopNav()
-		)
-	    );
-
-	this.dockWrapper.adopt(
-	    (this.dock = new Element('div',{
-		id : 'dock'
-	    })).adopt(
-		this.dockPlacement = new Element('div',{
-		    id : 'dockPlacement'
-		}),
-		this.dockAutoHide = new Element('div',{
-		    id : 'dockAutoHide'
-		}),
-		(this.dockSort = new Element('div',{
-		    id : 'dockSort'
-		})).adopt(
-		    this.dockClear = new Element('div',{
-			id : 'dockClear'
-		    })
-		    )
-		)
-	    );
-
-	//	this.desktopFooterWrapper.adopt(
-	//	    this.desktopFooter = new Element('div',{
-	//		id : 'desktopFooter'
-	//	    })
-	//	    );
-
-	/**
-	 * Put the Application Dom Element on the DOM Tree
-	 */
-	$(document.body).adopt(this.desktop);
-
-	/**
-	 * Now that the desktop is on the DOM
-	 * we can initialize the Mocha User Interface
-	 */
-	MUI.myChain = new Chain();
-	MUI.myChain.chain(
-	    function(){
-		MUI.Desktop.initialize();
 	    },
-	    function(){
-		MUI.Dock.initialize();
-	    },
-	    function(){
-		this.initializeColumns();
-	    }.bind(this),
-	    function(){
-		this.initializeWindows();
-	    }.bind(this)
-	    ).callChain();
+	    initialize : function(options) {
+		this.setOptions(options);
+		$$('.siteLoad').hide();
+		RPG.App = this;
 
-	/**
-	 * Start Listening for url Hash changes
-	 */
-	window.addEvent('hashchange',function(event) {
-	    if (window.location.hash) {
-		this.browseTo(window.location.hash);
-	    }
-	}.bind(this));
-	if (window.location.hash) {
-	    this.browseTo(window.location.hash);
-	}
+		Jx.Stack.base = 10;
+		Jx.Stack.increment = 5;
 
-	/**
-	 * Start Listening for User Events
-	 */
-	RPG.AppUser.addEvent('login',this.onLogin = function(appOptions) {
-	    this.setOptions(appOptions);
-	    this.topNavUserName.set('html','<span class="User">'+RPG.AppUser.options.name+'</span>');
-	    this.updateAccountPanel();
-	    [this.topNavSign].each(function(elm){
-		elm.hide();
-	    });
-	    this.topNavLogout.setStyle('display','inline');
-	    if (self.location.hash == '#Play' || self.location.hash == 'MapEditor') {
-		this.browseTo(self.location.hash);
-	    }
-	}.bind(this));
-	RPG.AppUser.addEvent('logout',this.onLogout = function(appOptions) {
-	    this.setOptions(appOptions);
-	    this.topNavUserName.set('html','<span class="User">'+RPG.AppUser.options.name+'</span>');
-	    this.updateAccountPanel();
-	    [this.topNavSign].each(function(elm){
-		elm.setStyle('display','inline');
-	    });
-	    this.topNavLogout.hide();
-	    if (self.location.hash == '#Play' || self.location.hash == 'MapEditor') {
-		this.browseTo('#Home');
-	    }
-	}.bind(this));
-
-	if (RPG.AppUser.options.isLoggedIn) {
-	    this.onLogin(this.options);
-	} else {
-	    this.onLogout(this.options);
-	}
-	if (!self.location.hash) {
-	    this.browseTo('#Play');
-	}
-    },
-    toElement : function() {
-	return this.desktop;
-    },
-    initializeColumns : function() {
-
-	/**
-	 *Left Column (Holds Menu/Donate/Contact)
-	 */
-	new MUI.Column({
-	    id : 'leftColumn',
-	    placement : 'left',
-	    width : 175,
-	    resizeLimit : [165,300],
-	    sortable : false,
-	    collapsible : false
-	});
-
-	/**
-	 * Middle Column (holds Main Content)
-	 */
-	new MUI.Column({
-	    id : 'mainColumn',
-	    placement : 'main',
-	    sortable : false
-	});
-
-	/*
-	 * Right Column (holds Account/Help)
-	 */
-	new MUI.Column({
-	    id : 'rightColumn',
-	    placement : 'right',
-	    width : 156,
-	    resizeLimit : [50,300],
-	    sortable : false,
-	    isCollapsed : false
-	});
-
-
-	/*
-	 * Main Menu Panel. uses this.getMainMenu() to retrieve the element populated into this panel.
-	 */
-	this.pnlMainMenu = new MUI.Panel({
-	    id: 'pnlMainMenu',
-	    column: 'leftColumn',
-	    collapsible : true,
-	    header : true,
-	    loadMethod : 'html',
-	    require: {
-		css: [MUI.path.plugins + 'tree/css/style.css'],
-		js: [MUI.path.plugins + 'tree/scripts/tree.js'],
-		onloaded: function(){
-		    if (buildTree) buildTree('treeMainMenu');
-		}
-	    },
-	    title: new Element('div',{
-		'class' : 'Pointer',
-		html : 'Main Menu',
-		events : {
-		    click : function(event) {
-			this.pnlMainMenu.collapseToggleEl.collapseClick(event);
-			event.stopPropagation();
-		    }.bind(this)
-		}
-	    }),
-	    headerToolbox : true,
-	    headerToolboxContent : new Element('div',{
-		'class' : 'toolbox divider'
-	    }).adopt(
-		this.mainMenuRefresh = RPG.elementFactory.headerToolBox.refresh({
-		    events : {
-			click : function() {
-			    if (this.mainMenuRefresh.hasClass('AsyncWait') || this.mainMenuRefresh.hasClass('Yes')) {
-				return;
-			    }
-			    this.mainMenuRefresh.swapClass('Refresh','AsyncWait')
-			    this.reloadMainMenu(function(){
-				this.mainMenuRefresh.swapClass('AsyncWait','Yes');
-				setTimeout(function(){
-				    this.mainMenuRefresh.swapClass('Yes','Refresh');
-				}.bind(this),1500);
-			    }.bind(this));
-			}.bind(this)
-		    }
-		})
-		),
-	    content : this.getMainMenu(RPG.mainMenu, RPG.pages)
-	});
-
-	/**
-	 * Account Panel (Login/Logout/Account Stuff)
-	 */
-	this.pnlAccount = new MUI.Panel({
-	    id: 'pnlAccount',
-	    title: new Element('div',{
-		'class' : 'Pointer',
-		html : 'Account',
-		events : {
-		    click : function(event) {
-			this.pnlAccount.collapseToggleEl.collapseClick(event);
-			event.stopPropagation();
-		    }.bind(this)
-		}
-	    }),
-	    headerToolbox : true,
-	    headerToolboxContent : new Element('div').adopt(
-		new Element('div',{
-		    'class' : 'toolbox divider'
-		}).adopt(
-		    RPG.elementFactory.headerToolBox.help({
-			events : {
-			    click : function() {
-
-			    }.bind(this)
-			}
-		    })
-		    ),
-		new Element('div',{
-		    'class' : 'toolbox divider'
-		}).adopt(
-		    RPG.elementFactory.headerToolBox.refresh({
-			events : {
-			    click : function() {
-
-			    }.bind(this)
-			}
-		    })
-		    )
-		),
-	    column: 'rightColumn',
-	    isCollapsed : false,
-	    content : this.getAccountContent()
-	});
-
-	/**
-	 * Donate Panel. holds links to donate.
-	 */
-	this.pnlDonate = new MUI.Panel({
-	    id: 'pnlDonate',
-	    title: new Element('div',{
-		'class' : 'Pointer',
-		html : 'Donate',
-		events : {
-		    click : function(event) {
-			this.pnlDonate.collapseToggleEl.collapseClick(event);
-			event.stopPropagation();
-		    }.bind(this)
-		}
-	    }),
-	    headerToolbox : true,
-	    headerToolboxContent : new Element('div',{
-		'class' : 'toolbox divider'
-	    }).adopt(
-		RPG.elementFactory.headerToolBox.help({
-		    events : {
-			click : function() {
-			    this.reloadDonate();
-			}.bind(this)
-		    }
-		})
-		),
-	    loadMethod : 'html',
-	    content : this.getDonateContent().toElement(),
-	    column: 'leftColumn',
-	    height : 90
-	});
-
-	/**
-	 * Contact Panel
-	 */
-	this.pnlContact = new MUI.Panel({
-	    id: 'pnlContact',
-	    title: new Element('div',{
-		'class' : 'Pointer',
-		html : 'Contact',
-		events : {
-		    click : function(event) {
-			this.pnlContact.collapseToggleEl.collapseClick(event);
-			event.stopPropagation();
-		    }.bind(this)
-		}
-	    }),
-	    loadMethod : 'html',
-	    headerToolbox : true,
-	    headerToolboxContent : new Element('div',{
-		'class' : 'toolbox divider'
-	    }).adopt(
-		RPG.elementFactory.headerToolBox.help({
-		    events : {
-			click : function() {
-			    this.reloadContact();
-			}.bind(this)
-		    }
-		})
-		),
-	    content : this.getContactContent().toElement(),
-	    column: 'rightColumn',
-	    isCollapsed : false,
-	    height : 150
-	});
-
-	/*
-	 * Main Content Panel
-	 */
-	new MUI.Panel({
-	    id: 'pnlMainContent',
-	    title: this.pnlMainContentTitle = new Element('div',{
-		id : 'pnlMainContentTitle',
-		html : '&nbsp;'
-	    }),
-	    column: 'mainColumn',
-	    collapsible : false,
-	    header : true,
-	    headerToolbox : true,
-	    headerToolboxContent : new Element('div').adopt(
-		new Element('div',{
-		    'class' : 'toolbox divider'
-		}).adopt(
-		    RPG.elementFactory.headerToolBox.help({
-			events : {
-			    click : function() {
-
-			    }.bind(this)
-			}
-		    })
-		    ),
-		new Element('div',{
-		    'class' : 'toolbox divider'
-		}).adopt(
-		    RPG.elementFactory.headerToolBox.print({
-			events : {
-			    click : function() {
-
-			    }.bind(this)
-			}
-		    })
-		    )
-		)
-	});
-
-	//	this.pnlConsole = new MUI.Panel({
-	//	    id: 'pnlMainFooter',
-	//	    title: new Element('div',{
-	//		'class' : 'Pointer',
-	//		html : 'Console',
-	//		events : {
-	//		    click : function(event) {
-	//			this.pnlConsole.collapseToggleEl.collapseClick(event);
-	//			event.stopPropagation();
-	//		    }.bind(this)
-	//		}
-	//	    }),
-	//	    column: 'mainColumn',
-	//	    collapsible : true,
-	//	    isCollapsed : true
-	//	});
-
-	/*
-	 * Help Panel
-	 */
-	this.pnlHelp = new MUI.Panel({
-	    id: 'pnlHelp',
-	    title: new Element('div',{
-		'class' : 'Pointer',
-		html : 'Help',
-		events : {
-		    click : function(event) {
-			this.pnlHelp.collapseToggleEl.collapseClick(event);
-			event.stopPropagation();
-		    }.bind(this)
-		}
-	    }),
-	    headerToolbox : true,
-	    headerToolboxContent : new Element('div').adopt(
-		new Element('div',{
-		    'class' : 'toolbox divider'
-		}).adopt(
-		    RPG.elementFactory.headerToolBox.print({
-			events : {
-			    click : function() {
-
-			    }.bind(this)
-			}
-		    })
-		    ),
-		new Element('div',{
-		    'class' : 'toolbox divider'
-		}).adopt(
-		    RPG.elementFactory.headerToolBox.refresh({
-			events : {
-			    click : function() {
-
-			    }.bind(this)
-			}
-		    })
-		    )
-		),
-	    column: 'rightColumn'
-	});
-
-
-	MUI.myChain.callChain();
-    },
-    initializeWindows : function() {
-
-	MUI.myChain.callChain();
-    },
-    reloadTopNav : function() {
-	if (this.topNav) {
-	    this.topNav.empty().adopt(this.getTopNav());
-	}
-    },
-    getTopNav : function() {
-	this.topNavUl = new Element('ul',{
-	    'class' : 'menu-right',
-	    id : 'topNavUI'
-	}).adopt(
-
-	    /*
-	 * Welcome
-	 */
-	    (new Element('li')).adopt(
-		new Element('span',{
-		    html : 'Welcome: '
-		}),
-		this.topNavUserName = RPG.elementFactory.buttons.actionButton({
-		    html : '<span class="User">'+RPG.AppUser.options.name+'</span>',
-		    events : {
-			click : function(event) {
-			//RPG.AppUser.showUserDetails();
-			}.bind(this)
-		    }
-		})
-		),
-	    /**
-	 * Sign In / Register
-	 */
-	    (this.topNavSign = new Element('li',{
-		styles : {
-		    display : (!RPG.AppUser.isLoggedIn?'inline-block':'none')
-		}
-	    })).adopt(
-		new Element('span',{
-		    styles : {
-			display : 'inline-block'
-		    }
-		}).adopt(
-		    RPG.AppUser.getLoginLink(),
-		    new Element('span',{
-			html : ' / '
-		    }),
-		    RPG.AppUser.getRegistrationLink(),
-		    new Element('span',{
-			html : ' / '
-		    }),
-		    RPG.AppUser.getVerifyLink()
-		    )
-		),
-	    /**
-	 *  Logout
-	 */
-	    (this.topNavLogout = new Element('li',{
-		styles : {
-		    display : (RPG.AppUser.isLoggedIn?'inline-block':'none')
-		}
-	    })).adopt(
-		RPG.AppUser.getLogoutLink()
-		)
-	    );
-	return this.topNavUl;
-    },
-    reloadDonateContent : function() {
-	if (this.donateTable) {
-	    this.donateTable.dispose();
-	}
-	MUI.updateContent({
-	    element : 'pnlDonate',
-	    loadMethod : 'html',
-	    content : this.getDonateContent()
-	});
-    },
-    getDonateContent : function() {
-	this.donateTable = new HtmlTable({
-	    zebra : true,
-	    selectable : false,
-	    useKeybaord : false,
-	    properties : {
-		cellpadding : 2,
-		styles : {
-		    width : '100%'
-		}
-	    },
-	    rows  : [
-	    [
-	    {
-		properties : {
-		    'class' : 'textCenter'
-		},
-		content : new Element('div', {
-		    'class' : 'Pointer BitcoinDonate_rev',
-		    html : '&nbsp;',
-		    'title' : 'Donate via Bitcoin using the address below.',
-		    events : {
-			click : function(event) {
-			//@Todo open bitcoin donate form
-			}
-		    }
-
-		})
-	    },
-	    {
-		properties : {
-		    'class' : 'textCenter'
-		},
-		content : new Element('div', {
-		    'class' : 'Pointer PaypalDonate',
-		    html : '&nbsp;',
-		    title : 'Donate via Paypal!',
-		    events : {
-			click : function(event) {
-			//@Todo open paypal donate form
-			}
-		    }
-
-		})
-	    }
-	    ],
-	    [
-	    {
-		properties : {
-		    'class' : 'textMedium textCenter'
-		},
-		content : RPG.elementFactory.buttons.actionButton({
-		    'html' : 'Copy',
-		    'tipTitle' : 'Copy Address',
-		    'tipText' : 'Copies the bitcoin address to you clipboard',
-		    tips : this.menuTips,
-		    events : {
-			click : function(event) {
-
-			}.bind(this)
-		    }
-		})
-	    },
-	    {
-		properties : {
-		    'class' : 'textMedium textCenter'
-		},
-		content : 'Bitcoin Address:'
-	    }
-	    ],
-	    [
-	    {
-		properties : {
-		    'class' : 'textTiny textCenter',
-		    colspan : 2
-		},
-		content : RPG.appInfo.bitcoinDonate
-	    }
-	    ]
-	    ]
-	});
-	return this.donateTable;
-    },
-    reloadContactContent : function() {
-	if (this.contactTable) {
-	    this.contactTable.dispose();
-	}
-	MUI.updateContent({
-	    element : this.pnlContact,
-	    loadMethod : 'html',
-	    content : this.getContactContent()
-	});
-    },
-    getContactContent : function() {
-	this.contactTable = new HtmlTable({
-	    zebra : true,
-	    selectable : false,
-	    useKeybaord : false,
-	    properties : {
-		cellpadding : 1,
-		styles : {
-		    width : '100%'
-		}
-	    },
-	    rows  : [
-	    [
-	    {
-		properties : {
-		    'class' : '',
-		    colspan : 2
-		},
-		content : 'Admin Email'
-	    }
-	    ],
-	    [
-	    {
-		properties : {
-		    'class' : '',
-		    colspan : 2
-		},
-		content : new Element('a', {
-		    html : RPG.appInfo.adminEmail,
-		    href : 'mailto:'+RPG.appInfo.adminEmail
-		})
-	    }
-	    ],
-	    [
-	    {
-		properties : {
-		    'class' : ''
-		},
-		content : 'Feedback'
-	    },
-	    {
-		properties : {
-		    'class' : ''
-		},
-		content : new Element('a', {
-		    html : 'Submit Now',
-		    href : 'javascript:void(0);',
-		    events : {
-			click : function(event) {
-			//@Todo open feedback form
-			}
-		    }
-		})
-	    }
-	    ],
-	    [
-	    {
-		properties : {
-		    'class' : ''
-		},
-		content : 'Petition'
-	    },
-	    {
-		properties : {
-		    'class' : ''
-		},
-		content : new Element('a', {
-		    html : 'Submit Now',
-		    href : 'javascript:void(0);',
-		    events : {
-			click : function(event) {
-			//@Todo open Pitition form
-			}
-		    }
-		})
-	    }
-	    ],
-	    [
-	    {
-		properties : {
-		    'class' : ''
-		},
-		content : 'Aliens'
-	    },
-	    {
-		properties : {
-		    'class' : ''
-		},
-		content : new Element('a', {
-		    html : 'Contact Now',
-		    href : 'javascript:void(0);',
-		    events : {
-			click : function(event) {
-			//@Todo open alient contact form
-			}
-		    }
-		})
-	    }
-	    ]
-	    ]
-	});
-	return this.contactTable;
-    },
-
-    updateAccountPanel : function() {
-	MUI.updateContent({
-	    element : $('pnlAccount'),
-	    loadMethod : 'html',
-	    content : this.getAccountContent()
-	});
-    },
-    getAccountContent : function() {
-	if (RPG.AppUser.options.isLoggedIn){
-	    var tbl = new HtmlTable({
-		zebra : true,
-		selectable : false,
-		useKeybaord : false,
-		properties :{
-		    cellpadding : 2
-		}
-	    });
-	    ['userID','name','email','created','updated','lastLogin'].each(function(col){
-		tbl.push([
-		{
-		    properties : {
-			'class' : 'textMedium textLeft'
-		    },
-		    content : col
-		},
-		{
-		    properties : {
-			'class' : 'textMedium textLeft'
-		    },
-		    content : RPG.AppUser.options[col] || '&nbsp;'
-		}
-		]);
-	    }.bind(this));
-	    tbl.push([
-	    {
-		properties : {
-		    'class' : 'textMedium textLeft'
-		},
-		content : 'My Maps'
-	    },
-	    {
-		properties : {
-		    'class' : 'textMedium textLeft'
-		},
-		content : RPG.elementFactory.menu.pageLink({
-		    'display' : 'Map Editor',
-		    'hashTag' : '#MapEditor'
-		})
-
-	    }
-	    ]);
-	    return tbl.toElement();
-	} else {
-	    return RPG.AppUser.smallLoginDiv;
-	}
-    },
-
-    reloadMainMenu : function(onSuccess) {
-	new Request.JSON({
-	    url : '/index.njs?xhr=true&a=reloadMainMenu',
-	    onFailure : function(error) {
-		RPG.Error.show(error);
-	    }.bind(this),
-	    onSuccess : function(newMenu) {
-		var oldTree = this.menuTreeEl;
-		var newTree = this.getMainMenu(newMenu.mainMenu,newMenu.pages);
-		if (newTree && oldTree) {
-		    newTree.replaces(oldTree);
-		    oldTree.dispose();
-		    if (buildTree) {
-			buildTree('treeMainMenu');
-		    }
-		    //overwrite the global variabe pages with this newly downloaded version
-		    RPG.pages = newMenu.pages;
-		    RPG.mainMenu = newMenu.mainMenu;
-		}
-		if (typeOf(onSuccess) == 'function') {
-		    onSuccess();
-		}
-		this.pageLinkCurrent(window.location.hash);
-	    }.bind(this)
-	}).get();
-    },
-    getMainMenu : function(mainMenu, pages) {
-	pages.each(function(page) {
-	    if (page && page.treeParent && mainMenu[page.treeParent] && mainMenu[page.treeParent].items) {
-		if (page.pageLink) {
-		    page.pageLink.dispose();
-		}
-		mainMenu[page.treeParent].items.push({
-		    display : page.pageLink = RPG.elementFactory.menu.pageLink(Object.merge(page,{
-			tips:this.menuTips
-		    }))
-		});
-	    }
-	}.bind(this));
-	return this.buildTreeElements([mainMenu['Main'],mainMenu['Players'],mainMenu['Forum'],mainMenu['Patches']],'treeMainMenu');
-    },
-
-    buildTreeElements : function(tree,id) {
-	this.menuTreeEl = new Element('ul', {
-	    id : id,
-	    'class' : 'tree'
-	});
-	tree.each(function(topLevel) {
-	    if (!topLevel) {
-		return;
-	    }
-	    var subUl = new Element('ul');
-	    topLevel.items.each(function(subLevel) {
-		subUl.adopt(
-		    new Element('li',{
-			}).adopt(
-			subLevel.display
-			)
-		    );
-	    });
-	    this.menuTreeEl.adopt(new Element('li',{
-		'class' : topLevel['class']
-	    }).adopt(
-		new Element('span',{
-		    html : topLevel.display
-		}),
-		subUl
-		)
-	    );
-	}.bind(this));
-
-	return this.menuTreeEl;
-    },
-    browseTo : function(url) {
-	new Request.JSON({
-	    url : '/index.njs?xhr=true&a='+(url.replace(/\#/,'')),
-	    onFailure : function(error) {
-		RPG.Error.show(error);
-	    }.bind(this),
-	    onSuccess : function(page) {
 		/**
-		 * Using the returned object use or create the
-		 * specified object to handle the response
+		 * Initialize the user
 		 */
-		var onloaded = function() {
-		    if (page.populates && RPG[page.requires.exports]) {
-			if (!this.pageHandlers[Object.toQueryString(page.requires)]) {
-			    this.pageHandlers[Object.toQueryString(page.requires)] = new RPG[page.requires.exports](page.options);
+		RPG.AppUser = new RPG.User(this.options.user);
+
+		RPG.App.container = new Jx.Container({
+		    parent: 'body',
+		    topLevel : true,
+		    layoutManager: 'anchored',
+		    items: [
+		    {
+			'class': Jx.Toolbar,
+			layoutOpts: {
+			    height: 28
+			},
+			options : {
+			    scroll : false,
+			    align: 'center',
+			    items : [
+			    new Jx.Menu({
+				id: 'home',
+				label: 'RPG Main',
+				image: '/client/jx/themes/dark/images/logo_s.png',
+				tooltip: 'Home Page',
+				toggle : false
+			    }).add(
+				(function(){
+				    var mnus = [];
+				    Object.each(RPG.mainMenu,function(options,menu){
+					mnus.push(new Jx.Menu.SubMenu({
+					    label : options.label
+					}));
+					RPG.pages.each(function(item){
+					    if (item.treeParent == menu) {
+						mnus[mnus.length-1].add(new Jx.Menu.Item({
+						    label : item.label,
+						    image : item.image,
+						    onClick : function(){
+							document.location.href = item.hashTag;
+						    }
+						}));
+					    }
+					});
+				    });
+				    mnus.push(new Jx.Menu.Item({
+					label: 'Map Editor',
+					image: '/client/jx/themes/dark/images/maps-stack.png',
+					onClick : function() {
+					    if (!RPG.MapEditor) {
+						require(['./client/Game/MapEditor'],function(){
+						    $('pnlMainContent').empty().adopt(RPG.MapEditor.populate().toElement());
+						});
+					    } else {
+						$('pnlMainContent').empty().adopt(RPG.MapEditor.toElement());
+					    }
+					}
+				    }));
+				    return mnus;
+				}.bind(this)())
+				),
+			    new Jx.Toolbar.Separator(),
+			    this.playNowBtn = new Jx.Button({
+				id: 'play',
+				label: 'Play Now',
+				image: '/client/jx/themes/dark/images/map--arrow.png',
+				tooltip: 'Play Now',
+				onClick : function() {
+				    if (!RPG.playNowDialog) {
+					RPG.playNowDialog = new Jx.Dialog({
+					    label : 'Select or Create a Character',
+					    image: '/client/jx/themes/dark/images/character.png',
+					    resize : true,
+					    modal : false,
+					    collapse:false,
+					    height : 250,
+					    width : 500,
+					    content : this.playTabs = new Jx.TabBox({
+						scroll : false,
+						align: 'center'
+					    }).add(
+						this.charListTab = new Jx.Tab({
+						    label: 'Character Listing',
+						    image: '/client/jx/themes/dark/images/character.png',
+						    content : RPG.ListCharacters.toElement(),
+						    onDown : function() {
+							var pnBtn = this.playNowBtn;
+							var clTab = this.charListTab;
+							var cBtn = this.charBtn;
+							if (!this.listPlayEvent) {
+							    this.listPlayEvent = RPG.ListCharacters.addEvents({
+								play : function(character) {
+								    require(['./client/Game/Game'],function(){
+									pnBtn.setBusy(true);
+									clTab.setBusy(true);
+									RPG.Game.load({
+									    character : character
+									},function(){
+									    RPG.playNowDialog.close();
+									    pnBtn.setBusy(false);
+									    clTab.setBusy(false);
+									    cBtn.toElement().show();
+									});
+								    });
+								}
+							    });
+							} else {
+							    clTab.setBusy(true);
+							}
+							pnBtn.setBusy(true);
+							RPG.ListCharacters.loadList(function(){
+							    pnBtn.setBusy(false);
+							    clTab.setBusy(false)
+							}.bind(this));
+						    }.bind(this)
+						}),
+						this.newCharTab = new Jx.Tab({
+						    label: 'New Character',
+						    image: '/client/jx/themes/dark/images/plus.png',
+						    content : RPG.createCharacterDiv = new Element('div'),
+						    onDown : function() {
+							if (!RPG.CreateCharacter) {
+							    var pnBtn = this.playNowBtn;
+							    var ncTab = this.newCharTab;
+							    var cBtn = this.charBtn;
+							    pnBtn.setBusy(true);
+							    ncTab.setBusy(true);
+							    require(['./client/Character/CreateCharacter'],function(){
+								pnBtn.setBusy(false);
+								ncTab.setBusy(false);
+								RPG.createCharacter = new RPG.CreateCharacter({
+								    onPlay : function(game) {
+									pnBtn.setBusy(true);
+									ncTab.setBusy(true);
+									require(['./client/Game/Game'],function(){
+									    RPG.Game.load(game,function(){
+										RPG.playNowDialog.close();
+										pnBtn.setBusy(false);
+										ncTab.setBusy(false);
+										cBtn.toElement().show();
+									    });
+									});
+								    }
+								});
+								RPG.createCharacterDiv.getParent().adopt(RPG.createCharacter.toElement());
+								RPG.createCharacterDiv.destroy();
+								Object.erase(RPG,'createCharacterDiv');
+								var p = RPG.createCharacter.toElement().getParent().getSize();
+								var c = RPG.createCharacter.toElement().getSize();
+								var resized  = false;
+								if ((c.x - p.x)) {
+								    RPG.playNowDialog.options.width = RPG.playNowDialog.options.width + (c.x - p.x)+35;
+								    RPG.playNowDialog.resize();
+								    resized  = true;
+								}
+								if ((c.y - p.y)) {
+								    RPG.playNowDialog.options.height = RPG.playNowDialog.options.height + (c.y - p.y)+35;
+								    RPG.playNowDialog.resize();
+								    resized  = true;
+								}
+								if (resized) {
+								    RPG.playNowDialog.position(RPG.playNowDialog,document.body,'center','center');
+								}
+							    }.bind(this));
+							} else {
+
+						    }
+						    }.bind(this)
+						})
+						)
+					});
+				    }
+				    RPG.playNowDialog.open();
+				}.bind(this),
+				toggle : false
+			    }),
+			    this.charBtn = new Jx.Button({
+				id: 'character',
+				label: 'Character',
+				image: '/client/jx/themes/dark/images/character.png',
+				tooltip: 'Play Now',
+				onClick : function() {
+				    if (!this.charDialog) {
+					this.charDialog = new Jx.Dialog({
+					    label : 'Euipment / Inventory / Spells / Skills',
+					    image: '/client/jx/themes/dark/images/character.png',
+					    resize : true,
+					    modal : false,
+					    height : 580,
+					    width : 790,
+					    content : this.charTabs = new Jx.TabBox({
+						scroll : false,
+						align: 'center'
+					    }).add(
+						this.charEquipTab = new Jx.Tab({
+						    label: 'Equipment / Inventory',
+						    image: '/client/jx/themes/dark/images/character.png',
+						    content : this.charEquipDiv = new Element('div'),
+						    onDown : function() {
+							if (this.charEquipDiv) {
+							    this.charEquipTab.setBusy(false);
+							    this.charEquipDiv.getParent().adopt(RPG.CharacterEquipment.toElement());
+							    this.charEquipDiv.destroy();
+							}
+						    }.bind(this)
+						})
+						)
+					});
+				    }
+				    RPG.CharacterEquipment.refresh(RPG.Game.game);
+				    this.charDialog.open();
+				}.bind(this),
+				toggle : false
+			    }),
+			    new Jx.Toolbar.Separator(),
+			    this.loginBtn = new Jx.Button.Flyout({
+				id: 'login',
+				label: 'Login / Signup Free',
+				image: '/client/jx/themes/dark/images/lock--arrow.png',
+				tooltip: 'Signup Free today.',
+				content : new Jx.TabBox({
+				    width: 350,
+				    height: 200
+				}).add(
+				    new Jx.Tab({
+					label: 'Login',
+					image: '/client/jx/themes/dark/images/lock--arrow.png',
+					content: RPG.AppUser.loginWindowDiv
+				    }),
+				    new Jx.Tab({
+					label: 'Signup Free',
+					image: '/client/jx/themes/dark/images/pencil--plus.png',
+					content: RPG.AppUser.registerWindowDiv
+				    }),
+				    new Jx.Tab({
+					label: 'Verify',
+					image: '/client/jx/themes/dark/images/link.png',
+					content: RPG.AppUser.verifyWindowDiv
+				    }),
+				    new Jx.Tab({
+					label: 'Forgot',
+					image: '/client/jx/themes/dark/images/question.png',
+					content: RPG.AppUser.forgotWindowDiv
+				    })
+				    ),
+				toggle : false,
+				loadOnDemand: true,
+				cacheContent: false,
+				onOpen: function(flyout) {},
+				onClose: function(flyout) {}
+			    }),
+			    this.accountBtn = new Jx.Button.Flyout({
+				id: 'account',
+				enabled : RPG.AppUser.options.isLoggedIn,
+				label: 'Guest',
+				image: '/client/jx/themes/dark/images/cPanel.png',
+				tooltip: 'Welcome Guest',
+				toggle : false,
+				content : new Jx.TabBox({
+				    width: 350,
+				    height: 200
+				}).add(
+				    new Jx.Tab({
+					label: 'Account',
+					image: '/client/jx/themes/dark/images/safe.png',
+					content: 'test'
+				    }),
+				    new Jx.Tab({
+					label: 'Settings',
+					image: '/client/jx/themes/dark/images/wrench.png',
+					content: 'test'
+				    })
+				    )
+			    }),
+			    this.logoutBtn = new Jx.Button({
+				id: 'logout',
+				label: 'Logout',
+				image: '/client/jx/themes/dark/images/lock-unlock.png',
+				tooltip: 'Logout',
+				toggle : false,
+				onClick : function() {
+				    RPG.AppUser.logout();
+				}
+			    })
+			    ]
 			}
-			MUI.updateContent({
-			    element : $(page.populates),
-			    loadMethod : 'html',
-			    content : this.pageHandlers[Object.toQueryString(page.requires)].toElement(),
-			    title : page.title
-			});
-			this.pageHandlers[Object.toQueryString(page.requires)].populate(page);
-			if (page.title) {
-			    document.title = page.title;
-			}
-			if (page && page.requires && page.requires.exports == 'MapEditor') {
-			    if ($('pnlMainMenu') && $('pnlMainMenu').hasClass('expanded')) {
-				$('pnlMainContent_header').hide();
-				this.pnlMainMenu.collapseToggleEl.collapseClick();
-			    }
-			} else {
-			    if ($('pnlMainMenu') && $('pnlMainMenu').hasClass('collapsed')) {
-				$('pnlMainContent_header').show();
-				this.pnlMainMenu.collapseToggleEl.collapseClick();
-			    }
+		    },
+		    {
+			'class' : Jx.Panel,
+			layoutOpts : {
+			    top: 30
+			},
+			options : {
+			    id : 'pnlMainContent',
+			    hideTitle : true
 			}
 		    }
-		}.bind(this);
+		    ]
+		});
 
-		if (page && page.requires) {
-		    if (!this.pageHandlers[Object.toQueryString(page.requires)]) {
-			new MUI.Require(Object.merge({
-			    onloaded : onloaded
-			},page.requires));
-		    } else {
-			onloaded();
+		/**
+		 * Initialize primary Application Tips
+		 */
+		this.tips = new Tips([],{
+		    showDelay : 250,
+		    fixed : true,
+		    offset : {
+			x : 0,
+			y : 30
 		    }
+		});
+		this.menuTips = new Tips([],{
+		    showDelay : 100,
+		    fixed : true,
+		    offset : {
+			x : 200,
+			y : -10
+		    }
+		});
 
+
+		/**
+		 * Start Listening for url Hash changes
+		 */
+		window.addEvent('hashchange',function(event) {
+		    if (window.location.hash) {
+			this.browseTo(window.location.hash);
+		    }
+		}.bind(this));
+		if (window.location.hash) {
+		    this.browseTo(window.location.hash);
 		}
-		this.pageLinkCurrent(url);
-	    }.bind(this)
-	}).get();
-    },
-    pageLinkCurrent : function(url) {
-	$$('.pageLinkCurrent').each(function(link){
-	    if (link && link.removeClass) {
-		link.removeClass('pageLinkCurrent');
-	    }
-	});
-	$$('.page'+url.toMD5()).each(function(link){
-	    if (link && link.addClass) {
-		link.getParent().addClass('pageLinkCurrent');
-	    }
-	});
-    }
 
-});
+		/**
+		 * Start Listening for User Events
+		 */
+		RPG.AppUser.addEvent('login',this.onLogin = function(appOptions) {
+		    this.setOptions(appOptions);
+		    this.loginBtn.toElement().hide();
+		    this.logoutBtn.toElement().show();
+		    this.accountBtn.toElement().show();
+		    this.accountBtn.setLabel(RPG.AppUser.options.name);
+		}.bind(this));
+		RPG.AppUser.addEvent('logout',this.onLogout = function(appOptions) {
+		    this.setOptions(appOptions);
+		    this.loginBtn.toElement().show();
+		    this.logoutBtn.toElement().hide();
+		    this.accountBtn.toElement().hide();
+		    this.accountBtn.setLabel('Guest');
+		    this.charBtn.toElement().hide();
+		}.bind(this));
+
+		this.charBtn.toElement().hide();
+
+		if (RPG.AppUser.options.isLoggedIn) {
+		    this.onLogin(this.options);
+		} else {
+		    this.onLogout(this.options);
+		}
+		if (!self.location.hash) {
+		    this.browseTo('#Home');
+		}
+	    },
+	    toElement : function() {
+		return this.desktop;
+	    },
+
+	    createElement : function(content,key) {
+		if (key.contains('#')) {
+		    var clone = Object.clone(content);
+		    var k = Object.keys(clone);
+		    var len = k.length;
+		    var x = 0;
+		    //remove sub elements to get just this elemetns options
+		    for(x=0;x<len;x++) {
+			if (k[x].contains('#')){
+			    Object.erase(clone,k[x]);
+			}
+		    }
+		    var tag = key.split('#')[0];
+		    var id = key.split('#')[1];
+		    var elm = new Element(tag,Object.merge({
+			id : id
+		    },clone));
+		    return elm;
+		}
+		return null;
+	    },
+	    createElementRecurse : function (parentElm, objTree) {
+		var len = 0;
+		var k = 0;
+		var i = 0;
+		var elm = null;
+		if (typeOf(objTree) == 'object') {
+		    k = Object.keys(objTree);
+		    len = k.length;
+		    for(i=0;i<len;i++){
+			elm = RPG.App.createElement(objTree[k[i]],k[i]);
+			if (elm) {
+			    RPG.App.createElementRecurse(elm,objTree[k[i]]);
+			    parentElm.adopt(elm);
+			}
+		    }
+		}
+	    },
+
+	    browseTo : function(url) {
+		new Request.JSON({
+		    url : '/index.njs?xhr=true&a='+(url.replace(/\#/,'')),
+		    onFailure : function(error) {
+			RPG.Dialog.error(error);
+		    }.bind(this),
+		    onSuccess : function(page) {
+			/**
+			 * Using the returned object use or create the
+			 * specified object to handle the response
+			 */
+			var onloaded = function() {
+			    if (page.populates && RPG[page.requires.exports]) {
+				if (!this.pageHandlers[Object.toQueryString(page.requires)]) {
+				    this.pageHandlers[Object.toQueryString(page.requires)] = new RPG[page.requires.exports](page.options);
+				}
+				$('pnlMainContent').empty().adopt(this.pageHandlers[Object.toQueryString(page.requires)].toElement())
+				this.pageHandlers[Object.toQueryString(page.requires)].populate(page);
+				if (page.title) {
+				    document.title = page.title;
+				}
+			    }
+			}.bind(this);
+
+			if (page && page.requires) {
+			    if (!this.pageHandlers[Object.toQueryString(page.requires)]) {
+				require(page.requires.js,onloaded);
+			    } else {
+				onloaded();
+			    }
+			}
+		    }.bind(this)
+		}).get();
+	    }
+
+	});
+
+	/**
+	 * Various Dialogs
+	 */
+	RPG.Dialog = {
+	    parseMessage : function(m) {
+		if (m && m.responseText) {
+		    m = JSON.decode(m.responseText);
+		}
+		if (m.error) {
+		    m = m.error;
+		}
+		if (m.success) {
+		    m = m.success;
+		}
+		var r = '';
+		m.each && m.each(function(s) {
+		    r += s + '<br>';
+		});
+		if (r.length > 0) {
+		    m = r;
+		}
+		if (typeOf(m) == 'object') {
+		    m = JSON.encode(m);
+		}
+		return m;
+	    },
+	    notify : function(message,duration) {
+		var dialog = new Jx.Dialog({
+		    width : 350,
+		    height : 150,
+		    label : 'An error has occured:',
+		    close : true,
+		    resize : true,
+		    modal : false,
+		    image : '/client/jx/themes/dark/images/cross.png',
+		    content : RPG.Dialog.parseMessage(message),
+		    destroyOnClose : true
+		});
+		dialog.open();
+		setTimeout(function(){
+		    dialog.close();
+		},duration || 1000);
+		return dialog;
+	    },
+	    error : function(error,closed) {
+		var dialog = new Jx.Dialog.Message({
+		    width : 350,
+		    height : 150,
+		    label : 'An error has occured:',
+		    close : true,
+		    resize : true,
+		    modal : true,
+		    image : '/client/jx/themes/dark/images/cross.png',
+		    destroyOnClose : true
+		});
+		dialog.setMessage(RPG.Dialog.parseMessage(error));
+		!closed && dialog.open();
+		return dialog;
+	    },
+	    success : function(success,closed) {
+		var dialog = new Jx.Dialog.Message({
+		    width : 350,
+		    height : 150,
+		    label : 'Success:',
+		    close : true,
+		    resize : true,
+		    modal : false,
+		    image : '/client/jx/themes/dark/images/tick.png',
+		    destroyOnClose : true
+		});
+		dialog.setMessage(RPG.parseMessage(success));
+		!closed && dialog.open();
+		return dialog;
+	    },
+
+	    form :function(options,closed) {
+		var dialog = new Jx.Dialog.Form(Object.merge({
+		    label : 'Form Details:',
+		    image : '/client/jx/themes/dark/images/ui-scroll-pane-blog.png',
+		    destroyOnClose : true
+		},options));
+		!closed && dialog.open();
+		return dialog;
+	    }
+	}
+
+
+	Jx.Dialog.Form = new Class({
+	    Extends:Jx.Dialog,
+	    Family:"Jx.Dialog.Form",
+	    options:{
+		content:'',
+		validate : null,//function called before closing
+		useKeyboard:true,
+		keys:{
+		    'esc':'cancel',
+		    'enter':'ok'
+		},
+		width:400,
+		height:400,
+		close:true,
+		resize:true,
+		collapse:false,
+		modal:false,
+		toolbarOptions:{
+		    align:"right",
+		    position:'bottom',
+		    scroll:false
+		}
+	    },
+	    keyboard:null,
+	    render:function(){
+		this.buttons=new Jx.Toolbar(this.options.toolbarOptions);
+		this.ok=new Jx.Button({
+		    label:this.getText({
+			set:'RPG',
+			key:'form',
+			value:'submitLabel'
+		    }),
+		    onClick:this.onClick.bind(this,true)
+		});
+		this.reset=new Jx.Button({
+		    label:this.getText({
+			set:'RPG',
+			key:'form',
+			value:'resetLabel'
+		    })
+		//,onClick:this.onClick.bind(this,true)
+		});
+		this.cancel=new Jx.Button({
+		    label:this.getText({
+			set:'RPG',
+			key:'form',
+			value:'cancelLabel'
+		    }),
+		    onClick:this.onClick.bind(this,false)
+		});
+		this.buttons.add(this.cancel,new Jx.Toolbar.Separator(),this.reset,new Jx.Toolbar.Separator(),this.ok);
+		this.options.toolbars=[this.buttons];
+		var type=Jx.type(this.options.content);
+		if(type==='string'||type==='object'||type=='element'){
+		    this.content=new Element('div',{
+			'class':'jxConfirmcontent'
+		    });
+		    switch(type){
+			case'string':case'object':
+			    this.content.set('html',this.getText(this.options.content));
+			    break;
+			case'element':
+			    this.options.content.inject(this.content);
+			    break;
+		    }
+		}else{
+		    this.content=this.options.content;
+		    document.id(this.content).addClass('jxConfirmcontent');
+		}
+		this.options.content=this.content;
+		if(this.options.useKeyboard){
+		    var self=this;
+		    this.options.keyboardMethods.ok=function(ev){
+			ev.preventDefault();
+			self.onClick(true);
+		    }
+		    this.options.keyboardMethods.cancel=function(ev){
+			ev.preventDefault();
+			self.onClick(false);
+		    }
+		}
+		this.parent();
+		if(this.options.useKeyboard){
+		    this.keyboard.addEvents(this.getKeyboardEvents());
+		}
+	    },
+	    onClick:function(value){
+		if (value && (!this.options.validate || (this.options.validate()))) {
+		    this.isOpening=false;
+		    this.hide();
+		    this.fireEvent('close',[this,value]);
+		} else if (!value) {
+		    this.isOpening=false;
+		    this.hide();
+		    this.fireEvent('close',[this,value]);
+		}
+	    },
+	    changeText:function(lang){
+		this.parent();
+		if(this.ok!=undefined&&this.ok!=null){
+		    this.ok.setLabel({
+			set:'RPG',
+			key:'form',
+			value:'submitLabel'
+		    });
+		}
+		if(this.cancel!=undefined&&this.cancel!=null){
+		    this.cancel.setLabel({
+			set:'RPG',
+			key:'form',
+			value:'cancelLabel'
+		    });
+		}
+		if(this.reset!=undefined&&this.cancel!=null){
+		    this.reset.setLabel({
+			set:'RPG',
+			key:'form',
+			value:'resetLabel'
+		    });
+		}
+		if(Jx.type(this.options.content)==='object'){
+		    this.content.set('html',this.getText(this.options.content))
+		}
+	    }
+	});
+
+	Locale.define('en-US','RPG',{
+	    form : {
+		submitLabel : 'Submit',
+		resetLabel : 'Reset',
+		cancelLabel : 'Cancel'
+	    }
+	});
+
+    });

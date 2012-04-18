@@ -76,6 +76,8 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    //randomly get a number between 0 and maxStats to become the new maxStats
 	    maxStats = Math.round(rand.random(0,maxStats-1));
 
+	    equipmentObj.itemOptions.cost = Math.floor(equipmentObj.itemOptions.cost);
+
 	    equipmentObj.itemOptions.durability = Math.ceil(equipmentObj.itemOptions.durability);
 
 	    //reset the randomized stats.
@@ -194,6 +196,7 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
     },
     shield : function(options,equipmentObj){
 	equipmentObj.itemOptions.weight = 0.01;
+	equipmentObj.itemOptions.shield.block = Math.floor(equipmentObj.itemOptions.shield.block);
     },
     ring : function(options,equipmentObj){
 	equipmentObj.itemOptions.weight = equipmentObj.tileConstraints.equip.indexOf(equipmentObj.itemOptions.equip)*2;
@@ -203,5 +206,6 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
     },
     weapon : function(options,equipmentObj){
 	equipmentObj.itemOptions.weight = equipmentObj.tileConstraints.equip.indexOf(equipmentObj.itemOptions.equip);
+	equipmentObj.itemOptions.weapon.damage = Math.floor(equipmentObj.itemOptions.weapon.damage);
     }
 }))();

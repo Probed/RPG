@@ -94,22 +94,20 @@ RPG.Puzzles.trap.posion = new Class({
 					});
 				    }
 				    row.push({
-					content : RPG.elementFactory.buttons.actionButton({
-					    'class' : 'textCenter',
-					    html : '<span class="textLarge">'+(x==10?0:(x==11?'C':x))+'</span>',
-					    events : {
-						click : function(event) {
-						    var x = event.target.retrieve('x') || event.target.getParent().retrieve('x');
-						    if (x < 10) {
-							this.solution += ''+x;
-						    } else if (x==10) {
+					content :(function(num){
+					    return new Jx.Button({
+						label : '<span class="textLarge">'+(num==10?0:(num==11?'C':num))+'</span>',
+						onClick : function(event) {
+						    if (num < 10) {
+							this.solution += ''+num;
+						    } else if (num==10) {
 							this.solution += '0';
-						    } else if (x==11) {
+						    } else if (num==11) {
 							this.solution = '';
 						    }
 						}.bind(this)
-					    }
-					}).store('x',x)
+					    }).toElement()
+					}.bind(this)(x))
 				    });
 				    if (x % 3 == 0) {
 					rows.push(row);

@@ -103,21 +103,12 @@ RPG.Map = new Class({
 	    }
 	});
 
-	[window,$('leftColumn').retrieve('instance'),$('rightColumn').retrieve('instance')].each(function(elm) {
-	    elm.addEvents({
-		'resize' : function(){
-		    setTimeout(this.refreshMap.bind(this),1);
-		}.bind(this)
-	    });
-	}.bind(this));
-	[$('leftColumn').retrieve('instance'),$('rightColumn').retrieve('instance')].each(function(elm) {
-	    elm.addEvent('collapse',function(){
-		this.refreshMap();
-	    }.bind(this));
-	    elm.addEvent('expand',function(){
-		this.refreshMap();
-	    }.bind(this))
-	}.bind(this));
+	window.addEvents({
+	    'resize' : function(){
+		setTimeout(this.refreshMap.bind(this),1);
+	    }.bind(this)
+	});
+
 
 
 	var keyEvents = {};
@@ -161,10 +152,10 @@ RPG.Map = new Class({
     },
 
     calcCols : function() {
-	return Math.floor(($('pnlMainContent').getSize().x+(this.mapZoom*2)) / this.mapZoom);
+	return Math.floor(($('pnlMainContent').getParent().getSize().x+(this.mapZoom*2)) / this.mapZoom);
     },
     calcRows : function() {
-	return Math.floor(($('pnlMainContent').getSize().y+ (this.mapZoom*2)) / this.mapZoom);
+	return Math.floor(($('pnlMainContent').getParent().getSize().y+ (this.mapZoom*2)) / this.mapZoom);
     },
 
     refreshMap : function() {
@@ -365,9 +356,13 @@ RPG.Map = new Class({
 
 	this.gameWaiting = true;
 	RPG.moveCharacterToTile(this.game, function(moveEvents){
+	    if (!this.keyUpEvents.isActive()) {
+		this.keyUpEvents.activate();
+	    }
+
 	    this.game.events = moveEvents;
 	    if (moveEvents.error) {
-		RPG.Error.notify(moveEvents.error);
+		RPG.Dialog.notify(moveEvents.error);
 		this.gameWaiting = false;
 		return;
 	    } else {
@@ -400,21 +395,23 @@ RPG.Map = new Class({
 	this.gameWaiting = true;
 	RPG.activateTile(this.game, function(activateEvents){
 	    this.game.events = activateEvents;
+	    if (!this.keyUpEvents.isActive()) {
+		this.keyUpEvents.activate();
+	    }
 	    if (activateEvents.error) {
-		RPG.Error.notify(activateEvents.error);
+		RPG.Dialog.notify(activateEvents.error);
 		this.gameWaiting = false;
 		return;
 	    } else {
 		if (Object.keys(activateEvents.activate).length == 0 && Object.keys(activateEvents.activateComplete).length == 0) {
 		    //no event data to send.. ignore
-		    RPG.Error.notify('Nothing Happened.');
+		    RPG.Dialog.notify('Nothing Happened.');
 		    this.gameWaiting = false;
 		    return;
 		}
 
 		this.getServerEvents(this.game,'/index.njs?xhr=true&a=Play&m=ActivateTile&characterID='+this.game.character.database.characterID,
 		    function(results){
-
 			Object.merge(this.game,results);
 			this.refreshMap();
 			this.gameWaiting = false;
@@ -431,7 +428,7 @@ RPG.Map = new Class({
 	new Request.JSON({
 	    url : url,
 	    onFailure : function(results) {
-		RPG.Error.notify(results);
+		RPG.Dialog.notify(results);
 		if (results.responseText) {
 		    var resp = JSON.decode(results.responseText,true);
 		    if (resp) {
@@ -444,7 +441,7 @@ RPG.Map = new Class({
 	    },
 	    onSuccess : function(results) {
 		if (results && results.events && results.events.error) {
-		    RPG.Error.show(results.events.error);
+		    RPG.Dialog.error(results.events.error);
 		}
 		game.events = results.events;//make sure this isn't merged
 		callback(results);
@@ -459,7 +456,7 @@ RPG.Map = new Class({
 	var zoom = this.mapZoom;
 	var dir = this.game.dir;
 	var transition = Fx.Transitions.linear;
-	var duration = 150;
+	var duration = 50;
 	var fps = 30;
 
 
@@ -753,8 +750,8 @@ RPG.Map = new Class({
 	}));
 
 	this.detailDiv.setStyles({
-	    top : $('pnlMainContent').getPosition().y,
-	    left : $('pnlMainContent').getPosition().x,
+	    top : $('pnlMainContent').getParent().getPosition().y,
+	    left : $('pnlMainContent').getParent().getPosition().x,
 	    width : $(this.detailDiv).getSize().y >= 500?$(this.detailDiv).getSize().x + 24:$(this.detailDiv).getSize().x
 	});
     }

@@ -11,20 +11,6 @@ Object.merge(RPG,require('../Cache.njs'));
 RPG.Game = new (RPG.GameClass = new Class({
     routeAccepts : ['PlayCharacter','MoveCharacter','ActivateTile','InventorySwap'],
 
-    require : {
-	css : [
-	'/client/mochaui/themes/charcoal/css/Map/Tile.css',
-	'/client/mochaui/themes/charcoal/css/Character/CharacterEquipment.css',
-	],
-	js : [
-	'/client/Game/Game.js',
-	'/client/Character/Character.js',
-	'/client/Character/CharacterEquipment.js',
-	'/common/Game/Tiles/Utilities.js',
-	'/common/Game/Generators/Utilities.js',
-	'/client/Game/Map.js'
-	]
-    },
 
     /**
      * process game requests:
@@ -118,9 +104,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 		    Object.merge(game.universe,universe);//update game cache with viewable tiles
 
 		    //send out the loaded game
-		    game.require = RPG.Game.require;
 		    response.onRequestComplete(response,RPG.Game.removeSecrets(game));
-		    Object.erase(game,'require');
 		});
 		break
 	}

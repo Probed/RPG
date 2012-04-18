@@ -1,0 +1,4819 @@
+/*
+ * reset.css - Copyright (c) 2006, Yahoo! Inc. All rights reserved.
+ * Code licensed under the BSD License: http://developer.yahoo.net/yui/license.txt
+ *
+ * Copyright (c) 2006-2008, DM Solutions Group Inc.  All rights reserved
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+*/
+
+/*
+Copyright (c) 2006, Yahoo! Inc. All rights reserved.
+Code licensed under the BSD License:
+http://developer.yahoo.net/yui/license.txt
+version: 0.11.0
+*/
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,p,blockquote,th,td{margin:0;padding:0;}
+table{border-collapse:collapse;border-spacing:0;}
+fieldset,img{border:0;}
+address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}
+ol,ul {list-style:none;}
+caption,th {text-align:left;}
+h1,h2,h3,h4,h5,h6{font-size:100%;}
+q:before,q:after{content:'';}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============= */
+/* COMMON STYLES */
+/* ============= */
+
+html,body {
+    background-color:black;
+    color : white;
+    height : 100%;
+}
+
+.siteLoad {
+    background : url('images/logo.png') center center no-repeat;
+    width : 100%;
+    height : 100%;
+}
+.siteLoad td {
+    text-align : center;
+    vertical-align : middle;
+    font-size:24px;
+    font-weight:bold;
+}
+.siteLoad span {
+    border-width: 16px 16px 16px 16px;
+    -moz-border-image: url(images/border1.png) 10 10 10 10 stretch;
+    -webkit-border-image: url(images/border1.png) 10 10 10 10 stretch;
+    -o-border-image: url(images/border1.png) 10 10 10 10 stretch;
+    border-image: url(images/border1.png) 10 10 10 10 stretch;
+    background : black;
+    padding : 5px;
+}
+
+.jxClearer {
+    display: block;
+    position: relative;
+    float: none;
+    clear: both;
+    font-size: 0;
+    line-height: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.jxDisabled {
+    opacity: 0.4;
+    -ms-filter: "Alpha(opacity=40)";
+}
+
+.jxDisabled * {
+    -ms-filter: "Alpha(opacity=40)";
+}
+
+/* ============= */
+/*  MASK STYLES  */
+/* ============= */
+
+.jxMask {
+    opacity: 0.5;
+    -ms-filter: "Alpha(opacity=50)";
+    background-color: #000;
+}
+
+.jxModalMask {
+    background-color: #fff;
+    opacity: 0.2;
+    -ms-filter: "Alpha(opacity=20)";
+}
+
+.jxEventMask {
+    background-image: url(images/a_pixel.png);
+}
+
+
+.jxSpinner {
+    position: absolute;
+    opacity: 0.5;
+    -ms-filter: "Alpha(opacity=50)";
+    z-index: 999;
+    background: #fff;
+}
+
+/* .jxSpinnerContent { } */
+
+.jxSpinnerMessage {
+    text-align: center;
+    font-weight: bold;
+}
+
+.jxSpinnerSmall .jxSpinnerMessage {
+    margin: 0px;
+    padding: 0px;
+    font-size: 11px;
+    line-height: 24px;
+}
+
+.jxSpinnerLarge .jxSpinnerImage {
+    background: url(images/spinner_24.gif) no-repeat;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+}
+
+.jxSpinnerSmall .jxSpinnerImage {
+    background: url(images/spinner_16.gif) no-repeat;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/*iframe.jxIframeShim { }*/
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============= */
+/* CHROME STYLES */
+/* ============= */
+/* Chrome uses four absolutely positioned DIVs containing an image for each of
+   four quadrants.  The chrome image is used as a sprite map. */
+
+.jxChrome {
+    /* Base setup */
+    position:absolute;
+    display: block;
+    font-size: 0px;
+    line-height: 0px;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+.jxChromeDrag {
+    opacity: 0.5;
+    -ms-filter: "Alpha(opacity=50)";
+}
+
+.jxChromeTL {
+    position: absolute;
+    overflow: hidden;
+    left: 0%;
+    top: 0%;
+    width: 50%;
+    height: 50%;
+}
+
+.jxChromeTR {
+    position: absolute;
+    overflow: hidden;
+    left: 50%;
+    top: 0%;
+    width: 50%;
+    height: 50%;
+}
+
+.jxChromeBL {
+    position: absolute;
+    overflow: hidden;
+    left: 0%;
+    top: 50%;
+    width: 50%;
+    height: 50%;
+}
+
+.jxChromeBR {
+    position: absolute;
+    overflow: hidden;
+    left: 50%;
+    top: 50%;
+    width: 50%;
+    height: 50%;
+}
+
+
+.jxChromeTL img {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 1000px;
+    height: 600px;
+}
+
+.jxChromeTR img {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 1000px;
+    height: 600px;
+}
+
+.jxChromeBL img {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 1000px;
+    height: 600px;
+}
+
+.jxChromeBR img {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 1000px;
+    height: 600px;
+}
+
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============= */
+/* BUTTON STYLES */
+/* ============= */
+/* jxButtons consist of an A, containing a SPAN, which contains an image.
+   Buttons can use the sliding door technique with background images to horizontally
+   accomodate icons with labels. */
+
+.jxButtonContainer {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    font-size: 0px;
+    line-height: 0px;
+    /* float: left; */
+
+    margin: 0px;
+    padding: 2px;
+    border: none;
+}
+
+/* normal button */
+.jxButton {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    font-size: 0px;
+    line-height: 0px;
+    /* float: left; */
+
+    /* Using background images, the A contains the left side of the background */
+    margin: 0px; /* margins don't seem to work properly in IE */
+    padding: 0px 0px 0px 4px; /* makes room for the left of the button bg */
+    border: none;
+    background-image: url(images/button.png);
+    background-position: left -24px;
+    background-repeat: no-repeat;
+    text-decoration: none;
+    outline: none;
+}
+
+/* normal button */
+a.jxButton {
+    /* Base setup */
+    cursor: pointer;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+ul.jxToolbar .jxButton {
+    background-position: left top;
+}
+
+span.jxButtonContent {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    /* float: left; */
+    font-size: 0px;
+    line-height: 0px;
+
+    /* Using background images, the SPAN contains the right side of the background */
+    margin: 0px; /* margins don't seem to work properly in IE */
+    padding: 4px 4px 4px 0px; /* makes room for the right of the button bg */
+    border: none;
+    background-image: url(images/button.png);
+    background-position: right -24px;
+    background-repeat: no-repeat;
+}
+
+ul.jxToolbar span.jxButtonContent {
+    background-position: right top;
+}
+
+/* active button */
+ul.jxToolbar .jxButtonActive,
+.jxButtonActive {
+    background-position: left -72px;
+}
+
+ul.jxToolbar .jxButtonActive span.jxButtonContent,
+.jxButtonActive span.jxButtonContent {
+    background-position: right -72px;
+}
+
+/* focus button */
+ul.jxToolbar .jxButton:focus,
+.jxButton:focus {
+    background-position: left -96px;
+}
+
+ul.jxToolbar .jxButton:focus span.jxButtonContent,
+.jxButton:focus span.jxButtonContent {
+    background-position: right -96px;
+}
+
+/* focus active button */
+ul.jxToolbar .jxButtonActive:focus,
+.jxButtonActive:focus {
+    background-position: left -144px;
+}
+
+ul.jxToolbar .jxButtonActive:focus span.jxButtonContent,
+.jxButtonActive:focus span.jxButtonContent {
+    background-position: right -144px;
+}
+
+/* hover normal and active button */
+ul.jxToolbar .jxButton:hover,
+ul.jxToolbar .jxButtonActive:hover,
+.jxButton:hover,
+.jxButtonActive:hover {
+    background-position: left -48px;
+}
+
+ul.jxToolbar .jxButton:hover span.jxButtonContent,
+ul.jxToolbar .jxButtonActive:hover span.jxButtonContent,
+.jxButton:hover span.jxButtonContent,
+.jxButtonActive:hover span.jxButtonContent {
+    background-position: right -48px;
+}
+
+/* clicking normal and focused button */
+ul.jxToolbar .jxButtonPressed,
+ul.jxToolbar .jxButtonPressed:focus,
+.jxButtonPressed,
+.jxButtonPressed:focus {
+    background-position: left -120px;
+}
+
+ul.jxToolbar .jxButtonPressed span.jxButtonContent,
+ul.jxToolbar .jxButtonPressed:focus span.jxButtonContent,
+.jxButtonPressed span.jxButtonContent,
+.jxButtonPressed:focus span.jxButtonContent {
+    background-position: right -120px;
+}
+
+/* disabled buttons */
+.jxDisabled .jxButton,
+.jxDisabled span.jxButtonContent span {
+    cursor: default;
+}
+
+/* hover, focus and pressing disabled button */
+ul.jxToolbar .jxDisabled .jxButton:focus,
+ul.jxToolbar .jxDisabled .jxButton:active,
+ul.jxToolbar .jxDisabled .jxButton:hover,
+ul.jxToolbar .jxDisabled .jxButtonPressed {
+    background-position: left top;
+}
+
+.jxDisabled .jxButton:focus,
+.jxDisabled .jxButton:active,
+.jxDisabled .jxButton:hover,
+.jxDisabled .jxButtonPressed {
+    background-position: left -24px;
+}
+
+ul.jxToolbar .jxDisabled .jxButton:focus span.jxButtonContent,
+ul.jxToolbar .jxDisabled .jxButton:active span.jxButtonContent,
+ul.jxToolbar .jxDisabled .jxButton:hover span.jxButtonContent,
+ul.jxToolbar .jxDisabled .jxButtonPressed span.jxButtonContent {
+    background-position: right top;
+}
+
+.jxDisabled .jxButton:focus span.jxButtonContent,
+.jxDisabled .jxButton:active span.jxButtonContent,
+.jxDisabled .jxButton:hover span.jxButtonContent,
+.jxDisabled .jxButtonPressed span.jxButtonContent {
+    background-position: right -24px;
+}
+
+/* hover and focus disabled active button */
+ul.jxToolbar .jxDisabled .jxButtonActive:focus,
+ul.jxToolbar .jxDisabled .jxButtonActive:active,
+ul.jxToolbar .jxDisabled .jxButtonActive:hover,
+.jxDisabled .jxButtonActive:focus,
+.jxDisabled .jxButtonActive:active,
+.jxDisabled .jxButtonActive:hover {
+    background-position: left -72px;
+}
+
+ul.jxToolbar .jxDisabled .jxButtonActive:focus span.jxButtonContent,
+ul.jxToolbar .jxDisabled .jxButtonActive:active span.jxButtonContent,
+ul.jxToolbar .jxDisabled .jxButtonActive:hover span.jxButtonContent,
+.jxDisabled .jxButtonActive:focus span.jxButtonContent,
+.jxDisabled .jxButtonActive:active span.jxButtonContent,
+.jxDisabled .jxButtonActive:hover span.jxButtonContent {
+    background-position: right -72px;
+}
+
+img.jxButtonIcon {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    /* float: left; */
+
+    width: 16px;
+    height: 16px;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+span.jxButtonContent span {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    /* float: left; */
+    cursor: pointer;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 16px;
+    height: 16px;
+    white-space: nowrap;
+}
+
+span.jxButtonContent span.jxButtonLabel {
+    margin: 0px;
+    padding: 0 4px 0 4px;
+    color: #fff;
+    font-size: 11px;
+}
+
+/* ========================== */
+/* JX BUTTON EXTENSION STYLES */
+/* ========================== */
+
+.jxDiscloser span.jxButtonContent {
+    padding-right: 0px;
+}
+
+.jxDiscloser span.jxButtonContent span {
+    padding-right: 16px;
+    background-image: url(images/emblems.png);
+    background-position: right -16px;
+    background-repeat: no-repeat;
+}
+
+a.jxButtonDisclose {
+    position: absolute;
+    display: -moz-inline-box;
+    display: inline-block;
+    padding: 4px 0px;
+    font-size: 0px;
+    line-height: 0px;
+    right: 2px;
+    top: 2px;
+    background-image: url(images/button_multi_disclose.png);
+    background-position: right 0px;
+    background-repeat: no-repeat;
+    outline: none;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+a.jxButtonDisclose img {
+    width: 16px;
+    height: 16px;
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    background-image: url(images/emblems.png);
+    background-position: right -16px;
+    background-repeat: no-repeat;
+}
+
+a.jxButtonDisclose:focus,
+a.jxButtonDisclose:active {
+    background-position: right -96px;
+}
+
+a.jxButtonDisclose:hover {
+    background-position: right -48px;
+}
+
+a.jxButtonDisclosePressed {
+    background-position: right -120px;
+}
+
+.jxDisabled a.jxButtonDisclose,
+.jxDisabled a.jxButtonDisclose:focus,
+.jxDisabled a.jxButtonDisclose:active,
+.jxDisabled a.jxButtonDisclose:hover,
+.jxDisabled a.jxButtonDisclosePressed {
+    cursor: default;
+    background-position: right 0px;
+}
+
+/* note, jxButtonHover is set by Multi button JS */
+ul.jxToolbar .jxButtonHover {
+    background-position: left -24px !important;
+}
+
+ul.jxToolbar .jxButtonHover span.jxButtonContent {
+    background-position: right -24px !important;
+}
+
+
+/* Jx Flyout Styles */
+
+.jxFlyout .jxChrome {
+    background-image: url(images/flyout_chrome.png);
+    padding: 5px 5px 7px 6px;
+}
+
+.jxFlyout {
+    /* Base setup */
+    position: absolute;
+    display: block;
+    z-index: 100;
+
+    margin: 0px;
+    padding: 0px;
+}
+
+.jxFlyoutContent {
+    position: relative;
+    display: block;
+    overflow: auto;
+    margin: 6px 6px 8px 7px;
+    background-color: #000;
+    border: 1px solid #999;
+}
+
+/* Jx Combo and Multi Button Styles */
+
+.jxButtonMulti,
+.jxButtonMulti span.jxButtonContent {
+    background-image: url(images/button_multi.png);
+}
+
+.jxButtonEditCombo,
+.jxButtonEditCombo span.jxButtonContent {
+    background-image: url(images/button_combo.png);
+}
+
+/*a.jxButtonEditCombo {
+  user-select: text;
+  -moz-user-select: text;
+  -khtml-user-select: text;
+}*/
+
+.jxButtonMulti span.jxButtonContent span {
+    padding-right: 21px;
+}
+
+.jxButtonEditCombo span.jxButtonContent span {
+    font-size: 0px;
+}
+
+.jxButtonComboDefault span.jxButtonContent span,
+.jxButtonComboDefault input {
+    font-style: italic;
+    color: #999;
+}
+
+.jxButtonEditCombo input {
+    float: left;
+    line-height: 16px;
+    height: 16px;
+    padding: 0px 4px;
+    margin: 0px;
+    border: none;
+    font-size: 11px;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: transparent;
+}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* =================== */
+/* COLOR PICKER STYLES */
+/* =================== */
+
+/*.jxColorPicker {
+    position: absolute;
+    display: none;
+    top: 100%;
+    width: 212px;
+    left: 0px;
+    border: 1px solid #000;
+    padding: 2px;
+    background-color: #eee;
+}*/
+
+.jxColorBar {
+    position: relative;
+    overflow: hidden;
+}
+
+table.jxColorGrid {
+    position: relative;
+    border-collapse: collapse;
+    empty-cells: show;
+    clear:both;
+    padding: 0px;
+    margin: 0px;
+}
+
+.jxColorGrid tr {
+    padding: 0px;
+    margin: 0px;
+}
+
+.jxColorGrid td {
+    border: 1px solid #000;
+    padding: 0px;
+    margin: 0px;
+}
+
+.jxColorGrid td.emptyCell {
+    border: 0px solid #000;
+}
+
+.jxColorGrid td.emptyCell span {
+    display: block;
+    width: 7px;
+    height: 7px;
+    line-height: 0px;
+    font-size: 0px;
+    border: 0px solid #000;
+    padding: 1px;
+    margin: 0px;
+}
+
+.jxColorGrid a.colorSwatch {
+    display: block;
+    width: 7px;
+    height: 7px;
+    line-height: 0px;
+    font-size: 0px;
+    border: 0px solid #000;
+    margin: 0px;
+    padding: 1px;
+}
+
+.jxColorGrid a.borderWhite:hover {
+    border: 1px solid #fff;
+    padding: 0px;
+}
+
+.jxColorGrid a.borderBlack:hover {
+    border: 1px solid #000;
+    padding: 0px;
+}
+
+input.jxHexInput {
+    width: 55px;
+    vertical-align: middle;
+}
+
+input.jxAlphaInput {
+    width: 30px;
+    vertical-align: middle;
+}
+
+div.jxColorPreview {
+    float: left;
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #000;
+    margin: 2px;
+    vertical-align: middle;
+    background-image: url('images/grid.png');
+    overflow: hidden;
+}
+
+.jxButtonFlyout span.jxButtonContent span.jxButtonSwatch {
+    display: block;
+    float: left;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #000;
+    background-image: url('images/grid.png');
+    background-position: 0px 0px;
+    background-repeat: repeat;
+    padding-right: 0px !important;
+}
+
+.jxButtonFlyout span.jxButtonContent span.jxButtonSwatch span {
+    display: block;
+    width: 14px;
+    height: 14px;
+    position: absolute;
+    padding-right: 0px;
+    background: none;
+}
+
+div.jxColorPreview img {
+    position: absolute;
+    z-index: 0;
+}
+
+div.jxColorPreview div {
+    width: 20px;
+    height: 10px;
+    position: absolute;
+    display: block;
+    left: 0px;
+    z-index: 1;
+    font-size: 10px;
+    line-height: 0px;
+}
+
+div.jxColorPreview div.jxColorSelected {
+    top: 0px;
+}
+
+div.jxColorPreview div.jxColorHover {
+    bottom: 0px;
+}
+
+label.jxColorLabel,
+label.jxAlphaLabel {
+    width: auto;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    line-height: 24px;
+    padding: 2px;
+    vertical-align: middle;
+}
+
+a.jxColorClose {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 16px;
+    height: 16px;
+}
+
+a.jxColorClose img {
+    width: 16px;
+    height: 16px;
+}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============== */
+/* JX MENU STYLES */
+/* ============== */
+
+.jxMenuContainer .jxChrome {
+    /* the background image gets used by Jx.Chrome to create a stretchable chrome */
+    background-image: url(images/flyout_chrome.png);
+    /* the padding reflects the amount of space to leave around the content area
+     * for the chrome, typically to leave space for a shadow
+    */
+    padding: 5px 5px 7px 6px;
+}
+
+.jxButtonMenu span.jxMenuItemSpan {
+    padding-right: 16px;
+}
+
+/* Jx Menus and Sub-menus are all built out of nested ULs
+   For this to work visually, the margins and padding need to be flattened
+   out, and the list marker needs to be hidden
+*/
+
+.jxMenuContainer {
+    position: absolute;
+    top: 0;
+    left: -10000px;
+    display: none;
+    z-index: 10000;
+    padding: 0px;
+}
+
+ul.jxMenu {
+    /* Base setup */
+    display: block;
+    position: relative;
+
+    list-style-type: none;
+    padding: 1px;
+    margin: 6px 6px 8px 7px;
+    background-color: #000;
+    border: 1px solid #999;
+}
+
+li.jxMenuItemContainer {
+    /* This is needed for IE to make sure submenus don't open space in the parent menu */
+    /* Base setup */
+    display: block;
+    position: relative;
+    font-size: 0px;
+    line-height: 0px;
+
+    margin: 0px;
+    padding: 0px;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+a.jxMenuItem {
+    /* Base setup */
+    display: block;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    cursor: pointer;
+    outline: none;
+
+    border: 1px solid #fff;
+    background-image: url(images/menuitem.png);
+    background-repeat: no-repeat;
+    background-position: left top;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    text-decoration: none;
+    margin: 0px;
+    padding: 0px;
+    color: #fff;
+}
+
+a.jxMenuItemActive {
+    background-position: left -98px;
+}
+
+a.jxMenuItem:focus {
+    background-position: left -74px;
+}
+
+a.jxMenuItem:focus span.jxMenuItemContent {
+    border-right: 1px dotted #75ADFF;
+}
+
+a.jxMenuItemActive:focus {
+    background-position: left -170px;
+}
+
+a.jxMenuItem:hover {
+    background-color: #CDE5FF;
+    background-position: left -26px;
+}
+
+a.jxMenuItem:hover span.jxMenuItemContent {
+    border-right: 1px solid #C5E0FF;
+}
+
+a.jxMenuItemActive:hover {
+    background-position: left -122px;
+}
+
+a.jxMenuItemPressed,
+a.jxMenuItemPressed:hover {
+    background-color: #CDE5FF;
+    background-position: left -50px;
+}
+
+.jxDisabled a.jxMenuItem,
+.jxDisabled span.jxMenuItemContent span {
+    cursor: default;
+}
+
+.jxDisabled a.jxMenuItem:focus,
+.jxDisabled a.jxMenuItemPressed,
+.jxDisabled a.jxMenuItemPressed:hover,
+.jxDisabled a.jxMenuItem:hover {
+    background-color: #000;
+    background-position: left top;
+    border-right: 1px solid #000;
+}
+
+.jxDisabled a.jxMenuItem:hover span.jxMenuItemContent {
+    border-right: 1px solid #000;
+}
+
+span.jxMenuItemContent {
+    /* If using background images, the SPAN contains the right side of the background */
+    /* use padding to make space between the icon and button edge */
+    /* padding-left: 0px;*/ /* butts up to the left of the button bg image */
+    /* Base setup */
+    display: block;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0px;
+    line-height: 0px;
+    white-space: nowrap;
+    padding: 0px 20px 0px 0px; /* space for the arrow */
+    margin: 0px;
+    border-right: 1px solid #fff; /* forces IE to render properly */
+    /*overflow: hidden;*/
+}
+
+.jxButtonSubMenu span.jxMenuItemContent,
+.jxButtonSubMenu:hover span.jxMenuItemContent {
+    background-image: url(images/emblems.png);
+    background-position: right -30px;
+    background-repeat: no-repeat;
+}
+
+img.jxMenuItemIcon {
+    /* Base setup */
+    position: absolute;
+    top: 2px;
+    left: 2px;
+
+    width: 16px;
+    height: 16px;
+    background-position: left center;
+    background-repeat: no-repeat;
+}
+
+span.jxMenuItemContent span {
+    /* Base setup for empty labels */
+    display: block;
+    position: relative;
+    cursor: pointer;
+    margin: 0px; /* margins don't seem to work properly in IE */
+    padding: 2px 0px 2px 22px; /* space for the icon */
+    font-size: 16px;
+    line-height: 16px;
+    /*height: 20px;*/
+    color: #fff;
+}
+
+span.jxMenuItemContent span.jxMenuItemLabel {
+    /* Base setup, overrides empty labels */
+    color: #fff;
+    font-size: 11px;
+}
+
+.jxMenuItemToggle img.jxMenuItemIcon,
+.jxMenuItemToggleSet img.jxMenuItemIcon {
+    background-image: url(images/emblems.png);
+    background-position: 2px 0px;
+    background-repeat: no-repeat;
+}
+
+.jxMenuItemToggle a.jxMenuItemActive img.jxMenuItemIcon {
+    background-position: 2px -48px;
+}
+
+.jxMenuItemToggleSet a.jxMenuItemActive img.jxMenuItemIcon {
+    background-position: 2px -64px;
+}
+
+ul.jxMenu span.jxMenuSeparator {
+    /* Base setup */
+    display: block;
+
+    font-size: 10px;
+    line-height: 10px;
+    background-image: url(images/toolbar_separator_v.png);
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+
+
+/**
+ * Slider classes
+*/
+.jxSliderContainer {
+    width: 100%;
+    height: 10px;
+    border: 1px solid black;
+}
+
+.jxSliderKnob {
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.jxSliderDisabled {
+    opacity:0.4;filter:alpha(opacity=40)
+}
+
+.jxMonthPickerCell {
+    text-align: center;
+    border-width: 5px;
+    margin-left: 5px;
+    position: relative;
+    font-size: 12px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.jxMonthPickerCell:HOVER {
+    /*border-left: 1px solid #CDDFFD;
+   border-right: 1px solid #CDDFFD;*/
+    background-image: url(images/listitem.png);
+    background-repeat: repeat-x;
+    background-color: #CDE5FF;
+    background-position: left -24px;
+}
+
+.jxMonthPickerLeft {
+    position: absolute;
+    left: 10px;
+    top: 0px;
+}
+
+.jxMonthPickerRight {
+    position: absolute;
+    left: 80px;
+    top: 0px;
+}
+
+.jxMonthPickerControls {
+    position: absolute;
+    left: 35px;
+    bottom: 0px;
+}
+
+
+.jxHasVerticalScrollbar,
+.jxHasHorizontalScrollbar {
+    position: relative;
+    overflow: hidden;
+}
+
+.jxScrollbarChildWrapper {
+    overflow: hidden;
+}
+
+.jxHasVerticalScrollbar {
+    padding-right: 25px;
+}
+
+.jxHasVerticalScrollbar .jxScrollbarContainer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 20px;
+    height: 100%;
+    border: none;
+    border-left: 1px solid black;
+}
+
+.jxHasVerticalScrollbar .jxScrollLeft,
+.jxHasVerticalScrollbar .jxScrollRight {
+    width: 20px;
+    height: 20px;
+    display: block;
+    background-color: blue;
+}
+
+.jxHasVerticalScrollbar .jxSliderContainer {
+    height: 100%;
+    width: 20px;
+    border: none;
+}
+
+.jxHasHorizontalScrollbar {
+    padding-bottom: 25px;
+}
+
+.jxHasHorizontalScrollbar .jxScrollbarContainer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 20px;
+    width: 100%;
+    border: none;
+    border-top: 1px solid black;
+}
+
+.jxHasHorizontalScrollbar .jxScrollLeft,
+.jxHasHorizontalScrollbar .jxScrollRight {
+    width: 20px;
+    height: 20px;
+    display: block;
+    background-color: blue;
+}
+
+.jxHasHorizontalScrollbar .jxScrollLeft {
+    float: left;
+}
+
+.jxHasHorizontalScrollbar .jxScrollRight {
+    float: right;
+}
+
+.jxHasHorizontalScrollbar .jxSlider {
+    float: left;
+}
+
+.jxHasHorizontalScrollbar .jxSliderContainer {
+    height: 20px;
+    width: 100%;
+    border: none;
+}
+
+.jxHasVerticalScrollbar .jxSliderKnob,
+.jxHasHorizontalScrollbar .jxSliderKnob {
+    width: 20px;
+    height: 20px;
+    background-color: w;
+    cursor: pointer;
+}
+
+.jxListView {
+    position:relative;
+    display: block;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.jxListView .jxListItemContainer {
+    position: relative;
+    display: block;
+    outline: none;
+    overflow: hidden;
+
+    border: none;
+    margin: 0px 1px;
+    padding: 0px;
+}
+
+.jxListItem {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+
+    border: none;
+    margin: 0px 1px;
+    padding: 0px;
+    z-index: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #fff;
+    text-decoration: none;
+    /* Line Height needs to be an even number so branches line up properly */
+    line-height: 20px;
+    height: 20px;
+}
+
+.jxListView .jxHover {
+    margin: 0px;
+    border-left: 1px solid #CDDFFD;
+    border-right: 1px solid #CDDFFD;
+    background-image: url(images/listitem.png);
+    background-repeat: repeat-x;
+    background-color: #CDE5FF;
+    background-position: left -24px;
+
+}
+
+.jxListItem:focus {
+    margin: 0px;
+    border-left: 1px dotted #75ADFF;
+    border-right: 1px dotted #75ADFF;
+    background-image: url(images/listitem.png);
+    background-repeat: repeat-x;
+    background-position: left -72px;
+}
+
+.jxListView .jxPressed,
+.jxListView .jxSelected {
+    margin: 0px;
+    border-left: 1px solid #8AABFB;
+    border-right: 1px solid #8AABFB;
+    background-color: #CDE5FF;
+    background-image: url(images/listitem.png);
+    background-repeat: repeat-x;
+    background-position: left -48px;
+}
+
+
+/* For Reference
+   Success, notice and error boxes from Blueprint */
+
+/*
+.error      { background: #FBE3E4; color: #8a1f11; border-color: #FBC2C4; }
+.notice     { background: #FFF6BF; color: #514721; border-color: #FFD324; }
+.success    { background: #E6EFC2; color: #264409; border-color: #C6D880; }
+.error a    { color: #8a1f11; }
+.notice a   { color: #514721; }
+.success a  { color: #264409; }
+*/
+
+
+.jxNoticeListContainer {
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    font-size: 0px;
+    line-height: 0px;
+    z-index: 500;
+}
+
+.jxNoticeList {
+    position: relative;
+}
+
+.jxNoticeItemContainer {
+    position: relative;
+    overflow: hidden;
+}
+
+.jxNoticeItemContainer .jxChrome {
+    background-image: url(images/flyout_chrome.png);
+    padding: 5px 5px 7px 6px;
+}
+
+.jxHasChrome .jxNoticeItem  {
+    margin: 6px 6px 8px 7px;
+}
+
+.jxNoticeItem {
+    position: relative;
+    border: 2px solid #ccc;
+    margin: 0px;
+    padding: 0px;
+    background-color: #f8f8f8;
+    background-image: url(images/notice.png);
+    background-repeat: repeat-x;
+    background-position: left bottom;
+}
+
+.jxNoticeIcon {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin: 6px;
+    width: 16px;
+    height: 16px;
+    background-image: url(images/icons.png);
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+}
+
+.jxNotice {
+    display: block;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 18px;
+    color: #666;
+    margin: 0px;
+    border: none;
+    padding: 6px 26px 6px 10px;
+}
+
+.jxNoticeError .jxNoticeItem { background-color: #FBE3E4; color: #8a1f11; border-color: #FBC2C4; background-image: url(images/notice_error.png);}
+.jxNoticeWarning .jxNoticeItem { background-color: #FFF6BF; color: #514721; border-color: #FFD324; background-image: url(images/notice_warning.png);}
+.jxNoticeSuccess .jxNoticeItem { background-color: #E6EFC2; color: #264409; border-color: #C6D880; background-image: url(images/notice_success.png);}
+.jxNoticeInformation .jxNoticeItem { background-color: #F8F8F8; color: #666666; border-color: #CCCCCC; background-image: url(images/notice.png);}
+
+.jxNoticeError .jxNotice { color: #8a1f11; padding-left: 28px; }
+.jxNoticeWarning .jxNotice { color: #514721; padding-left: 28px; }
+.jxNoticeSuccess .jxNotice { color: #264409; padding-left: 28px; }
+.jxNoticeInformation .jxNotice { color: #666666; padding-left: 28px; }
+
+.jxNoticeError .jxNoticeIcon { background-position: 0px -32px; }
+.jxNoticeWarning .jxNoticeIcon { background-position: 0px -16px; }
+.jxNoticeSuccess .jxNoticeIcon { background-position: 0px -48px; }
+.jxNoticeInformation .jxNoticeIcon { background-position: 0px -64px; }
+
+.jxNoticeClose {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    margin: 6px;
+    width: 16px;
+    height: 16px;
+    background-image: url(images/tab_close.png);
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============== */
+/* TOOLBAR STYLES */
+/* ============== */
+
+/* Multiple toolbars can be housed in  the toolbar container.
+   The container will expand vertically to accomodate wrapped toolbars */
+
+.jxBarContainer {
+    /* Base setup */
+    display: block;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+
+    background-color: #f0f0f0;
+}
+
+.jxBarTop,
+.jxBarBottom {
+    /* Horizontally oriented toolbars */
+    /* Base setup */
+    width: 100%; /* fills the width, may be needed for JS style sniffing */
+    height: 28px;
+    background-image: url(images/toolbar.png);
+    background-repeat: repeat-x;
+    background-position: 0px 0px;
+    overflow: hidden;
+}
+
+.jxTabBox .jxTabBarTop {
+    background-image: url(images/tabbar.png);
+    background-position: 0px bottom;
+}
+
+.jxTabBox .jxTabBarBottom {
+    background-image: url(images/tabbar_bottom.png);
+    background-position: 0px top;
+}
+
+.jxBarLeft,
+.jxBarRight {
+    /* Vertically oriented toolbars */
+    /* Base setup */
+    width: auto;
+    height: 100%;
+    background-image: url(images/toolbar.png);
+    background-repeat: repeat-x;
+    background-position: 0px 0px;
+    float: left;
+    overflow: hidden;
+}
+
+.jxTabBox .jxTabBarLeft {
+    background-image: url(images/tabbar_left.png);
+    background-repeat: repeat-y;
+    background-position: right 0px;
+}
+
+.jxTabBox .jxTabBarRight {
+    background-image: url(images/tabbar_right.png);
+    background-repeat: repeat-y;
+    background-position: left 0px;
+}
+
+
+.jxBarTop .jxBarScroller,
+.jxBarBottom .jxBarScroller {
+    float: left;
+    height: 28px;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.jxBarTop .jxBarScroller .jxBarWrapper,
+.jxBarBottom .jxBarScroller .jxBarWrapper {
+    float: left;
+    height: 28px;
+    overflow: hidden;
+    width: 10000%;
+}
+
+.jxBarTop .jxBarControls .jxButtonContainer,
+.jxBarBottom .jxBarControls .jxButtonContainer {
+    /* float: right; */
+    z-index: 1;
+    padding: 2px 0px;
+    margin-left: -1px;
+}
+
+.jxBarTop .jxBarScrollLeft img.jxButtonIcon,
+.jxBarBottom .jxBarScrollLeft img.jxButtonIcon {
+    background-image: url(images/emblems.png);
+    background-position: 0px -80px;
+}
+
+.jxBarTop .jxBarScrollRight img.jxButtonIcon,
+.jxBarBottom .jxBarScrollRight img.jxButtonIcon {
+    background-image: url(images/emblems.png);
+    background-position: 0px -96px;
+}
+
+.jxBarControls {
+    float: right;
+    position: relative;
+    font-size: 0px;
+    line-height: 0px;
+}
+
+/* The jx toolbar and tabbar are both built out of a UL
+   The margins/padding are flattened out, and the list markers are hidden
+   UL's are floated left so multiple toolbars can be in the samae row.
+   In IE, the UL needs to have a specified width to prevent button wrapping.
+
+   The tab background uses the sliding door technique so tabs can expand to
+   accomodate content up to 200 px wide (top/bottom tabs) or 200px high
+   (left/right tabs).  All parts and states of the tab BG graphics are in the
+   same image so they can be treated like sprites.
+
+   Horizontal tabs can contain text or an image label.  Vertical tabs need an
+   image label.
+*/
+
+ul.jxToolbar,
+ul.jxTabBar {
+    /* Base setup */
+    display: block;
+    position: relative;
+    float: left;
+    clear: none;
+    list-style-type: none;
+
+    margin: 0px;  /* margins don't seem to work properly in IE */
+    padding: 0px;
+    border: none;
+}
+
+.jxBarTop ul.jxToolbar,
+.jxBarBottom ul.jxToolbar,
+.jxBarTop ul.jxTabBar,
+.jxBarBottom ul.jxTabBar {
+}
+
+/* LI's are floated to the left, to make a horizontal row of buttons*/
+
+li.jxToolItem {
+    /* Base setup */
+    display: block;
+    position: relative;
+    float: left;
+    font-size: 0px;
+    line-height: 0px;
+    white-space: nowrap;
+    padding: 0px;
+    margin: 0px;  /* margins don't seem to work properly in IE */
+    border: none;
+}
+
+/* inputs in toolbars wrap in IE */
+li.jxToolItem .jxInputWrapper {
+    white-space: nowrap;
+}
+
+/* Seperator height should match that of button images
+   and the margins+padding+border should add up to the same total too. */
+
+li.jxToolItem  span.jxBarSeparator {
+    /* Base setup */
+    display: block;
+    position: relative;
+    float: left;
+    font-size: 0px;
+    line-height: 0px;
+
+    border: 0px;
+    margin: 0px;  /* margins don't seem to work properly in IE */
+    padding: 4px;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.jxBarTop  li.jxToolItem  span.jxBarSeparator,
+.jxBarBottom  li.jxToolItem  span.jxBarSeparator {
+    /* width/height should be defined */
+    width: 8px;
+    height: 20px;
+    background-image: url(images/toolbar_separator_h.png);
+}
+
+.jxBarLeft  li.jxToolItem  span.jxBarSeparator,
+.jxBarRight  li.jxToolItem  span.jxBarSeparator {
+    /* width/height should be defined */
+    width: 20px;
+    height: 8px;
+    background-image: url(images/toolbar_separator_v.png);
+}
+
+/* Vertically oriented toolbars need floats cleared */
+
+.jxBarLeft ul.jxToolbar,
+.jxBarLeft ul.jxTabBar,
+.jxBarLeft li.jxToolItem,
+.jxBarRight ul.jxToolbar,
+.jxBarRight ul.jxTabBar,
+.jxBarRight li.jxToolItem
+{
+    /* Base setup */
+    clear: both;
+}
+
+
+/* Aligning options */
+.jxToolbarAlignLeft ul {
+    float: left;
+}
+
+.jxToolbarAlignRight ul {
+    float: right;
+}
+
+.jxToolbarAlignCenter {
+    text-align: center;
+}
+
+.jxToolbarAlignCenter ul {
+    float: none;
+}
+
+.jxToolbarAlignCenter ul li {
+    float: none;
+    display: inline;
+}
+
+.jxEditorTextarea {
+    display: none;
+}
+
+.jxEditorIframe {
+    width: 100%;
+    height: 100%;
+}
+
+.jxEditor {
+    border: 1px solid black;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+.jxEditor span.jxEditorToolbar {
+    display: block;
+    position: relative;
+}
+
+.jxEditor span.jxEditorToolbar label.jxInputLabel {
+    width: auto;
+}
+
+/**
+ * Editor Buttons
+*/
+
+.jxEditorButtonBold {
+    background-image: url(images/text_bold.png);
+}
+
+.jxEditorButtonItalic {
+    background-image: url(images/text_italic.png);
+}
+
+.jxEditorButtonUnderline {
+    background-image: url(images/text_underline.png);
+}
+
+.jxEditorButtonJustifyLeft {
+    background-image: url(images/text_align_left.png);
+}
+
+.jxEditorButtonJustifyRight {
+    background-image: url(images/text_align_right.png);
+}
+
+.jxEditorButtonJustifyCenter {
+    background-image: url(images/text_align_center.png);
+}
+
+.jxEditorButtonJustifyFull {
+    background-image: url(images/text_align_justify.png);
+}
+
+.jxEditorButtonImage {
+    background-image: url(images/image.png);
+}
+
+.jxEditorButtonIndent {
+    background-image: url(images/text_indent.png);
+}
+
+.jxEditorButtonLink {
+    background-image: url(images/link.png);
+}
+
+.jxEditorButtonOrderedList {
+    background-image: url(images/text_list_numbers.png);
+}
+
+.jxEditorButtonOutdent {
+    background-image: url(images/text_indent_remove.png);
+}
+
+.jxEditorButtonRedo {
+    background-image: url(images/edit-redo.png);
+}
+
+.jxEditorButtonStrikethrough {
+    background-image: url(images/text_strikethrough.png);
+}
+
+.jxEditorButtonToggleView {
+    background-image: url(images/toggleview.png);
+}
+
+.jxEditorButtonUndo {
+    background-image: url(images/edit-undo.png);
+}
+
+.jxEditorButtonUnlink {
+    background-image: url(images/link_break.png);
+}
+
+.jxEditorButtonUnorderedList {
+    background-image: url(images/text_list_bullets.png);
+}
+
+/*
+ * Tooltip classes
+*/
+.jxTooltip {
+    width: auto;
+    height: auto;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    z-index: 65536;
+}
+
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* =============== */
+/* JX PANEL STYLES */
+/* =============== */
+
+.jxPanel {
+    /* Base setup */
+    display: block;
+    position:relative;
+}
+
+.jxPanelContentContainer {
+    /* Base setup */
+    /* need to test various scenarios to see if this is limiting */
+    overflow: hidden;
+    /*margin: 5px;*/
+    background-color: #f0f0f0;
+}
+
+/* the content panel inside a panel */
+.jxPanelContent {
+    /* Base setup */
+    /* position relative is required for panels to work correctly in safari */
+    position: relative;
+    display: block;
+    overflow: auto;
+
+    /*border: 1px solid #d8d8d8;*/
+    background-color: #000;
+    margin: 0px;
+    padding: 0px;
+}
+
+.jxPanelTitle {
+    /* Base setup */
+    /* position relative is required for panel dragging to work correctly in safari */
+    display: block;
+    position: relative;
+
+    background-image: url(images/panelbar.png);
+    background-repeat: repeat-x;
+    background-position: left top;
+    /* note this is hard coded into jx.js JxPanel initialize function - change there as well as here */
+    height: 22px;
+    margin: 0;
+    padding: 0;
+
+    text-align: center;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+/* JX PANELSET STYLE FOR TITLE BAR */
+.jxPanelBar {
+    position: absolute;
+    line-height: 1px;
+    width: 100%;
+    height: 5px;
+    cursor: row-resize;
+    /*background-image: url(images/a_pixel.png);*/
+    background-color: #f0f0f0;
+    z-index: 2;
+}
+
+.jxPanelIcon {
+    position: absolute;
+    left: 2px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.jxPanelLabel {
+    /* make room for the loading spinner */
+    padding-left: 25px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    /* line-height vertically aligns the label in the containing div. */
+    line-height:21px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.jxPanelControls {
+    position: absolute;
+    top: 3px;
+    right: 2px;
+    height: 16px;
+    width: 80px;
+    overflow: hidden;
+}
+
+.jxPanelControls img {
+    background-image: url('images/panel_controls.png');
+    background-repeat: no-repeat;
+    border: 0px;
+    /* the margin needs to make up the difference between it's width/height
+       and the width/height of the parent a */
+    margin: 0px;
+    /* width/height has to be the actual image width/height */
+    width: 16px;
+    height: 16px;
+}
+
+.jxPanelClose img {
+    background-position: 0px -32px;
+}
+
+.jxPanelMenu img {
+    background-position: 0px -48px;
+}
+
+.jxPanelHelp img {
+    background-position: 0px -64px;
+}
+
+.jxPanelCollapse img {
+    background-position: 0px -16px;
+}
+
+.jxPanelMin .jxPanelCollapse img {
+    background-position: 0px 0px;
+}
+
+.jxPanelMax .jxPanelCollapse img {
+    background-position: 0px -16px;
+}
+
+.jxPanelMaximize img {
+    background-position: 0px 0px;
+}
+
+.jxPanelLoading img {
+    border: 0px;
+    /* the margin needs to make up the difference between it's width/height
+       and the width/height of the parent a */
+    margin: 0px;
+    /* width/height has to be the actual image width/height */
+    width: 16px;
+    height: 16px;
+    visibility:hidden;
+    position: absolute;
+    top: 1px;
+    left: 2px;
+}
+
+
+
+/* ========================= */
+/* JX BUTTON STYLES OVERIDES */
+/* ========================= */
+
+.jxPanelControls .jxButtonContainer,
+.jxPanelControls .jxButton,
+.jxPanelControls .jxButton:hover,
+.jxPanelControls .jxButton:active ,
+.jxPanelControls .jxButtonActive,
+.jxPanelControls .jxButtonActive:hover,
+.jxPanelControls .jxButtonActive:active,
+.jxPanelControls .jxDisabled .jxButton,
+.jxPanelControls .jxDisabled .jxButton:hover,
+.jxPanelControls .jxDisabled .jxButton:active {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+    background-image: none;
+}
+
+
+/* ========================== */
+/* JX TOOLBAR STYLES OVERIDES */
+/* ========================== */
+
+/* Multiple toolbars can be housed in  the toolbar container the container will expand vertically to accomodate wrapped toolbars */
+
+.jxPanelControls div.jxBarTop {
+    /* Base setup */
+    position: absolute;
+    right: 0px;
+    background-image: none;
+    background-color: transparent;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    height: 16px;
+}
+
+.jxPanelControls .jxBarScroller {
+    left: auto;
+    right: 0px;
+}
+
+.jxPanelControls ul.jxToolbar {
+    float: right;
+}
+
+.jxPanelControls ul.jxToolbar,
+.jxPanelControls li.jxToolItem {
+    background-image: none;
+    background-color: transparent;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+}
+
+.jxDatePicker {
+    position: absolute;
+    width: 165px;
+    height: 150px;
+    left: 0px;
+    border: 1px solid #000;
+    padding: 2px;
+    background-image: url(images/a_pixel.png);
+}
+
+.jxDatePickerBar {
+    position: relative;
+    overflow: hidden;
+}
+
+img.jxPrevDatePickerIcon {
+    background-image: url(images/emblems.png);
+    background-position: right -144px;
+    background-repeat: no-repeat;
+}
+img.jxNextDatePickerIcon {
+    background-image: url(images/emblems.png);
+    background-position: right -32px;
+    background-repeat: no-repeat;
+}
+
+.jxDatePickerPrevButton .jxButtonContainer,
+.jxDatePickerPrevButton .jxButtonContent,
+.jxDatePickerPrevButton .jxButton,
+.jxDatePickerNextButton .jxButtonContainer,
+.jxDatePickerNextButton .jxButtonContent,
+.jxDatePickerNextButton .jxButton,
+.jxDatePickerBar .jxButtonContainer,
+.jxDatePickerBar .jxButtonContent,
+.jxDatePickerBar .jxButton	{
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+    background-color: transparent;
+    background-image: none;
+}
+
+.jxDatePickerCell {
+    text-align: center;
+    height: 14px;
+    width: 24px;
+    border-width: 5px;
+    position: relative;
+    font-size: 10px;
+    font-weight: normal;
+    cursor: pointer;
+}
+.jxDatePickerEmptyCell {
+    height: 14px;
+    width: 24px;
+    border-width: 5px;
+    position: relative;
+}
+
+.jxDatePickerHeaderCell {
+    text-align: center;
+    height: 14px;
+    width: 24px;
+    border-width: 5px;
+    position: relative;
+    font-size: 10px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.jxDatePickerCell:HOVER {
+    margin: 0px;
+    /*border-left: 1px solid #CDDFFD;
+    border-right: 1px solid #CDDFFD;*/
+    background-image: url(images/listitem.png);
+    background-repeat: repeat-x;
+    background-color: #CDE5FF;
+    background-position: left -24px;
+}
+
+.jxDatePickerSelected {
+    margin: 0px;
+    /*border-left: 1px solid #8AABFB;
+    border-right: 1px solid #8AABFB;*/
+    background-color: #CDE5FF;
+    background-image: url(images/listitem.png);
+    background-repeat: repeat-x;
+    background-position: left -48px;
+}
+
+/**
+ * progress bar classes
+*/
+.jxProgressBar-container {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.jxProgressBar-message {
+    position: relative;
+    display: block;
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.jxProgressBar {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 20px;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.jxProgressBar-outline {
+    position: absolute;
+    display: block;
+    top: 0px;
+    left: 0px;
+    z-index: 10;
+    height: 20px;
+    border-left: 1px solid #cbc8c8;
+    border-right: 1px solid #cbc8c8;
+    background-image: url(images/progressbar.png);
+    background-position: 0px -140px;
+    width: 100%;
+}
+
+.jxProgressBar-fill {
+    position: absolute;
+    display: block;
+    top: 0px;
+    left: 0px;
+    z-index: 20;
+    height: 20px;
+    border: none;
+    background-image: url(images/progressbar.png);
+    background-position: 0px 0px;
+}
+
+.jxProgressStarting .jxProgressBar-fill {
+    border: none;
+}
+
+.jxProgressWorking .jxProgressBar-fill {
+    border-left: 1px solid #49afe8;
+}
+
+.jxProgressFinished .jxProgressBar-fill {
+    border-left: 1px solid #49afe8;
+    border-right: 1px solid #49afe8;
+}
+
+.jxProgressBar-text {
+    position: absolute;
+    display: block;
+    overflow: visible;
+    top: 0px;
+    left: 1px;
+    width: auto;
+    height: 20px;
+    z-index: 30;
+    border: none;
+    margin: 0px;
+    padding: 0px 0px 0px 4px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============== */
+/* JX MENU STYLES */
+/* ============== */
+
+.jxMenuContainer .jxChrome {
+    /* the background image gets used by Jx.Chrome to create a stretchable chrome */
+    background-image: url(images/flyout_chrome.png);
+    /* the padding reflects the amount of space to leave around the content area
+     * for the chrome, typically to leave space for a shadow
+    */
+    padding: 5px 5px 7px 6px;
+}
+
+.jxButtonMenu span.jxMenuItemSpan {
+    padding-right: 16px;
+}
+
+/* Jx Menus and Sub-menus are all built out of nested ULs
+   For this to work visually, the margins and padding need to be flattened
+   out, and the list marker needs to be hidden
+*/
+
+.jxMenuContainer {
+    position: absolute;
+    top: 0;
+    left: -10000px;
+    display: none;
+    z-index: 10000;
+    padding: 0px;
+}
+
+ul.jxMenu {
+    /* Base setup */
+    display: block;
+    position: relative;
+
+    list-style-type: none;
+    padding: 1px;
+    margin: 6px 6px 8px 7px;
+    background-color: #000;
+    border: 1px solid #999;
+}
+
+li.jxMenuItemContainer {
+    /* This is needed for IE to make sure submenus don't open space in the parent menu */
+    /* Base setup */
+    display: block;
+    position: relative;
+    font-size: 0px;
+    line-height: 0px;
+
+    margin: 0px;
+    padding: 0px;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+a.jxMenuItem {
+    /* Base setup */
+    display: block;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    cursor: pointer;
+    outline: none;
+
+    border: 1px solid #000;
+    background-image: url(images/menuitem.png);
+    background-repeat: no-repeat;
+    background-position: left top;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    text-decoration: none;
+    margin: 0px;
+    padding: 0px;
+    color: white;
+}
+
+a.jxMenuItemActive {
+    background-position: left -98px;
+}
+
+a.jxMenuItem:focus {
+    background-position: left -74px;
+}
+
+a.jxMenuItem:focus span.jxMenuItemContent {
+    border-right: 1px dotted #75ADFF;
+}
+
+a.jxMenuItemActive:focus {
+    background-position: left -170px;
+}
+
+a.jxMenuItem:hover {
+    background-color: #CDE5FF;
+    background-position: left -26px;
+}
+
+a.jxMenuItem:hover span.jxMenuItemContent {
+    border-right: 1px solid #C5E0FF;
+}
+
+a.jxMenuItemActive:hover {
+    background-position: left -122px;
+}
+
+a.jxMenuItemPressed,
+a.jxMenuItemPressed:hover {
+    background-color: #CDE5FF;
+    background-position: left -50px;
+}
+
+.jxDisabled a.jxMenuItem,
+.jxDisabled span.jxMenuItemContent span {
+    cursor: default;
+}
+
+.jxDisabled a.jxMenuItem:focus,
+.jxDisabled a.jxMenuItemPressed,
+.jxDisabled a.jxMenuItemPressed:hover,
+.jxDisabled a.jxMenuItem:hover {
+    background-color: #000;
+    background-position: left top;
+    border-right: 1px solid #000;
+}
+
+.jxDisabled a.jxMenuItem:hover span.jxMenuItemContent {
+    border-right: 1px solid #000;
+}
+
+span.jxMenuItemContent {
+    /* If using background images, the SPAN contains the right side of the background */
+    /* use padding to make space between the icon and button edge */
+    /* padding-left: 0px;*/ /* butts up to the left of the button bg image */
+    /* Base setup */
+    display: block;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0px;
+    line-height: 0px;
+    white-space: nowrap;
+    padding: 0px 20px 0px 0px; /* space for the arrow */
+    margin: 0px;
+    border-right: 1px solid #000; /* forces IE to render properly */
+    /*overflow: hidden;*/
+}
+
+.jxButtonSubMenu span.jxMenuItemContent,
+.jxButtonSubMenu:hover span.jxMenuItemContent {
+    background-image: url(images/emblems.png);
+    background-position: right -30px;
+    background-repeat: no-repeat;
+}
+
+img.jxMenuItemIcon {
+    /* Base setup */
+    position: absolute;
+    top: 2px;
+    left: 2px;
+
+    width: 16px;
+    height: 16px;
+    background-position: left center;
+    background-repeat: no-repeat;
+}
+
+span.jxMenuItemContent span {
+    /* Base setup for empty labels */
+    display: block;
+    position: relative;
+    cursor: pointer;
+    margin: 0px; /* margins don't seem to work properly in IE */
+    padding: 2px 0px 2px 22px; /* space for the icon */
+    font-size: 16px;
+    line-height: 16px;
+    /*height: 20px;*/
+    color: #fff;
+}
+
+span.jxMenuItemContent span.jxMenuItemLabel {
+    /* Base setup, overrides empty labels */
+    color: #fff;
+    font-size: 11px;
+}
+
+.jxMenuItemToggle img.jxMenuItemIcon,
+.jxMenuItemToggleSet img.jxMenuItemIcon {
+    background-image: url(images/emblems.png);
+    background-position: 2px 0px;
+    background-repeat: no-repeat;
+}
+
+.jxMenuItemToggle a.jxMenuItemActive img.jxMenuItemIcon {
+    background-position: 2px -48px;
+}
+
+.jxMenuItemToggleSet a.jxMenuItemActive img.jxMenuItemIcon {
+    background-position: 2px -64px;
+}
+
+ul.jxMenu span.jxMenuSeparator {
+    /* Base setup */
+    display: block;
+
+    font-size: 10px;
+    line-height: 10px;
+    background-image: url(images/toolbar_separator_v.png);
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ================== */
+/* TAB CONTENT STYLES */
+/* ================== */
+
+/* The tabBox consists of a box containing a tabbar and the tab content areas.
+   It can be used within the body or nested within another object.
+*/
+
+.jxTabSetContainer {
+    /* This is an example of a container that can be used to hold a tabBox
+       the position need to be explicitly set, as well as the width and height. */
+    /* Base setup */
+    position: relative;
+    display: block;
+    overflow: hidden;
+
+    width: 200px;
+    height: 200px;
+    margin: 0px;
+    padding: 0px;
+    background-color: #000;
+}
+
+.jxTabSetContainer  .jxBarContainer {
+    /* Base setup */
+    z-index: auto;
+}
+
+.tabContent {
+    /* the width and height need to be set to 100% to:
+       1. fill the tab box area
+       2. allow a scrolling content area in IE */
+    /* Base setup */
+    display: none;
+    position: relative;
+    width:100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.tabContentActive {
+    /* Base setup */
+    display: block;
+}
+
+/* ======================== */
+/* BASE TAB (BUTTON) STYLES */
+/* ======================== */
+
+span.jxTabContainer {
+    /* Base setup */
+    display: block;
+    position: relative;
+
+    margin: 0px;
+    padding: 2px;
+    border: none;
+}
+
+a.jxTab {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+
+    /* Using background images, the A contains the left side of the background */
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    background-repeat: no-repeat;
+    text-decoration: none;
+    outline: none;
+}
+
+span.jxTabContent {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    font-size: 0px;
+    line-height: 0px;
+
+    /* The SPAN contains the other side of the tab background image
+       and the tab label */
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    background-repeat: no-repeat;
+}
+
+img.jxTabIcon {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+
+    width: 16px;
+    height: 16px;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+span.jxTabLabel {
+    /* Base setup */
+    display: -moz-inline-box;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+
+    margin: 0px;
+    padding: 0px;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 16px;
+}
+
+a.jxTabClose {
+    /* Base setup */
+    display: block;
+    position: absolute;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    width: 16px;
+    height: 16px;
+    background-image: url(images/tab_close.png);
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+}
+
+.jxDisabled a.jxTab,
+.jxDisabled span.jxTabContent span,
+.jxDisabled a.jxTabClose {
+    cursor: default;
+}
+
+.jxTabBox {
+}
+
+/* ======================================= */
+/* HORIZONTALTAB BAR - TOP and BOTTOM TABS */
+/* ======================================= */
+
+.jxTabBarTop .jxBarWrapper,
+.jxTabBarBottom .jxBarWrapper {
+    padding-left: 2px;
+}
+
+.jxBarTop span.jxTabContainer,
+.jxBarBottom span.jxTabContainer {
+    /* Base setup */
+    margin-right: -1px;
+    padding: 2px 0px;
+}
+
+.jxBarTop a.jxTab,
+.jxBarTop span.jxTabContent,
+.jxTabBarTop .jxBarControls a.jxButton,
+.jxTabBarTop .jxBarControls span.jxButtonContent{
+    background-image: url(images/tab_top.png);
+}
+
+.jxBarBottom a.jxTab,
+.jxBarBottom span.jxTabContent,
+.jxTabBarBottom .jxBarControls a.jxButton,
+.jxTabBarBottom .jxBarControls span.jxButtonContent {
+    background-image: url(images/tab_bottom.png);
+}
+
+/* Closeable Tab */
+.jxBarTop a.jxTabClose,
+.jxBarBottom a.jxTabClose {
+    top: 5px;
+    right: 5px;
+}
+
+.jxBarTop .jxTabClose span.jxTabContent,
+.jxBarBottom .jxTabClose span.jxTabContent {
+    padding-right: 16px;
+}
+
+/* Normal Tab */
+.jxBarTop a.jxTab,
+.jxBarBottom a.jxTab {
+    /* Base setup */
+
+    padding-left: 4px; /* makes room for the left of the tab bg */
+    background-position: left -24px;
+}
+
+.jxBarTop span.jxTabContent,
+.jxBarBottom span.jxTabContent {
+    /* Base setup */
+
+    padding: 4px 4px 4px 0px; /* makes space around the label */
+    background-position: right -24px;
+}
+
+/* Active tab */
+.jxBarTop a.jxTabActive,
+.jxBarBottom a.jxTabActive {
+    background-position: left -72px;
+}
+
+.jxBarTop a.jxTabActive span.jxTabContent,
+.jxBarBottom a.jxTabActive span.jxTabContent {
+    background-position: right -72px;
+}
+
+/* Focus tab */
+.jxBarTop a.jxTab:focus,
+.jxBarBottom a.jxTab:focus {
+    background-position: left -96px;
+}
+
+.jxBarTop a.jxTab:focus span.jxTabContent,
+.jxBarBottom a.jxTab:focus span.jxTabContent {
+    background-position: right -96px;
+}
+
+/* Focus Active tab */
+.jxBarTop a.jxTabActive:focus,
+.jxBarBottom a.jxTabActive:focus {
+    background-position: left -144px;
+}
+
+.jxBarTop a.jxTabActive:focus span.jxTabContent,
+.jxBarBottom a.jxTabActive:focus span.jxTabContent {
+    background-position: right -144px;
+}
+
+/* Hover Normal and Active  Tab */
+.jxBarTop a.jxTab:hover,
+.jxBarTop a.jxTabActive:hover,
+.jxBarBottom a.jxTab:hover,
+.jxBarBottom a.jxTabActive:hover {
+    background-position: left -48px;
+}
+
+.jxBarTop a.jxTab:hover span.jxTabContent,
+.jxBarTop a.jxTabActive:hover span.jxTabContent,
+.jxBarBottom a.jxTab:hover span.jxTabContent,
+.jxBarBottom a.jxTabActive:hover span.jxTabContent {
+    background-position: right -48px;
+}
+
+/* Click Normal and Focused Tab */
+.jxBarTop a.jxTabPressed,
+.jxBarTop a.jxTabPressed:focus,
+.jxBarBottom a.jxTabPressed,
+.jxBarBottom a.jxTabPressed:focus {
+    background-position: left -120px;
+}
+
+.jxBarTop a.jxTabPressed span.jxTabContent,
+.jxBarTop a.jxTabPressed:focus span.jxTabContent,
+.jxBarBottom a.jxTabPressed span.jxTabContent,
+.jxBarBottom a.jxTabPressed:focus span.jxTabContent {
+    background-position: right -120px;
+}
+
+/* Hover, Focus and Pressing Disabled Tab */
+.jxBarTop .jxDisabled a.jxTab:focus,
+.jxBarTop .jxDisabled a.jxTab:active,
+.jxBarTop .jxDisabled a.jxTab:hover,
+.jxBarTop .jxDisabled a.jxTabPressed,
+.jxBarBottom .jxDisabled a.jxTab:focus,
+.jxBarBottom .jxDisabled a.jxTab:active,
+.jxBarBottom .jxDisabled a.jxTab:hover,
+.jxBarBottom .jxDisabled a.jxTabPressed {
+    background-position: left -24px; /* do not switch the left BG */
+}
+
+
+.jxBarTop .jxDisabled a.jxTab:focus span.jxTabContent,
+.jxBarTop .jxDisabled a.jxTab:active span.jxTabContent,
+.jxBarTop .jxDisabled a.jxTab:hover span.jxTabContent,
+.jxBarTop .jxDisabled a.jxTabPressed span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTab:focus span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTab:active span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTab:hover span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTabPressed  span.jxTabContent {
+    background-position: right -24px; /* do not switch the right BG */
+}
+
+/* Hover, Focus Disabled Active Tab */
+.jxBarTop .jxDisabled a.jxTabActive:focus,
+.jxBarTop .jxDisabled a.jxTabActive:active,
+.jxBarTop .jxDisabled a.jxTabActive:hover,
+.jxBarBottom .jxDisabled a.jxTabActive:focus,
+.jxBarBottom .jxDisabled a.jxTabActive:active,
+.jxBarBottom .jxDisabled a.jxTabActive:hover {
+    background-position: left -72px; /* do not switch the left BG */
+}
+
+
+.jxBarTop .jxDisabled a.jxTabActive:focus span.jxTabContent,
+.jxBarTop .jxDisabled a.jxTabActive:active span.jxTabContent,
+.jxBarTop .jxDisabled a.jxTabActive:hover span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTabActive:focus span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTabActive:active span.jxTabContent,
+.jxBarBottom .jxDisabled a.jxTabActive:hover span.jxTabContent {
+    background-position: right -72px; /* do not switch the right BG */
+}
+
+.jxBarTop img.jxTabIcon,
+.jxBarBottom img.jxTabIcon {
+    vertical-align: middle;
+    /* Base setup */
+}
+
+.jxBarTop span.jxTabLabel,
+.jxBarBottom span.jxTabLabel {
+    /* Base setup */
+    vertical-align: middle;
+    height: 16px;
+
+    padding: 0px 4px 0px 4px;
+}
+
+
+/* ================================= */
+/* VERTICAL TAB BAR - LEFT and RIGHT */
+/* ================================= */
+
+.jxTabBarLeft .jxBarWrapper,
+.jxTabBarRight .jxBarWrapper {
+    padding-top: 2px;
+}
+
+.jxBarLeft span.jxTabContainer,
+.jxBarRight span.jxTabContainer {
+    /* Base setup */
+    margin-bottom: -1px;
+    padding: 0px 2px;
+}
+
+
+.jxBarLeft a.jxTab,
+.jxBarLeft span.jxTabContent {
+    background-image: url(images/tab_left.png);
+}
+
+.jxBarRight a.jxTab,
+.jxBarRight span.jxTabContent {
+    background-image: url(images/tab_right.png);
+}
+
+/* Closeable Tab */
+.jxBarLeft a.jxTabClose,
+.jxBarRight a.jxTabClose {
+    top: 5px;
+    left: 5px;
+}
+
+.jxBarLeft .jxTabClose span.jxTabContent,
+.jxBarRight .jxTabClose span.jxTabContent {
+    padding-top: 16px;
+}
+
+/* Normal Tab */
+.jxBarLeft a.jxTab,
+.jxBarRight a.jxTab {
+    padding-top: 4px; /* makes room for the top of the tab bg */
+    background-position: -24px top;
+}
+
+.jxBarLeft span.jxTabContent,
+.jxBarRight span.jxTabContent {
+    padding: 0px 4px 4px 4px; /* makes space around the label */
+    background-position: -24px bottom;
+}
+
+/* Active Tab */
+.jxBarLeft a.jxTabActive,
+.jxBarRight a.jxTabActive {
+    background-position: -72px top;
+}
+
+.jxBarLeft a.jxTabActive span.jxTabContent,
+.jxBarRight a.jxTabActive span.jxTabContent {
+    background-position: -72px bottom;
+}
+
+/* Focus tab */
+.jxBarLeft a.jxTab:focus,
+.jxBarRight a.jxTab:focus {
+    background-position: -96px top;
+}
+
+.jxBarLeft a.jxTab:focus span.jxTabContent,
+.jxBarRight a.jxTab:focus span.jxTabContent {
+    background-position: -96px bottom;
+}
+
+/* Focus Active tab */
+.jxBarLeft a.jxTabActive:focus,
+.jxBarRight a.jxTabActive:focus {
+    background-position: -144px top;
+}
+
+.jxBarLeft a.jxTabActive:focus span.jxTabContent,
+.jxBarRight a.jxTabActive:focus span.jxTabContent {
+    background-position: -144px bottom;
+}
+
+/* Hover Normal and Active tab */
+.jxBarLeft a.jxTab:hover,
+.jxBarLeft a.jxTabActive:hover,
+.jxBarRight a.jxTab:hover,
+.jxBarRight a.jxTabActive:hover {
+    background-position: -48px top;
+}
+
+.jxBarLeft a.jxTab:hover span.jxTabContent,
+.jxBarLeft a.jxTabActive:hover span.jxTabContent,
+.jxBarRight a.jxTab:hover span.jxTabContent,
+.jxBarRight a.jxTabActive:hover span.jxTabContent {
+    background-position: -48px bottom;
+}
+
+/* Click Normal and Focused Tab */
+.jxBarLeft a.jxTabPressed,
+.jxBarLeft a.jxTabPressed:focus,
+.jxBarRight a.jxTabPressed,
+.jxBarRight a.jxTabPressed:focus {
+    background-position: -120px top;
+}
+
+.jxBarLeft a.jxTabPressed span.jxTabContent,
+.jxBarLeft a.jxTabPressed:focus span.jxTabContent,
+.jxBarRight a.jxTabPressed span.jxTabContent,
+.jxBarRight a.jxTabPressed:focus span.jxTabContent {
+    background-position: -120px bottom;
+}
+
+/* Hover, Focus and Pressing Disabled Tab */
+.jxBarLeft .jxDisabled a.jxTab:focus,
+.jxBarLeft .jxDisabled a.jxTab:active,
+.jxBarLeft .jxDisabled a.jxTab:hover,
+.jxBarLeft .jxDisabled a.jxTabPressed,
+.jxBarRight .jxDisabled a.jxTab:focus,
+.jxBarRight .jxDisabled a.jxTab:active,
+.jxBarRight .jxDisabled a.jxTab:hover,
+.jxBarRight .jxDisabled a.jxTabPressed {
+    background-position: -24px top; /* do not switch the left BG */
+}
+
+
+.jxBarLeft .jxDisabled a.jxTab:focus span.jxTabContent,
+.jxBarLeft .jxDisabled a.jxTab:active span.jxTabContent,
+.jxBarLeft .jxDisabled a.jxTab:hover span.jxTabContent,
+.jxBarLeft .jxDisabled a.jxTabPressed span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTab:focus span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTab:active span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTab:hover span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTabPressed  span.jxTabContent {
+    background-position: -24px bottom; /* do not switch the right BG */
+}
+
+/* Hover, Focus Disabled Active Tab */
+.jxBarLeft .jxDisabled a.jxTabActive:focus,
+.jxBarLeft .jxDisabled a.jxTabActive:active,
+.jxBarLeft .jxDisabled a.jxTabActive:hover,
+.jxBarRight .jxDisabled a.jxTabActive:focus,
+.jxBarRight .jxDisabled a.jxTabActive:active,
+.jxBarRight .jxDisabled a.jxTabActive:hover {
+    background-position: -72px top; /* do not switch the left BG */
+}
+
+.jxBarLeft .jxDisabled a.jxTabActive:focus span.jxTabContent,
+.jxBarLeft .jxDisabled a.jxTabActive:active span.jxTabContent,
+.jxBarLeft .jxDisabled a.jxTabActive:hover span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTabActive:focus span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTabActive:active span.jxTabContent,
+.jxBarRight .jxDisabled a.jxTabActive:hover span.jxTabContent {
+    background-position: -72px bottom; /* do not switch the right BG */
+}
+
+.jxBarLeft span.jxTabLabel,
+.jxBarRight span.jxTabLabel {
+    padding: 4px 0px 4px 0px;
+}
+
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* =========== */
+/* FORM STYLES */
+/* =========== */
+/* JxForm classes are a set of styles that can be used for laying out forms
+ * There are three different types of layouts: Inline, Inlineblock and Block.
+ * Each can be used to layout an entire form, a fieldset or an individual input.
+*/
+
+/* debuggiong styles */
+/*
+.jxForm           { background-color: yellow; }
+.jxFieldset       { background-color: khaki; }
+.jxInputGroup     { background-color: tan; }
+.jxFieldsetLegend { background-color: orange; }
+.jxInputContainer { background-color: pink; }
+.jxInputLabel     { background-color: plum; }
+.jxInputTag       { background-color: lime; }
+*/
+
+/* Base and Typography Styles */
+
+.jxForm {
+    display: block;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    color: #fff;
+}
+
+/*
+ provide a base margin/padding when a form is inside a panel
+*/
+.jxPanelContent .jxForm {
+    margin: 5px;
+    padding: 2px;
+}
+
+.jxFieldset {
+    display: block;
+    position: relative;
+    border: 1px solid #ccc;
+    margin: 10px;
+    padding: 5px;
+}
+
+.jxFieldsetLegend,
+.jxFieldset legend {
+    position: relative;
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 26px;
+    color: #fff;
+}
+
+.jxInputContainer {
+    display: block;
+    position: relative;
+    padding: 0px;
+    margin: 2px;
+    border: none;
+}
+
+.jxInputLabel,
+.jxInputTag {
+    display: -moz-inline-box;
+    display: inline-block;
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 26px;
+    color: #fff;
+}
+
+.jxInputLabel {
+    vertical-align: top;
+}
+
+.jxInputTag {
+    vertical-align: bottom;
+}
+
+.jxInputWrapper {
+    display: inline-block;
+    white-space: normal;
+    position: relative;
+}
+
+.jxInputText,
+.jxInputPassword,
+.jxInputTextarea,
+.jxInputCombo,
+.jxInputColor {
+    margin: 0px 4px;
+    padding: 4px;
+    border: 1px solid #bbb;
+    /* overall width is 250px, margins+padding+border is 18px */
+    width: 232px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    background-color:black;
+    color: #FFF;
+}
+
+.jxInputCombo,
+.jxInputColor {
+    padding: 4px 20px 4px 20px;
+    /* overall width is 250px, margins+padding+border is 50px */
+    width: 200px;
+}
+
+.jxInputIconHidden .jxInputCombo {
+    /* overall width is 250px, margins+padding+border is 34px */
+    padding-left: 4px;
+    width: 216px;
+}
+
+.jxInputIcon {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 0px;
+    top: 0px;
+    margin: 4px 4px 4px 8px;
+}
+
+.jxInputContainerColor .jxInputIcon {
+    border: 1px solid #bbb;
+    width: 15px;
+    height: 15px;
+}
+
+.jxInputIconHidden .jxInputIcon {
+    display: none;
+}
+
+.jxInputRevealer {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    right: 0px;
+    top: 0px;
+    margin: 4px 8px 4px 4px;
+    font-size: 0px;
+    line-height: 0px;
+}
+
+img.jxInputRevealerIcon {
+    background-image: url(images/emblems.png);
+    background-position: right -16px;
+    background-repeat: no-repeat;
+}
+
+.jxInputRevealer .jxButtonContainer,
+.jxInputRevealer .jxButton {
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+    background-color: transparent;
+    background-image: none;
+}
+
+.jxInputSelect {
+    margin: 0px 4px;
+    padding: 3px 4px 3px 1px;
+    border: 1px solid #bbb;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    color: #fff;
+}
+
+.jxInputRadio,
+.jxInputCheck {
+    margin: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    color: #fff;
+}
+
+.jxInputText:focus,
+.jxInputPassword:focus,
+.jxInputTextarea:focus,
+.jxInputSelect:focus,
+.jxInputCombo:focus,
+.jxInputColor:focus {
+    border: 1px solid #000;
+}
+
+.jxInputContainer .jxButtonContainer {
+    padding: 0px;
+    margin: 0px 4px;
+}
+
+/* Input Group */
+
+.jxInputGroup {
+    border: none;
+    padding: 0px;
+    margin: 2px;
+}
+
+.jxInputGroup legend {
+    font-size: 0px;
+    line-height: 0px;
+    padding: 0px;
+    margin: 0px;
+    border: none;
+}
+
+.jxInputGroup .jxFieldsetLegend {
+    font-size: 12px;
+}
+
+.jxInputGroup .jxInputLabel {
+    width: auto;
+}
+
+/* Field Validation */
+
+.jxFieldError .jxInputText,
+.jxFieldError .jxInputPassword,
+.jxFieldError .jxInputTextarea,
+.jxFieldError .jxInputSelect,
+.jxFieldError .jxInputCombo,
+.jxFieldError .jxInputColor {
+    background-color: #FBE3E4;
+    color: #8a1f11;
+    border-color: #FBC2C4;
+}
+
+.jxFieldSuccess .jxInputText,
+.jxFieldSuccess .jxInputPassword,
+.jxFieldSuccess .jxInputTextarea,
+.jxFieldSuccess .jxInputSelect,
+.jxFieldSuccess .jxInputCombo,
+.jxFieldSuccess .jxInputColor {
+    background-color: #E6EFC2;
+    color: #264409;
+    border-color: #C6D880;
+}
+
+.jxFieldError .jxInputText:focus,
+.jxFieldError .jxInputPassword:focus,
+.jxFieldError .jxInputTextarea:focus,
+.jxFieldError .jxInputSelect:focus,
+.jxFieldError .jxInputCombo:focus,
+.jxFieldError .jxInputColor:focus {
+    border-color: #8a1f11;
+}
+
+.jxFieldSuccess .jxInputText:focus,
+.jxFieldSuccess .jxInputPassword:focus,
+.jxFieldSuccess .jxInputTextarea:focus,
+.jxFieldSuccess .jxInputSelect:focus,
+.jxFieldSuccess .jxInputCombo:focus,
+.jxFieldSuccess .jxInputColor:focus {
+    border-color: #264409;
+}
+
+.jxFieldError .jxInputLabel,
+.jxFieldError .jxInputTag {
+    color: #8a1f11;
+}
+
+.jxFieldSuccess .jxInputLabel,
+.jxFieldSuccess .jxInputTag {
+    color: #264409;
+}
+
+
+/* For Reference
+   Success, notice and error boxes from Blueprint */
+
+/*
+.error      { background: #FBE3E4; color: #8a1f11; border-color: #FBC2C4; }
+.notice     { background: #FFF6BF; color: #514721; border-color: #FFD324; }
+.success    { background: #E6EFC2; color: #264409; border-color: #C6D880; }
+.error a    { color: #8a1f11; }
+.notice a   { color: #514721; }
+.success a  { color: #264409; }
+*/
+
+
+
+/* INLINE FORM
+ * Sets up form elements to work as inline objects like they do by default
+ * These styles rely on increasing specificity to provide overrides */
+
+/* Inline Input Container */
+.jxFormInline .jxInputContainer,
+form .jxFormInline .jxInputContainer,
+form .jxFieldset span.jxFormInline,
+form.jxForm span.jxFormInline {
+    display: inline;
+}
+
+/* Inline Label */
+.jxFormInline .jxInputLabel,
+form .jxFormInline .jxInputLabel,
+form span.jxFormInline .jxInputLabel {
+    display: inline;
+    width: auto;
+}
+
+/* Inline Tag */
+.jxFormInline .jxInputTag,
+form .jxFormInline .jxInputTag,
+form span.jxFormInline .jxInputTag {
+    display: inline;
+}
+
+/* Inline Input Group */
+.jxFormInline .jxInputGroup,
+form .jxFormInline .jxInputGroup {
+    padding-left: 0px;
+}
+
+.jxFormInline .jxInputGroup .jxFieldsetLegend,
+form .jxFormInline .jxInputGroup .jxFieldsetLegend {
+    position: relative;
+    left: auto;
+}
+
+.jxFormInline .jxInputGroup .jxInputLabel,
+form .jxFormInline .jxInputGroup .jxInputLabel {
+    display: inline;
+    width: auto;
+}
+
+.jxFormInline .jxFieldError .jxInlineError {
+    display: inline;
+    color: #8a1f11;
+    width: auto;
+}
+
+
+/* BLOCK FORM
+ *  Sets up form elements to work as block objects so they can appear stacked */
+
+/* Block Input Container */
+.jxFormBlock .jxInputContainer,
+form .jxFormBlock .jxInputContainer,
+form .jxFieldset span.jxFormBlock,
+form.jxform span.jxFormBlock {
+    display: block;
+}
+
+/* Block Label */
+.jxFormBlock .jxInputLabel,
+form .jxFormBlock .jxInputLabel,
+form span.jxFormBlock .jxInputLabel {
+    display: block;
+    width: auto;
+    margin-left: 4px;
+}
+
+/* Checks and Radios Label
+ * Most inputs are preceeded by their labels, but in the case of radio buttons
+ * and checkboxes, the inputs are followed by their labels */
+.jxFormBlock .jxInputContainerCheck .jxInputLabel,
+.jxFormBlock .jxInputContainerRadio .jxInputLabel,
+form .jxFormBlock .jxInputContainerCheck .jxInputLabel,
+form .jxFormBlock .jxInputContainerRadio .jxInputLabel,
+form span.jxFormBlock .jxInputContainerCheck .jxInputLabel,
+form span.jxFormBlock .jxInputContainerRadio .jxInputLabel {
+    display: -moz-inline-box;
+    display: inline-block;
+}
+
+/* Block Input Group */
+.jxFormBlock .jxInputGroup,
+form .jxFormBlock .jxInputGroup {
+    padding-left: 0px;
+}
+
+.jxFormBlock .jxInputGroup .jxFieldsetLegend,
+form .jxFormBlock .jxInputGroup .jxFieldsetLegend {
+    position: relative;
+    left: auto;
+}
+
+.jxFormBlock .jxInputGroup .jxInputLabel,
+form .jxFormBlock .jxInputGroup .jxInputLabel {
+    display: -moz-inline-box;
+    display: inline-block;
+    width: auto;
+}
+
+.jxFormBlock .jxFieldError .jxInlineError {
+    display: block;
+    width: auto;
+    color: #8a1f11;
+}
+
+/* INLINE-BLOCK FORM
+ * Sets up form elements to work as inline-block objects so labels can have set
+ * widths to simulate a 2 column display for label / input pairs. */
+
+/* Inline-Block Input Container */
+.jxFormInlineblock .jxInputContainer,
+form .jxFormInlineblock .jxInputContainer,
+form .jxFieldset span.jxFormInlineblock,
+form.jxForm span.jxFormInlineblock {
+    display: block;
+    white-space: nowrap;
+}
+
+/* Inline-Block Label */
+.jxFormInlineblock .jxInputLabel,
+form .jxFormInlineblock .jxInputLabel,
+form span.jxFormInlineblock .jxInputLabel {
+    display: -moz-inline-box;
+    display: inline-block;
+    width: 200px;
+}
+
+/* Inline-Block Input Group */
+.jxFormInlineblock .jxInputGroup,
+form .jxFormInlineblock .jxInputGroup {
+    padding-left: 200px;
+}
+
+.jxFormInlineblock .jxInputGroup .jxFieldsetLegend,
+form .jxFormInlineblock .jxInputGroup .jxFieldsetLegend {
+    position: absolute;
+    left: -200px; /* for ie? */
+    width: 200px;
+}
+
+.jxFormInlineblock .jxInputGroup .jxInputLabel,
+form .jxFormInlineblock .jxInputGroup .jxInputLabel {
+    display: -moz-inline-box;
+    display: inline-block;
+    width: auto;
+}
+
+.jxFormInlineblock .jxFieldError .jxInlineError {
+    color: #8a1f11;
+    display: inline-block;
+    width: auto;
+}
+
+/** Jx.Grid Overrides **/
+
+.jxGridCellContent .jxInputContainer,
+.jxGridCellContent .jxInputRadio,
+.jxGridCellContent .jxInputCheck {
+    display: inline;
+    position: relative;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+    font-size: 0px;
+    line-height: 0px;
+    color: #fff;
+}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* =========== */
+/* TREE STYLES */
+/* =========== */
+
+/* The jx tree built out of nested ULs
+   For this to work visually, the margins and padding need to be flattened
+   out, and the list marker needs to be hidden
+*/
+
+
+.jxTree,
+.jxTreeRoot {
+    /* relative positioning is required for IE to fix the peek-a-boo bug */
+    position:relative;
+    display: block;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.jxTreeNest {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+    background-repeat: repeat-y;
+    background-position: left top;
+}
+
+/* Node Classes */
+
+li.jxTreeContainer {
+    /* relative positioning is required for IE to fix the peek-a-boo bug */
+    position:relative;
+    display: block;
+    margin: 0px;
+    padding: 0px;
+    background-repeat: no-repeat;
+    /* background branches may need to shift up/down according to height of the node */
+    background-position: left top;
+    white-space: nowrap;
+    font-size: 0px;
+    line-height: 0px;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+.jxTree li.jxTreeContainer {
+    margin-left: 16px;
+}
+
+a.jxTreeItem {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+
+    background-image: url(images/tree_hover.png);
+    background-repeat: repeat-x;
+    background-position: left top;
+    border: none;
+
+    margin: 0px 1px 0px 17px;
+    padding: 0px 0px 0px 20px;
+    z-index: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #fff;
+    text-decoration: none;
+    /* Line Height needs to be an even number so branches line up properly */
+    line-height: 20px;
+    height: 20px;
+}
+
+
+a.jxTreeItem:focus {
+    border-left: 1px dotted #75ADFF;
+    border-right: 1px dotted #75ADFF;
+    margin: 0px 0px 0px 16px;
+    background-position: left -72px;
+}
+
+a.jxTreeItem:hover,
+li.jxTreeContainer a.jxHover {
+    /*border: 1px solid #C5E0FF;*/
+    border-left: 1px solid #CDDFFD;
+    border-right: 1px solid #CDDFFD;
+    margin: 0px 0px 0px 16px;
+    background-color: #CDE5FF;
+    background-position: left -24px;
+}
+
+li.jxTreeContainer.jxSelected a:fiest-child,
+li.jxTreeContainer.jxSelected a:first-child:hover,
+li.jxTreeContainer.jxPressed a:first-child,
+li.jxTreeContainer.jxPressed a:first-child:hover {
+    border-left: 1px solid #8AABFB;
+    border-right: 1px solid #8AABFB;
+    margin: 0px 0px 0px 16px;
+    background-color: #CDE5FF;
+    background-position: left -48px;
+}
+
+li.jxDisabled a.jxTreeItem {
+    cursor: default;
+}
+
+li.jxDisabled a.jxTreeItem:focus,
+li.jxDisabled a.jxTreeItem:hover {
+    background-position: left top;
+    background-color: transparent;
+    border: none;
+    margin: 0px 1px 0px 17px;
+}
+
+.jxTreeNest {
+    background-image: url(images/tree_vert_line.png);
+}
+
+img.jxTreeImage,
+img.jxTreeIcon {
+    position: absolute;
+    display: inline;
+
+    left: 0px;
+    top: 0px;
+    width: 16px;
+    height: 20px;
+
+    z-index: 1;
+
+    background-image: url(images/tree.png);
+    background-repeat: no-repeat;
+
+    border: 0px;
+    margin: 0px;
+}
+
+img.jxTreeIcon {
+    height: 16px;
+    top: 2px;
+    left: 1px;
+}
+
+.jxTreeBranchOpen .jxTreeIcon,
+.jxTreeBranchLastOpen .jxTreeIcon {
+    background-position: left -40px; /* open folder image */
+}
+
+
+.jxTreeBranchOpen .jxTreeImage {
+    background-position: left -100px; /* minus image */
+}
+
+.jxTreeBranchLastOpen .jxTreeImage {
+    background-position: left -160px; /* minus last image */
+}
+
+.jxTreeBranchClosed .jxTreeIcon,
+.jxTreeBranchLastClosed .jxTreeIcon {
+    background-position: left -20px; /* closed folder image */
+}
+
+
+.jxTreeBranchClosed .jxTreeImage {
+    background-position: left -80px; /* plus image */
+}
+
+.jxTreeBranchLastClosed .jxTreeImage {
+    background-position: left -140px; /* plus last image */
+}
+
+.jxTreeLeaf .jxTreeIcon,
+.jxTreeLeafLast .jxTreeIcon {
+    background-position: left 0px; /* page image */
+}
+
+.jxTreeLeaf .jxTreeImage {
+    background-position: left -60px; /* node image */
+}
+
+.jxTreeLeafLast .jxTreeImage {
+    background-position: left -120px; /* last node image */
+}
+
+
+a.jxTreeItem,
+img.jxTreeImage,
+img.jxTreeIcon,
+span.jxTreeLabel,
+.jxTreeItemContainer input {
+    vertical-align: middle;
+}
+
+img.jxTreeImage.jxBusy {
+    background-image: url(images/spinner_16.gif);
+    background-position: left top;
+}
+
+
+
+.jxTreeDrag {
+
+}
+
+.jxTreeDropActive {
+    border-bottom: 1px black solid;
+}
+
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============= */
+/* GRID STYLES */
+/* ============= */
+
+.jxGridContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-left: 0px solid #d8d8d8;
+    border-top: 0px solid #d8d8d8;
+    border-right: 1px solid #d8d8d8;
+    border-bottom: 1px solid #d8d8d8;
+    overflow: hidden;
+}
+
+.jxGridTable {
+    width: 100%;
+    position: relative;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-style: none;
+
+    cursor: default;
+}
+
+.jxGridTableBody {
+    position: relative;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-style: none;
+    /* width: 100%;*/
+    cursor: default;
+}
+
+.jxGridCell {
+    border-top: 0px solid #d8d8d8;
+    border-right: 1px solid #d8d8d8;
+    border-bottom: 1px solid #d8d8d8;
+    border-left: 0px solid #d8d8d8;
+    overflow: hidden;
+}
+
+.jxGridCellContent {
+    position: relative;
+    display: -moz-inline-box;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0px 3px;
+    overflow: hidden;
+    vertical-align: middle;
+
+    font-family: Arial, Verdana, sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    line-height: 16px;
+
+    /* can change this to normal */
+    white-space: nowrap;
+    cursor: cell;
+    /* only applies in IE and Safari right now */
+    text-overflow: ellipsis;
+}
+
+.jxGridColHead .jxGridCellContent {
+    padding: 0px 3px;
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+    height: 100%;
+}
+
+.jxGridRowHead .jxGridCellContent {
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+}
+/* Normal Styles */
+
+.jxGridColHead {
+    height: 100%;
+
+    border-top: 0px solid  #d8d8d8;
+    border-right: 1px solid #d8d8d8;
+    border-bottom: 1px solid #d8d8d8;
+    border-left: 0px solid  #d8d8d8;
+    background-color: #f2f2f2;
+    background-image: url('images/table_col.png');
+    background-position: 0px 0px;
+    background-repeat: repeat-x;
+
+    text-align: center;
+    cursor: default;
+    padding: 0px;
+    white-space: nowrap;
+
+    overflow: hidden;
+}
+
+.jxGridRowHead {
+    border-top: 0px solid  #d8d8d8;
+    border-right: 1px solid #d8d8d8;
+    border-bottom: 1px solid #d8d8d8;
+    border-left: 0px solid  #d8d8d8;
+    background-color:  #f2f2f2;
+    background-image: url('images/table_row.png');
+    background-position: 0px 0px;
+    background-repeat: repeat-y;
+
+    text-align: center;
+    cursor: default;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Alternating Row Styles */
+
+.jxGridRowAll {
+    background-color: #000;
+}
+
+.jxGridRowOdd {}
+.jxGridRowEven {}
+.jxGridRowOdd td {}
+.jxGridRowEven td {}
+
+/* Selected Styles */
+
+.jxGridColumnHeaderSelected {
+    background-color: #e1e1e1;
+    background-position: 0px -200px;
+}
+
+.jxGridRowHeaderSelected {
+    background-color: #e1e1e1;
+    background-position: -400px 0px;
+}
+
+.jxGridColumnSelected {
+    background-color: #f7f7f7;
+}
+
+.jxGridRowSelected td,
+.jxGridRowSelected th {
+    background-color: #f7f7f7;
+}
+
+td.jxGridCellSelected,
+th.jxGridCellSelected {
+    background-color: #ebebeb;
+}
+
+/* Prelight Styles */
+
+.jxGridColumnHeaderPrelight {
+    background-color: #cee5ff;
+    background-position: 0px -300px;
+}
+
+.jxGridRowHeaderPrelight {
+    background-color: #cee5ff;
+    background-position: -600px 0px;
+}
+
+.jxGridColumnPrelight {
+    background-color: #e5f1ff;
+}
+
+.jxGridRowPrelight td,
+.jxGridRowPrelight th {
+    background-color: #e5f1ff;
+}
+
+td.jxGridCellPrelight,
+th.jxGridCellPrelight {
+    background-color: #cce3ff;
+}
+
+.jxGridHeader .jxColSortable img {
+    vertical-align: top;
+    width: 16px;
+    height: 16px;
+    background-image: url('images/emblems.png');
+    background-repeat: no-repeat;
+    background-position: right top;
+}
+
+.jxGridHeader .jxColSortable .jxGridCellContent {
+    margin-right: -16px; /* recenter the column heading text */
+}
+
+.jxGridHeader .jxGridColumnSortedAsc img {
+    background-position: right -162px;
+}
+
+.jxGridHeader .jxGridColumnSortedDesc img {
+    background-position: right -18px;
+}
+
+.jxGridColumnResize,
+.jxGridRowResize {
+    display: block;
+    position: absolute;
+    background-image: url(images/a_pixel.png);
+    z-index: 1;
+
+}
+.jxGridColumnResize {
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    width: 6px;
+    cursor: col-resize;
+}
+
+.jxColSortable .jxGridColumnResize {
+    right: 8px;
+}
+
+.jxGridRowResize {
+    left: 0px;
+    bottom: 0px;
+    height: 4px;
+    width: 100%;
+    cursor: row-resize;
+}
+
+/* Editor Styles */
+.jxGridEditorPopup {
+    min-width: 130px;
+    margin: 3px;
+    font-size: 10px;
+    box-shadow: 2px 2px 5px #888; /* i really like the boxshadow */
+    -moz-box-shadow : 2px 2px 5px #888;
+    -webkit-box-shadow : 2px 2px 5px #888;
+    /*
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    */
+    background-color: #dddddd;
+    border: 1px solid #999999;
+    position: absolute;
+}
+
+.jxGridEditorPopupInnerWrapper {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* =============== */
+/* SPLITTER STYLES */
+/* =============== */
+.jxSplitterMask{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background-image: url(images/a_pixel.png);
+    z-index:1;
+}
+
+.jxSplitBarHorizontal {
+    display: block;
+    position: absolute;
+    font-size: 0px;
+    line-height: 0px;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    width: 5px;
+    height: 100%;
+    cursor: col-resize;
+    /*background-image: url(images/a_pixel.png);*/
+    background-color: #f0f0f0;
+    z-index: 2;
+}
+
+.jxSplitBarVertical {
+    display: block;
+    position: absolute;
+    font-size: 0px;
+    line-height: 0px;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    width: 100%;
+    height: 5px;
+    cursor: row-resize;
+    /*background-image: url(images/a_pixel.png);*/
+    background-color: #f0f0f0;
+    z-index: 2;
+}
+
+.jxSplitContainer {
+    display: block;
+    position: relative;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    overflow: hidden;
+}
+
+.jxSplitArea {
+    display: block;
+    position: absolute;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    /*overflow: hidden;*/
+    z-index: 0;
+}
+
+.jxSplitBarDrag {
+    background-color: #eee;
+}
+
+.jxSnapHorizontalBefore {
+    width: 5px;
+    height: 5px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: #aaa;
+}
+
+.jxSnapHorizontalAfter {
+    width: 5px;
+    height: 5px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: #aaa;
+}
+
+/**
+ * File Input classes
+*/
+div.jxFileInputs {
+    position: relative;
+}
+
+div.jxFileFake {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 1;
+}
+
+div.jxFileFake span {
+    float: left;
+    display: block;
+}
+
+div.jxFileFake .jxInputContainer {
+    width: 150px;
+}
+
+div.jxFileFake .jxInputText {
+    width: 135px;
+}
+
+div.jxFileFake .jxButtonContainer {
+    margin-top: 2px;
+    float: left;
+}
+
+.jxInputFile {
+    position: relative;
+    text-align: right;
+    -moz-opacity: 0;
+    filter: alpha(opacity:0);
+    opacity: 0;
+    z-index: 2;
+    margin-top: -5px;
+    height: 35px;
+}
+
+/* FileUploadPanel */
+.jxFileUploadPanel {
+    padding: 5px;
+}
+
+.jxFileUploadPanel .jxInputContainer {
+    /*width: 300px;*/
+}
+
+.jxUploadQueue {
+    /*width: 100%;*/
+    /*margin-top: 10px;*/
+}
+
+.jxUploadQueue li {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    /*width: 95%;*/
+    /*clear: both;*/
+    /*border-top: 1px solid black;*/
+    padding: 2px;
+}
+
+.jxUploadQueue div span {
+    display: block;
+}
+
+.jxUploadQueue li span.jxUploadFileName {
+    /*float: left;*/
+    font-size: 12px;
+    line-height: 16px;
+    padding-left: 2px;
+}
+
+.jxUploadQueue li span.jxUploadFileDelete,
+.jxUploadQueue li span.jxUploadFileProgress,
+.jxUploadQueue li span.jxUploadFileComplete,
+.jxUploadQueue li span.jxUploadFileError {
+    /*float: right;*/
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.jxUploadQueue li span.jxUploadFileDelete {
+    background-image: url('images/icons.png');
+    background-position: 0px -128px;
+}
+
+.jxUploadQueue li span.jxUploadFileProgress {
+    background-image: url('images/spinner_16.gif');
+    background-position: top left;
+}
+
+.jxUploadQueue li span.jxUploadFileComplete {
+    background-image: url('images/icons.png');
+    background-position: 0px -48px;
+}
+
+.jxUploadQueue li span.jxUploadFileError {
+    background-image: url('images/icons.png');
+    background-position: 0px -32px;
+}
+
+.jxUploadFileErrorTip {
+    padding: 4px 4px 4px 20px;
+    border: 2px solid #ddd;
+    background: url("images/icons.png") no-repeat 0px -32px;
+    color: black;
+    width: 100px;
+}
+
+
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+*/
+
+/* ============= */
+/* DIALOG STYLES */
+/* ============= */
+
+.jxDialog .jxChrome {
+    background-image: url(images/dialog_chrome.png);
+}
+
+.jxDialog {
+    /* Base setup */
+    display: block;
+    z-index: 1000;
+    overflow: hidden;
+
+    /* initial state is hidden */
+    visibility: hidden;
+}
+
+.jxDialogContentContainer {
+    z-index: 1;
+    margin: 0px 11px 13px 12px;
+    border: 1px solid #b7b7b7;
+    background-color: black;
+}
+
+.jxDialogContent {
+    /* Base setup */
+    display: block;
+    position:relative;
+    overflow: auto;
+
+    padding: 0px;
+    z-index: 1;
+}
+
+.jxDialogTitle {
+    /* Base setup */
+    display: block;
+    position: relative;
+
+    /* this makes the dialog draggable by the title bar in IE
+     * Without it, only the label is draggable
+    */
+    background-image: url(images/a_pixel.png);
+
+    text-align: center;
+    height: 24px;
+    line-height: 24px;
+    z-index: 1;
+
+    margin: 6px 6px 0px 7px;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+.jxDialogMin .jxDialogTitle {
+    margin-bottom: 8px;
+}
+
+.jxDialogMoveable,
+.jxDialogMoveable .jxDialogLabel {
+    cursor: move;
+}
+
+.jxDialogIcon {
+    position: absolute;
+    left: 2px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.jxDialogLabel {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    /* line-height vertically aligns the label in the containing div. */
+    line-height:21px;
+    color: #fff;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.jxDialogResize {
+    /* Base setup */
+    position: absolute;
+
+    bottom: 7px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    z-index: 2;
+    border: 0px;
+    cursor: se-resize;
+    background-image: url(images/dialog_resize.png);
+}
+
+.jxDialogControls {
+    position: absolute;
+    top: 3px;
+    right: 2px;
+    height: 16px;
+    width: 80px;
+}
+
+.jxDialogControls img {
+    background-image: url('images/panel_controls.png');
+    background-repeat: no-repeat;
+    border: 0px;
+    /* the margin needs to make up the difference between it's width/height
+       and the width/height of the parent a */
+    margin: 0px;
+    /* width/height has to be the actual image width/height */
+    width: 16px;
+    height: 16px;
+}
+
+.jxDialogClose img {
+    background-position: 0px -32px;
+}
+
+.jxDialogMenu img {
+    background-position: 0px -48px;
+}
+
+.jxDialogHelp img {
+    background-position: 0px -64px;
+}
+
+.jxDialogCollapse img {
+    background-position: 0px -16px;
+}
+
+.jxDialogMin .jxDialogCollapse img {
+    background-position: 0px 0px;
+}
+
+.jxDialogMax .jxDialogCollapse img {
+    background-position: 0px -16px;
+}
+
+.jxDialogMaximize img {
+    background-position: 0px -80px;
+}
+
+.jxDialogMaximized .jxDialogMaximize img {
+    background-position: 0px -96px;
+}
+
+.jxDialogLoading img {
+    border: 0px;
+    /* the margin needs to make up the difference between it's width/height
+       and the width/height of the parent a */
+    margin: 0px;
+    /* width/height has to be the actual image width/height */
+    width: 16px;
+    height: 16px;
+    visibility:hidden;
+    position: absolute;
+    top: 1px;
+    left: 2px;
+}
+
+
+/* ========================= */
+/* JX BUTTON STYLES OVERIDES */
+/* ========================= */
+
+.jxDialogControls .jxButtonContainer,
+.jxDialogControls .jxButton,
+.jxDialogControls .jxButton:hover,
+.jxDialogControls .jxButton:active ,
+.jxDialogControls .jxButtonActive,
+.jxDialogControls .jxButtonActive:hover,
+.jxDialogControls .jxButtonActive:active,
+.jxDialogControls .jxDisabled .jxButton,
+.jxDialogControls .jxDisabled .jxButton:hover,
+.jxDialogControls .jxDisabled .jxButton:active {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+    background-image: none;
+}
+
+
+/* ========================== */
+/* JX TOOLBAR STYLES OVERIDES */
+/* ========================== */
+
+/* Multiple toolbars can be housed in  the toolbar container the container will expand vertically to accomodate wrapped toolbars */
+
+.jxDialogControls .jxBarContainer {
+    /* Base setup */
+    position: absolute;
+    right: 0px;
+    background-image: none;
+    background-color: transparent;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    height: 16px;
+}
+
+.jxDialogControls .jxBarScroller {
+    left: auto;
+    right: 0px;
+}
+
+.jxDialogControls ul.jxToolbar {
+    float: right;
+}
+
+.jxDialogControls ul.jxToolbar,
+.jxDialogControls li.jxToolItem {
+    background-image: none;
+    background-color: transparent;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+}
+
+/**
+ * Confirm dialog classes
+*/
+.jxMessage {
+    text-align: center;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+/**
+ * Confirm and Prompt dialog classes
+*/
+.jxConfirmQuestion, .jxPrompt {
+    text-align: center;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+ul.jxToolbar #counter {
+    font-size: 10px;
+    height: 28px;
+    padding-top: 13px;
+}
+
+.jxDateFieldFlyout {
+    overflow: hidden;
+}
+
+
+.jxInputOptionGroup {
+    position: relative;
+    display: block;
+}
+
+.jxOptionGroupColumn {
+    display: inline-block;
+}
+
+.jxInputSpinners {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    right: 0px;
+    top: 0px;
+    margin: 0px 8px 4px 4px;
+    font-size: 0px;
+    line-height: 0px;
+}
+
+.jxInputSpinners .jxButtonContainer,
+.jxInputSpinners .jxButton {
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+    background-color: transparent;
+    background-image: none;
+}
+
+img.jxInputSpinUpIcon {
+    background-image: url(images/emblems.png);
+    background-position: right -160px;
+    background-repeat: no-repeat;
+    margin-top: -2px;
+}
+
+img.jxInputSpinDownIcon {
+    background-image: url(images/emblems.png);
+    background-position: right -16px;
+    background-repeat: no-repeat;
+    margin-top: -2px;
+}
+
+
+
+.jxInputEditor {
+    display: inline-block;
+    height: 200px;
+    position: relative;
+
+    margin: 0px 4px;
+    /* padding: 4px; */
+    border: 1px solid #bbb;
+    /* overall width is 250px, margins+padding+border is 18px */
+    width: 532px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    color: #fff;
+}
+
+.jxInputEditor:focus {
+    border: 1px solid #000;
+}
+
+.jxInputEditor .jxEditor {
+    border: none;
+
+}
+
+.jxFieldError .jxInputEditor .jxInputText,
+.jxFieldError .jxInputEditor .jxInputPassword,
+.jxFieldError .jxInputEditor .jxInputTextarea,
+.jxFieldError .jxInputEditor .jxInputSelect,
+.jxFieldError .jxInputEditor .jxInputCombo,
+.jxFieldError .jxInputEditor .jxInputColor {
+    background-color: transparent;
+    color: #fff;
+    border-color: #bbb;
+}
+
+.jxFieldSuccess .jxInputEditor .jxInputText,
+.jxFieldSuccess .jxInputEditor .jxInputPassword,
+.jxFieldSuccess .jxInputEditor .jxInputTextarea,
+.jxFieldSuccess .jxInputEditor .jxInputSelect,
+.jxFieldSuccess .jxInputEditor .jxInputCombo,
+.jxFieldSuccess .jxInputEditor .jxInputColor {
+    background-color: transparent;
+    color: #fff;
+    border-color: #bbb;
+}
+
+.jxFieldError .jxInputEditor .jxInputText:focus,
+.jxFieldError .jxInputEditor .jxInputPassword:focus,
+.jxFieldError .jxInputEditor .jxInputTextarea:focus,
+.jxFieldError .jxInputEditor .jxInputSelect:focus,
+.jxFieldError .jxInputEditor .jxInputCombo:focus,
+.jxFieldError .jxInputEditor .jxInputColor:focus {
+    border-color: #000;
+}
+
+.jxFieldSuccess .jxInputEditor .jxInputText:focus,
+.jxFieldSuccess .jxInputEditor .jxInputPassword:focus,
+.jxFieldSuccess .jxInputEditor .jxInputTextarea:focus,
+.jxFieldSuccess .jxInputEditor .jxInputSelect:focus,
+.jxFieldSuccess .jxInputEditor .jxInputCombo:focus,
+.jxFieldSuccess .jxInputEditor .jxInputColor:focus {
+    border-color: #000;
+}
+
+.jxFieldError .jxInputEditor .jxInputLabel,
+.jxFieldError .jxInputEditor .jxInputTag {
+    color: #fff;
+}
+
+.jxFieldSuccess .jxInputEditor .jxInputLabel,
+.jxFieldSuccess .jxInputEditor .jxInputTag {
+    color: #fff;
+}
+
+.jxFieldError .jxInputEditor  {
+    background-color: #FBE3E4;
+    color: #8a1f11;
+    border-color: #FBC2C4;
+}
+
+.jxFieldSuccess .jxInputEditor  {
+    background-color: #E6EFC2;
+    color: #264409;
+    border-color: #C6D880;
+}
+
+.jxFieldError .jxInputEditor {
+    border-color: #8a1f11;
+}
+
+.jxFieldSuccess .jxInputEditor {
+    border-color: #264409;
+}
+
+
+
+
+
+
+
+.jxLayoutColumns {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    padding: 5px;
+}
+
+.jxLayoutColumn {
+    float: left;
+    position: relative;
+    margin-right: 10px;
+    min-height: 100%;
+}
+
+.jxLayoutColumn div.jxDialog {
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.jxLayoutColumnMarker {
+    background-color: blue;
+    border: 1px yellow dashed;
+}
+
+.jxLayoutPlaceholder {
+    height: 200px;
+    width: 100%;
+    position: relative;
+}
+
+.jxLayoutColumnLast {
+    margin-right: 0;
+}
+
+.jxLayoutDraggable .jxDialogTitle {
+    cursor: pointer;
+}
+
+.jxLayoutColumns:after, .jxLayoutColumn:after {
+    content: ".";
+    display: block;
+    height: 0;
+    font-size:0;
+    clear: both;
+    visibility:hidden;
+}
+
+.jxLayoutColumns:after, .jxLayoutColumn:after {
+    display: inline-block;
+}
+
+/* Hides from IE Mac \*/
+* html .floatcontainer {
+    height: 1%;
+}
+.jxLayoutColumns:after, .jxLayoutColumn:after {
+    display:block;
+}
+/* End Hack */
+
+
+/*
+    RPG Specific
+*/
+
+select, input, textarea {
+    background-color : black;
+    color : white;
+}
+
+.tblCharacterList {
+    width : 80%;
+    border-collapse :separate;
+}
+.tblCharacterList td {
+    padding : 2px;
+    border-width: 6px 6px 6px 6px;
+    -moz-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    -webkit-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    -o-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+}
+
+.CharacterSelect {
+    text-align : left
+}
+#CreateCharacter, #ListCharacters, .CharacterSelect{
+    display : inline-block;
+    -moz-box-shadow: 0 0 1px 1px black;
+    -webkit-box-shadow: 0 0 1px 1px black;
+    box-shadow: 0 0 1px 1px black;
+    margin : 2px;
+}
+
+#CreateCharacter .tblPortrait {
+    width : 100%;
+}
+
+.tblCreateCharacter td, .tblCreateCharacter .jxButtonContent, .tblCreateCharacter .jxButtonLabel {
+    padding : 1px 1px 1px 1px;
+}
+
+
+.tblCreateCharacter .jxButtonContent {
+    text-align : center;
+}
+
+.Portrait {
+    width : 64px;
+    height : 64px;
+    display : inline-block;
+}
+.PortraitDir {
+    background-size : 100%;
+    width : 32px;
+    height : 32px;
+    display : inline-block;
+}
+
+.NoWrap {
+    white-space : nowrap;
+}
+.Pointer {
+    cursor : pointer;
+}
+.textRight {
+    text-align : right;
+}
+.textLeft {
+    text-align : left;
+}
+.textCenter {
+    text-align : center;
+}
+.textTiny {
+    font-size:7.5px;
+}
+.textSmall {
+    font-size:10px;
+}
+.textMedium {
+    font-size:12px;
+}
+.textLarge {
+    font-size:14px;
+}
+
+.topBorder {
+    border-top-width: 1px;
+}
+.bottomBorder {
+    border-bottom-width: 1px;
+}
+.leftBorder {
+    border-left-width: 1px;
+}
+.rightBorder {
+    border-right-width: 1px;
+}
+
+.noTopBorder {
+    border-top-width: 0px;
+}
+.noBottomBorder {
+    border-bottom-width: 0px;
+}
+.noLeftBorder {
+    border-left-width: 0px;
+}
+.noRightBorder {
+    border-right-width: 0px;
+}
+
+.vTop  {
+    vertical-align: top;
+}
+.vBottom  {
+    vertical-align: bottom;
+}
+.vMiddle  {
+    vertical-align: middle;
+}
+
+.table-tr-odd {
+    background-color : #3e3e3e;
+}
+
+.table-tr-hovered {
+    background-color : #939393;
+    cursor : pointer;
+}
+
+.table-tr-selected {
+    background-color : #939393;
+    color:black;
+    cursor : pointer;
+}
+
+.jxFlyoutContent, .tip-wrap {
+    border-width: 16px 16px 16px 16px;
+    -moz-border-image: url(images/border1.png) 10 10 10 10 stretch;
+    -webkit-border-image: url(images/border1.png) 10 10 10 10 stretch;
+    -o-border-image: url(images/border1.png) 10 10 10 10 stretch;
+    border-image: url(images/border1.png) 10 10 10 10 stretch;
+}
+#loginWindowDiv, #loginWindowDiv table, #registerWindowDiv, #registerWindowDiv table, #verifyWindowDiv, #verifyWindowDiv table, #forgotWindowDiv, #forgotWindowDiv table {
+    height : 100%;
+}
+#loginWindowDiv table td, #registerWindowDiv table td, #verifyWindowDiv table td, #forgotWindowDiv table td {
+    padding : 3px;
+}
+
+#CharacterEquipmentTable {
+    background-repeat : no-repeat;
+    background-position : center left;
+    background-size : 100%;
+}
+
+#characterEquipmentWindow_content .mochaContent, #characterEquipmentWindow_content .mochaContent .pad, #characterEquipmentWindow_content {
+    padding : 1px ! important;
+}
+
+.ItemEmpty {
+    width : 24px;
+    height : 24px;
+}
+
+#CharacterInventoryTable {
+    border-collapse : separate ! important;
+}
+
+.CharacterInventory {
+    border-width: 6px 6px 6px 6px;
+    -moz-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    -webkit-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    -o-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+}
+
+.EquipAccepts {
+    -webkit-box-shadow: 0px 0px 4px 4px black;
+    -moz-box-shadow: 0px 0px 4px 4px black;
+    box-shadow: 0px 0px 4px 4px black;
+    background-color:white;
+}
+
+.tip-wrap table {
+    width : 100%;
+}
+.tip-wrap table td {
+    padding : 5px;
+}
+.tip-wrap {
+    z-index: 65535;
+    min-width : 200px;
+}
+
+.jxToolbarAlignCenter ul li .jxBarSeparator {
+    float : none;
+    display : inline;
+}
+.jxInputContainer {
+    display : inline;
+}
+
+
+.M_mapTable-parentTD {
+
+}
+.M_mapTable {
+    margin : 0px;
+    padding : 0px;
+    table-layout: fixed;
+    cursor : pointer;
+}
+
+.mapTileImage {
+    cursor : pointer;
+    height : 32px;
+    width : 32px;
+    float:left;
+    margin : 2px;
+
+}
+.mapTileImage:hover {
+
+}
+
+.mapTileImageSelected, .mapTileImageSelected:hover {
+    -moz-box-shadow: 0 0 10px 2px #e3e3e3;
+    -webkit-box-shadow: 0 0 10px 2px #e3e3e3;
+    box-shadow: 0 0 10px 2px #e3e3e3;
+}
+
+
+.selectedTileset, .selectedMap, .selectedTile, .panUp, .panDown, .panLeft, .panRight, .fillColumn, .fillRow, .floodFill, .floodDelete {
+    background: -webkit-gradient(linear, left top, left bottom, from(#4f4f4f), to(#1e1e1e));
+    background: -moz-linear-gradient(top,  #4f4f4f,  #1e1e1e);
+    font-family: Helvetica, sans-serif;
+    font-weight : bold;
+    -moz-box-shadow: 0 0 2px 2px black;
+    -webkit-box-shadow: 0 0 2px 2px black;
+    box-shadow: 0 0 2px 2px black;
+    color : white;
+    text-align : center;
+    vertical-align : middle;
+    cursor : pointer;
+    line-height : auto;
+}
+.fillRow div {
+    line-height : auto;
+}
+.fillColumn-hover, .fillRow-hover {
+    color:yellow;
+    background: -webkit-gradient(linear, left top, left bottom, from(#1e1e1e), to(#4f4f4f));
+    background: -moz-linear-gradient(top,  #1e1e1e,  #4f4f4f);
+    line-height : auto;
+}
+
+.panUp, .panDown {
+    height : 20px;
+}
+.panLeft, .panRight {
+    width : 20px;
+}
+.fillColumn {
+    height:20px;
+    overflow-x:hidden;
+    overflow-y:hidden;
+    overflow : hidden;
+}
+.fillRow {
+    width:10px;
+    overflow-x:hidden;
+    overflow-y:hidden;
+    overflow : hidden;
+}
+.floodDelete {
+
+}
+.uniCombo, .mapCombo, .imageCombo {
+    width : 120px ! important;
+}
+
+.treeImg {
+    background-size:100%;
+    background-color:white;
+}
+.imageComboImg {
+    background-size:100%;
+    background-color:white;
+}
+
+#property__image__name .jxInputIcon {
+    width : 32px;
+    height : 32px;
+}
+#property__image__name .jxInputRevealerIcon {
+    margin-top:8px;
+}
+#property__image__name .jxInputCombo {
+    padding-left : 38px;
+    padding-right : 0px;
+    height : 32px;
+}
+
+.miniMap {
+    position : absolute;
+    display : none;
+    z-index : 1000;
+    background: -webkit-gradient(linear, left top, left bottom, from(#1e1e1e), to(#4f4f4f));
+    background: -moz-linear-gradient(top,  #1e1e1e,  #4f4f4f);
+    border : 4px solid black;
+    overflow:hidden;
+    height : 150px;
+    width : 150px;
+}
+.miniMap canvas {
+    cursor : pointer;
+}
+
+.MoveCursor {
+    cursor : move ! important;
+}
+
+
+.mapTileImage, .M_tileHolder {
+    background-size:100%;
+}
+.M_tileHolder-empty {
+    -moz-box-shadow: 0 0 1px 0px white;
+    -webkit-box-shadow: 0 0 1px 0px white;
+    box-shadow: 0 0 1px 0px white;
+}
+
+.tileListItem table {
+    background: -webkit-gradient(linear, left top, left bottom, from(#4f4f4f), to(#1e1e1e));
+    background: -moz-linear-gradient(top,  #4f4f4f,  #1e1e1e);
+}
+
+#tilePicker {
+    position : absolute;
+    display : none;
+    white-space:nowrap;
+    border : 2px solid black;
+    background-color : white;
+}
+.tilePicker {
+    background: -webkit-gradient(linear, left top, left bottom, from(#4f4f4f), to(#1e1e1e));
+    background: -moz-linear-gradient(top,  #4f4f4f,  #1e1e1e);
+    padding : 4px;
+}
+.tilePicker:hover {
+    background: -webkit-gradient(linear, left top, left bottom, from(#1e1e1e), to(#4f4f4f));
+    background: -moz-linear-gradient(top,  #1e1e1e,  #4f4f4f);
+}

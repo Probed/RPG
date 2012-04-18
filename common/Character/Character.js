@@ -390,7 +390,7 @@ RPG.getCharacterStyles = function(character) {
 }
 
 RPG.getCharacterImage = function(character) {
-    return '/client/images/Character/portrait/'+escape(character.Gender)+'/'+escape(character.portrait)+'/'+escape((character.location && character.location.dir) || 'e')+'.png';
+    return '/common/Character/portrait/'+escape(character.Gender)+'/'+escape(character.portrait)+'/'+escape((character.location && character.location.dir) || 'e')+'.png';
 }
 
 /**

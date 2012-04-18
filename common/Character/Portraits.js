@@ -1,0 +1,1 @@
+/*This File is Generated in /server/rpgApp.njs*/if (!RPG) var RPG = {};RPG.Portraits={"Female":["MrsPacman","Princess"],"Male":["Mario","Pacman"]};if (typeof exports != "undefined") {module.exports = RPG;}

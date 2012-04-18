@@ -1,0 +1,216 @@
+/**
+ * @project         Jx
+ * @revision        $Id$
+ * @author          Fred Warnock (fwarnock@dmsolutions.ca)
+ * @copyright       (c) 2006 DM Solutions Group Inc.
+ */
+
+/* ============= */
+/* IE < 7 STYLES */
+/* ============= */
+
+/* 24 bit images do not appear correctly in IE versions below 7. Applying a 
+ * filter through the class below will make them appear correctly.
+ */
+.png24{filter:expression(Jx.applyPNGFilter(this))}
+
+/* Opacity needs to be set in IE6 and below using the following filters.
+ * Please note that IE8 changed how filters are written. 
+ */
+.jxChromeDrag {filter: Alpha(opacity=50);}
+.jxDisabled {filter:Alpha(opacity=40);}
+.jxDisabled * {filter:Alpha(opacity=40);}
+.jxMask {filter:Alpha(opacity=50);}
+.jxModalMask {filter: Alpha(opacity=20);}
+.jxSpinner {filter: alpha(opacity=50);}
+iframe.jxIframeShim {filter:Alpha(opacity:0);}
+
+/* List items do not render properly under several conditions.  
+ * Applying a height to the LI forces it to render properly.
+ * Content that is taller than the li simply forces the li to be taller 
+ */
+.jxTree li,
+.jxTreeRoot li {
+  height: 20px;
+}
+
+/* tree item focus style */
+.jxTree a:active,
+.jxTreeRoot a:active {
+  border-left: 1px dotted #75ADFF;
+  border-right: 1px dotted #75ADFF;
+  margin: 0px 0px 0px 14px;
+  background-position: left -72px;
+  outline: expression(hideFocus='true');
+}
+
+/* IE versions 7 and below do not recognize the focus pseudo-class, but instead
+ * use the active pseudo-class.  Other browsers use the active-pseudo-class
+ * while something is being pressed so IE specific definitions are needed. */
+/* focus button */
+ul.jxToolbar .jxButton:active,
+.jxButton:active {
+  background-position: left -96px;
+  outline: expression(hideFocus='true');
+}
+
+ul.jxToolbar .jxButton:active span.jxButtonContent,
+.jxButton:active span.jxButtonContent {
+  background-position: right -96px;
+}
+
+/* focus active button */
+ul.jxToolbar .jxButtonActive:active,
+.jxButtonActive:active {
+  background-position: left -144px;
+}
+
+ul.jxToolbar .jxButtonActive:active span.jxButtonContent,
+.jxButtonActive:active span.jxButtonContent {
+  background-position: right -144px;
+}
+
+/* clicking normal button */
+ul.jxToolbar .jxButtonPressed:active,
+.jxButtonPressed:active {
+  background-position: left -120px;
+}
+
+ul.jxToolbar .jxButtonPressed:active span.jxButtonContent,
+.jxButtonPressed:active span.jxButtonContent {
+  background-position: right -120px;
+}
+
+.jxButtonDisclose:active {
+  background-position: right -96px;
+}
+
+/* HORIZONTALTAB BAR - TOP and BOTTOM TABS */
+
+/* Focus tab */
+.jxBarTop a.jxTab:active,
+.jxBarBottom a.jxTab:active {
+  background-position: left -96px; 
+  outline: expression(hideFocus='true');
+}
+
+.jxBarTop a.jxTab:active span.jxTabContent,
+.jxBarBottom a.jxTab:active span.jxTabContent {
+  background-position: right -96px; 
+}
+
+/* Focus Active tab */
+.jxBarTop a.jxTabActive:active,
+.jxBarBottom a.jxTabActive:active {
+  background-position: left -144px; 
+}
+
+.jxBarTop a.jxTabActive:active span.jxTabContent,
+.jxBarBottom a.jxTabActive:active span.jxTabContent {
+  background-position: right -144px; 
+}
+
+/* Click Focused Tab */
+.jxBarTop a.jxTabPressed:active,
+.jxBarBottom a.jxTabPressed:active {
+  background-position: left -120px; 
+}
+
+.jxBarTop a.jxTabPressed:active span.jxTabContent,
+.jxBarBottom a.jxTabPressed:active span.jxTabContent {
+  background-position: right -120px; 
+}
+
+/* VERTICAL TAB BAR - LEFT and RIGHT */
+
+/* Focus tab */
+.jxBarLeft a.jxTab:active,
+.jxBarRight a.jxTab:active {
+  background-position: -96px top; 
+  outline: expression(hideFocus='true');
+}
+
+.jxBarLeft a.jxTab:active span.jxTabContent,
+.jxBarRight a.jxTab:active span.jxTabContent {
+  background-position: -96px bottom; 
+}
+
+/* Focus Active tab */
+.jxBarLeft a.jxTabActive:active,
+.jxBarRight a.jxTabActive:active {
+  background-position: -144px top; 
+}
+
+.jxBarLeft a.jxTabActive:active span.jxTabContent,
+.jxBarRight a.jxTabActive:active span.jxTabContent {
+  background-position: -144px bottom; 
+}
+
+/* Click Focused Tab */
+.jxBarLeft a.jxTabPressed:active,
+.jxBarRight a.jxTabPressed:active {
+  background-position: -120px top; 
+}
+
+.jxBarLeft a.jxTabPressed:active span.jxTabContent,
+.jxBarRight a.jxTabPressed:active span.jxTabContent {
+  background-position: -120px bottom; 
+}
+
+/* Menu Item icon position.
+   IE 6 seems to want to line up the image differently.  
+   This override just nudges it back up. */
+
+img.jxMenuItemIcon {
+  top: 3px;
+}
+
+/* Menu Item States */ 
+
+a.jxMenuItemActive {
+  background-position: 1px -97px;
+}
+
+a.jxMenuItem:active {
+  background-position: 1px -73px;
+  outline: expression(hideFocus='true');
+}
+
+a.jxMenuItemActive:active {
+  background-position: 1px -169px;
+}
+
+a.jxMenuItem:hover {
+  background-position: 1px -25px;
+}
+
+a.jxMenuItem:hover span.jxMenuItemContent {
+  border-top: 1px solid #C5E0FF;  /* forces IE to render properly */
+}
+
+a.jxMenuItemActive:hover {
+  background-position: 1px -121px;
+}
+
+a.jxMenuItemPressed,
+a.jxMenuItemPressed:hover {
+  background-position: 1px -49px;
+}
+
+span.jxMenuItemContent {
+  border-top: 1px solid #fff; /* forces IE to render properly */
+}
+
+span.jxMenuItemContent span {
+  font-size: 15px;
+  line-height: 15px;
+}
+
+
+/* chrome in dialogs doesn't resize properly when collapsing a dialog before
+ * moving or resizing it in IE 6 only, hiding overflow seems to do the trick
+ */
+.jxChrome {
+  overflow: hidden;
+}
+

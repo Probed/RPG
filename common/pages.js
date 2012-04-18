@@ -6,22 +6,22 @@ var js = typeof exports != 'undefined' ?'.njs':'.js';
 RPG.mainMenu = {
     'Main' : {
 	'class' : 'folder f-open first',
-	display : 'Site Menu',
+	label : 'Site Menu',
 	items : []
     },
     'Players' : {
 	'class' : 'folder f-open',
-	display : 'Players',
+	label : 'Players',
 	items : []
     },
     'Forum' : {
 	'class' : 'folder f-open',
-	display : 'Forum',
+	label : 'Forum',
 	items : []
     },
     'Patches' : {
 	'class' : 'folder f-open',
-	display : 'Patch Notes',
+	label : 'Patch Notes',
 	items : []
     }
 };
@@ -29,9 +29,9 @@ RPG.mainMenu = {
 
 RPG.pages = [
 {
-    display : 'Home',
+    label : 'Home',
     hashTag : '#Home',
-    icon : 'Home',
+    image : '/client/jx/themes/dark/images/logo_s.png',
     treeParent : 'Main',
     tipTitle : 'RPG Home',
     tipText :'Get all the latest news on the home page.',
@@ -43,23 +43,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Play Now',
-    hashTag : '#Play',
-    icon : 'Home',
-    treeParent : 'Main',
-    tipTitle : 'Play the game.',
-    tipText :'Start adventuring by clicking the Play link.',
-    description :'',
-    requires : {
-	js : cs+'/Game/play'+js,
-	exports : 'Play',
-	singleton : true
-    }
-},
-{
-    display : 'What is it?',
+    label : 'What is it?',
     hashTag : '#WhatIsIt',
-    icon : 'Question',
+    image : '/client/jx/themes/dark/images/question.png',
     treeParent : 'Main',
     tipTitle : '',
     tipText :'',
@@ -71,9 +57,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'How to Play',
+    label : 'How to Play',
     hashTag : '#HowToPlay',
-    icon : 'Question',
+    image : 'Question',
     treeParent : 'Main',
     tipTitle : '',
     tipText :'',
@@ -85,9 +71,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Game Wiki',
+    label : 'Game Wiki',
     hashTag : '#GameWiki',
-    icon : 'Wiki',
+    image : '/client/jx/themes/dark/images/wiki.png',
     treeParent : 'Main',
     tipTitle : '',
     tipText :'',
@@ -99,9 +85,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Player Listing',
+    label : 'Player Listing',
     hashTag : '#Players',
-    icon : '',
+    image : '',
     treeParent : 'Players',
     tipTitle : '',
     tipText :'',
@@ -113,9 +99,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Stats',
+    label : 'Stats',
     hashTag : '#Players?stats=true',
-    icon : '',
+    image : '',
     treeParent : 'Players',
     tipTitle : '',
     tipText :'',
@@ -127,9 +113,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Player Search',
+    label : 'Player Search',
     hashTag : '#Players?search=true',
-    icon : '',
+    image : '',
     treeParent : 'Players',
     tipTitle : '',
     tipText :'',
@@ -141,9 +127,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Forum',
+    label : 'Forum',
     hashTag : '#Forum',
-    icon : '',
+    image : '',
     treeParent : 'Forum',
     tipTitle : '',
     tipText :'',
@@ -155,9 +141,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Support Forum',
+    label : 'Support Forum',
     hashTag : '#Forum?showTopic=Support',
-    icon : '',
+    image : '',
     treeParent : 'Forum',
     tipTitle : '',
     tipText :'',
@@ -169,9 +155,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Forum General',
+    label : 'Forum General',
     hashTag : '#Forum?showTopic=General',
-    icon : '',
+    image : '',
     treeParent : 'Forum',
     tipTitle : '',
     tipText :'',
@@ -183,9 +169,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Feedback Forum',
+    label : 'Feedback Forum',
     hashTag : '#Forum?showTopic=Feedback',
-    icon : '',
+    image : '',
     treeParent : 'Forum',
     tipTitle : '',
     tipText :'',
@@ -197,9 +183,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'Current Patch Notes',
+    label : 'Current Patch Notes',
     hashTag : '#PatchNotes',
-    icon : 'extTXT',
+    image : 'extTXT',
     treeParent : 'Patches',
     tipTitle : '',
     tipText :'',
@@ -211,9 +197,9 @@ RPG.pages = [
     }
 },
 {
-    display : 'All Patch Notes',
+    label : 'All Patch Notes',
     hashTag : '#PatchNotes?all=true',
-    icon : 'extTXTmulti',
+    image : 'extTXTmulti',
     treeParent : 'Patches',
     tipTitle : '',
     tipText :'',

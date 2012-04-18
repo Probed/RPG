@@ -8,7 +8,6 @@ if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.lockable) RPG.TileTypes.lockable = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
-    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
@@ -155,71 +154,49 @@ RPG.Unlock = new (new Class({
      *
      */
     show : function(options,callbacks) {
-	if ($('unlockWindow')) {
-	    MUI.closeWindow($('unlockWindow'));
+	if (this.unlockDialog) {
+	//this.unlockDialog.close();
 	}
 
-	new MUI.Window({
-	    id : 'unlockWindow',
-	    title : 'This needs unlocking...',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.contentDiv = new Element('div'),
-	    collapsible : false,
-	    storeOnClose : false,
+	this.unlockDialog = new Jx.Dialog.Confirm({
+	    id : 'unlockDialog',
+	    label : 'This needs unlocking...',
+	    question : this.contentDiv = new Element('div'),
+	    minimize : false,
+	    destroyOnClose : true,
 	    resizable : true,
 	    maximizable : false,
-	    minimizable : false,
-	    closable : true,
-	    height : 180,
-	    width : 350,
-	    onClose : function() {
-		callbacks.fail && callbacks.fail();
-	    },
-	    require : {
-		//css : ['/client/Game/Puzzles/lockable/'+options.contents.type+'.css'],
-		js : ['/client/Game/Puzzles/lockable/'+options.contents.type+'.js'],
-		onloaded : function() {
-		    this.puzzle = new RPG.Puzzles.lockable[options.contents.type](options,callbacks);
-		    this.contentDiv.adopt(this.puzzle.toElement());
-		}.bind(this)
-	    },
-	    onContentLoaded : function() {
-		$('unlockWindow').adopt(RPG.elementFactory.buttons.actionButton({
-		    'class' : 'WinFootRight',
-		    html : 'Attempt Unlock',
-		    events : {
-			click : function() {
-			    if (this.puzzle && this.puzzle.isSolved()) {
-				var ret = {};
-				//ret becomes like: { '["path","to","tile"]' : solution }
-				ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path)] = this.puzzle.solution;
-				callbacks.success({
-				    unlock : ret
-				});
-				callbacks.fail = null;//set to null so onClose does not call again
-				this.puzzle.toElement().destroy();
-				$('unlockWindow').retrieve('instance').close();
-
-			    } else {
-				MUI.notification('Attempt Failed. Try again.');
-			    }
-			}.bind(this)
-		    }
-		}));
-
-		$('unlockWindow').adopt(RPG.elementFactory.buttons.closeButton({
-		    'class' : 'WinFootLeft',
-		    events : {
-			click : function() {
-			    callbacks.fail();
-			    callbacks.fail = null;//set to null so onClose does not call again
-			    $('unlockWindow').retrieve('instance').close();
-			}
-		    }
-		}));
+	    height : 300,
+	    width : 360,
+	    onClose : function(dialog, value) {
+		if (value && this.puzzle && this.puzzle.isSolved()) {
+		    var ret = {};
+		    //ret becomes like: { '["path","to","tile"]' : solution }
+		    ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path)] = this.puzzle.solution;
+		    callbacks && callbacks.success && callbacks.success({
+			unlock : ret
+		    });
+		    this.puzzle.toElement().destroy();
+		} else {
+		    callbacks && callbacks.fail && callbacks.fail();
+		    this.puzzle.toElement().destroy();
+		}
 	    }.bind(this)
 	});
+
+	this.unlockDialog.open();
+
+	if (!Object.getFromPath(RPG,['Puzzles','lockable',options.contents.type])) {
+	    this.unlockDialog.setBusy(true);
+	    require(['/client/Game/Puzzles/lockable/'+options.contents.type+'.js'],function(){
+		this.unlockDialog.setBusy(false);
+		this.puzzle = new RPG.Puzzles.lockable[options.contents.type](options,callbacks);
+		this.contentDiv.adopt(this.puzzle.toElement());
+	    }.bind(this));
+	} else {
+	    this.puzzle = new RPG.Puzzles.lockable[options.contents.type](options,callbacks);
+	    this.contentDiv.adopt(this.puzzle.toElement());
+	}
     },
 
     //serverside solution checking

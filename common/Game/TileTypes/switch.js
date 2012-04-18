@@ -8,7 +8,6 @@ if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes['switch']) RPG.TileTypes['switch'] = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../Character/Character.js'));
-    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     var logger = RPG.Log.getLogger('Switch');
@@ -36,7 +35,7 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
     var idx = 0;
     if (typeof exports == 'undefined') {
 	//client
-	if (options.contents.auto) {
+	if (!options.contents.auto) {
 	    RPG.Switch.show(options,{
 		success : function(switchState){
 		    callback(switchState);
@@ -197,69 +196,44 @@ RPG.Switch = new (new Class({
      *
      */
     show : function(options,callbacks) {
-	if ($('switchWindow')) {
-	    MUI.closeWindow($('switchWindow'));
-	}
-
-	new MUI.Window({
-	    id : 'switchWindow',
-	    title : 'Choose carefully.',
-	    type : 'window',
-	    loadMethod : 'html',
-	    content : this.contentDiv = new Element('div'),
-	    collapsible : false,
-	    storeOnClose : false,
+	this.switchDialog = new Jx.Dialog.Confirm({
+	    id : 'switchDialog',
+	    label : 'Switch',
+	    question : this.contentDiv = new Element('div'),
+	    minimize : false,
+	    destroyOnClose : true,
 	    resizable : true,
 	    maximizable : false,
-	    minimizable : false,
-	    closable : true,
-	    height : 180,
-	    width : 350,
-	    onClose : function() {
-		callbacks.fail && callbacks.fail();
-	    },
-	    require : {
-		css : ['/client/Game/Puzzles/switch/'+options.contents.type+'.css'],
-		js : ['/client/Game/Puzzles/switch/'+options.contents.type+'.js'],
-		onloaded : function() {
-		    this.puzzle = new RPG.Puzzles['switch'][options.contents.type](options,callbacks);
-		    this.contentDiv.adopt(this.puzzle.toElement());
-		}.bind(this)
-	    },
-	    onContentLoaded : function() {
-		$('switchWindow').adopt(RPG.elementFactory.buttons.actionButton({
-		    'class' : 'WinFootRight',
-		    html : 'Change Switch',
-		    events : {
-			click : function() {
-			    if (this.puzzle && this.puzzle.isSolved()) {
-				var ret = {};
-				//ret becomes like: { '["path","to","tile"]' : solution }
-				ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles).path)] = this.puzzle.solution;
-				callbacks.success({
-				    'switch' : ret
-				});
-				callbacks.fail = null;//set to null so onClose does not call again
-				this.puzzle.toElement().destroy();
-				$('switchWindow').retrieve('instance').close();
-			    } else {
-				MUI.notification('Nothing\'s Changed.');
-			    }
-			}.bind(this)
-		    }
-		}));
-
-		$('switchWindow').adopt(RPG.elementFactory.buttons.closeButton({
-		    'class' : 'WinFootLeft',
-		    events : {
-			click : function() {
-			    callbacks.fail();
-			    callbacks.fail = null;//set to null so onClose does not call again
-			    $('switchWindow').retrieve('instance').close();
-			}
-		    }
-		}));
+	    height : 300,
+	    width : 360,
+	    onClose : function(dialog, value) {
+		if (value && this.puzzle && this.puzzle.isSolved()) {
+		    var ret = {};
+		    //ret becomes like: { '["path","to","tile"]' : solution }
+		    ret[JSON.encode(RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'switch',options.tiles).path)] = this.puzzle.solution;
+		    callbacks && callbacks.success && callbacks.success({
+			'switch' : ret
+		    });
+		    this.puzzle.toElement().destroy();
+		} else {
+		    callbacks && callbacks.fail && callbacks.fail();
+		    this.puzzle.toElement().destroy();
+		}
 	    }.bind(this)
 	});
+
+	this.switchDialog.open();
+
+	if (!Object.getFromPath(RPG,['Puzzles','switch',options.contents.type])) {
+	    this.switchDialog.setBusy(true);
+	    require(['/client/Game/Puzzles/switch/'+options.contents.type+'.js'],function(){
+		this.switchDialog.setBusy(false);
+		this.puzzle = new RPG.Puzzles['switch'][options.contents.type](options,callbacks);
+		this.contentDiv.adopt(this.puzzle.toElement());
+	    }.bind(this));
+	} else {
+	    this.puzzle = new RPG.Puzzles['switch'][options.contents.type](options,callbacks);
+	    this.contentDiv.adopt(this.puzzle.toElement());
+	}
     }
 }));

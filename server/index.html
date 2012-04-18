@@ -8,42 +8,25 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 	<link rel="shortcut icon" type="image/png" href="/favicon.png">
 
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Content.css" />
-	<!--<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Core.css" />-->
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Layout.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Dock.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Window.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Tabs.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Table.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Icons.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Common.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Buttons.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Tips.css" />
-	<link rel="stylesheet" type="text/css" href="/client/mochaui/themes/charcoal/css/Extensions.css" />
-
+	<link rel="stylesheet" href="/client/jx/themes/dark/jxtheme.uncompressed.css" type="text/css" media="screen" charset="utf-8">
+	<!--[if LTE IE 6]><link rel="stylesheet" href="jx/themes/dark/ie6.css" type="text/css" media="screen" charset="utf-8"><![endif]-->
+	<!--[if IE 7]><link rel="stylesheet" href="jx/themes/dark/ie7.css" type="text/css" media="screen" charset="utf-8"><![endif]-->
 
 	<script type="text/javascript" src="/client/mootools/mootools-core-1.4.2-full-compat.js"></script>
 	<script type="text/javascript" src="/client/mootools/mootools-more-1.4.0.1.js"></script>
-	<script type="text/javascript" src="/client/mootools/MooHashChange.js"></script>
-	<script type="text/javascript" src="/client/mochaui/mochaui_mod.js"></script>
-	<script type="text/javascript" src="/common/string.utf8.js"></script>
-	<script type="text/javascript" src="/common/string.md5.js"></script>
-
-	<script type="text/javascript" src="/client/rpgInit.js"></script>
-	<script type="text/javascript" src="/common/appInfo.js"></script>
-	<script type="text/javascript" src="/common/pages.js"></script>
-	<script type="text/javascript" src="/client/yesORno.js"></script>
-	<script type="text/javascript" src="/client/Error.js"></script>
-	<script type="text/javascript" src="/client/Success.js"></script>
-	<script type="text/javascript" src="/client/User/User.js"></script>
-	<script type="text/javascript" src="/client/elementFactory.js"></script>
-	<script type="text/javascript" src="/client/rpgApplication.js"></script>
-    </head>
-    <body>
+	<script type="text/javascript" src="/client/requirejs/require.js"></script>
 	<script type="text/javascript">
-	    window.onload = function() {
+	    require(["client/rpgApplication"], function(){
+		if (!RPG || !RPG.rpgApplication) {
+		    alert('Application failed to load :(  Please try again.');
+		    return;
+		}
 		new RPG.rpgApplication(CLIENT_APP_OPTIONS);
-	    };
+	    });
 	</script>
+
+    </head>
+    <body id="body">
+	<table class="siteLoad" border="0" cellpadding="0" cellspacing="0"><tbody><tr><td><span>Loading...</span></td></tr></tbody></table>
     </body>
 </html>

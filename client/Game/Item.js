@@ -1,16 +1,21 @@
 if (!RPG) RPG = {};
 
+RPG.ItemTips = new Tips([],{
+    showDelay: 0,
+    offset : {
+	y : 35,
+	x : -20
+    }
+});
+
 RPG.Item = new Class({
-
-
     /**
      * Init Character Equipment
      */
-    initialize : function(game,cache,path,tips,element) {
+    initialize : function(game,cache,path,element) {
 	this.game = game;
 	this.itemCache = cache;
 	this.path = path;
-	this.tips = tips;
 	this.element = element;
 	if (!cache || !path) return;
 	element.setStyle('display','inline-block');
@@ -63,7 +68,7 @@ RPG.Item = new Class({
 					this.from.adopt(swap);
 				    } else {
 					if (results && results.error) {
-					    RPG.Error.show(results.error);
+					    RPG.Dialog.error(results.error);
 					}
 					element.setStyles(this.resetStyles);
 					this.from.adopt(element);
@@ -71,20 +76,20 @@ RPG.Item = new Class({
 				}.bind(this));
 			    }
 			    this.drag.detach();
-			    this.tips.attach(element);
+			    RPG.ItemTips.attach(element);
 			    $$('.accept_'+this.item.options.item.type).removeClass('EquipAccepts');
 			}.bind(this),
 
 			onSnap : function() {
-			    this.tips.hide();
+			    RPG.ItemTips.hide();
 			}.bind(this),
 
 			onEnter: function(element, droppable){
-			    this.tips.hide();
+			    RPG.ItemTips.hide();
 			}.bind(this),
 
 			onLeave: function(element, droppable){
-			    this.tips.hide();
+			    RPG.ItemTips.hide();
 			}.bind(this),
 
 			onComplete : function(element) {
@@ -95,7 +100,7 @@ RPG.Item = new Class({
 			    element.setStyles(this.resetStyles);
 			    this.from.adopt(element);
 			    this.drag.detach();
-			    this.tips.attach(element);
+			    RPG.ItemTips.attach(element);
 			    $$('.accept_'+this.item.options.item.type).removeClass('EquipAccepts');
 			}.bind(this)
 		    });
@@ -109,15 +114,15 @@ RPG.Item = new Class({
 		    height : '64px'
 		}).inject(document.body);
 		this.drag.attach().start(event);
-		this.tips.detach(element);
-		this.tips.hide();
+		RPG.ItemTips.detach(element);
+		RPG.ItemTips.hide();
 		if (this.item.options.item.identified) {
 		    $$('.accept_'+this.item.options.item.type).addClass('EquipAccepts');
 		}
 	    }.bind(this),
 
 	    mouseup : function() {
-		this.tips.attach(element);
+		RPG.ItemTips.attach(element);
 	    }.bind(this)
 	});
 	this.attachToolTip();
@@ -131,50 +136,49 @@ RPG.Item = new Class({
 	var item = this.item;
 	if (!item) return this.element;
 
-	RPG.tipFactory.attach(this.element,{
-	    tips : this.tips,
-	    tipTitle : (new HtmlTable({
-		zebra : true,
-		selectable : false,
-		useKeyboard : false,
-		properties : {
-		    cellpadding : 2,
-		    align : 'left',
-		    'class' : 'textLarge',
-		    styles : {
-			'background-color' : 'black',
-			color : 'white',
-			width : '100%'
-		    }
-		},
-		rows : [
-		[
-		{
-		    properties : {
-			styles : Object.merge(RPG.getMapTileStyles({
-			    map : {
-				cache : this.itemCache,
-				tiles : [this.path]
-			    },
-			    zoom : 48
-			}),{
-			    'background-size' : '100% 100%',
-			    'background-position' : '0% 0%'
-			})
-		    },
-		    content : '&nbsp'
-		},
-		{
-		    properties : {
-			'class' : 'vMiddle'
-		    },
-		    content : this.item.options.property.tileName
+	this.element.store('tip:title',(new HtmlTable({
+	    zebra : true,
+	    selectable : false,
+	    useKeyboard : false,
+	    properties : {
+		cellpadding : 2,
+		align : 'left',
+		'class' : 'textLarge',
+		styles : {
+		    'background-color' : 'black',
+		    color : 'white',
+		    width : '100%'
 		}
-		]
-		]
-	    })).toElement(),
-	    tipText : RPG.Constraints.getDisplayTable(this.item.options.item)
-	});
+	    },
+	    rows : [
+	    [
+	    {
+		properties : {
+		    styles : Object.merge(RPG.getMapTileStyles({
+			map : {
+			    cache : this.itemCache,
+			    tiles : [this.path]
+			},
+			zoom : 48
+		    }),{
+			'background-size' : '100% 100%',
+			'background-position' : '0% 0%'
+		    })
+		},
+		content : '&nbsp'
+	    },
+	    {
+		properties : {
+		    'class' : 'vMiddle'
+		},
+		content : this.item.options.property.tileName
+	    }
+	    ]
+	    ]
+	})).toElement()
+	    );
+	this.element.store('tip:text',RPG.Constraints.getDisplayTable(this.item.options.item));
+	RPG.ItemTips.attach(this.element);
 	item = null;
 	return this.element;
     }

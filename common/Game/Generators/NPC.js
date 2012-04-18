@@ -13,7 +13,7 @@ if (typeof exports != 'undefined') {
 
 }
 
-RPG.Generator.npc = new (RPG.Generator.npcClass = new Class({
+RPG.Generator.NPC = new (RPG.Generator.npcClass = new Class({
     Extends : RPG.ItemGeneratorBaseClass,
 
     name : 'npc',

@@ -337,6 +337,7 @@ RPG.Generator.House = new (RPG.Generator.HouseClass = new Class({
 					}
 				    },
 				    'switch' : {
+					auto : false,
 					state : 'Open',
 					states : {
 					    'Open' : [{

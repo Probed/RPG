@@ -7,7 +7,7 @@ if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.teleportTo) RPG.TileTypes.teleportTo = {};
 if (typeof exports != 'undefined') {
     Object.merge(RPG,require('../../../server/Game/Universe.njs'));
-    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
+    Object.merge(RPG,require('../../../server/Game/game.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     Object.merge(RPG,require('../Generators/Dungeon.js'));
     Object.merge(RPG,require('../Generators/House.js'));
@@ -36,22 +36,24 @@ RPG.TileTypes.teleportTo.activate = RPG.TileTypes.teleportTo.onBeforeEnter = fun
 
     if (options.contents.warn && typeof exports == 'undefined') {
 	//client side
-	RPG.yesORno.show({
-	    title : 'Teleport to <b>' + (options.contents.mapName || options.merged.property.tileName)+'</b>',
-	    content : new Element('div',{
+	new Jx.Dialog.Confirm({
+	    label : 'Teleport to <b>' + (options.contents.mapName || options.merged.property.tileName)+'</b>',
+	    question : new Element('div',{
 		html : 'Would you like to teleport to <b>'+(options.contents.mapName || options.merged.property.tileName)+'</b>?'
 	    }),
-	    height : 60,
-	    width : 200,
-	    yes : function() {
-		callback({
-		    teleportTo : true
-		});
-	    },
-	    no : function() {
-		callback();
+	    height : 160,
+	    width : 300,
+	    destroyOnClose : true,
+	    onClose : function(dialog,value) {
+		if (value) {
+		    callback({
+			teleportTo : true
+		    });
+		} else {
+		    callback();
+		}
 	    }
-	});
+	}).open();
 
     } else if (!options.contents.warn && typeof exports == 'undefined') {
 	callback({

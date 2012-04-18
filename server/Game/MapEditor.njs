@@ -7,87 +7,10 @@ Object.merge(RPG,
     require('./Tileset.njs'),
     require('../../common/Game/universe.js'),
     require('../../common/Game/Generators/Utilities.js'),
-    require("../pages/pageBase.njs")
+    require('../../common/Game/Tiles/Utilities.js')
     );
 
 RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
-    Extends : RPG.PageBaseClass,
-    options : {},
-    initialize : function(options) {
-	this.parent(options);
-
-	//Client Received Page Contents:
-	this.page = {
-	    title : 'Map Editor',
-	    populates : 'pnlMainContent',
-	    requires : {
-		'css' : ['/client/mochaui/themes/charcoal/css/Map/MapEditor.css','/client/mochaui/themes/charcoal/css/Map/Tile.css'],
-		'js' : [
-		'/client/Game/MapEditor.js',
-		'/common/Character/Character.js',
-		'/common/Game/Tiles/Tiles.js',
-		'/common/Game/universe.js',
-		'/common/Game/Generators/Generators.js',
-		'/common/Constraints.js',
-		'/common/Random.js',
-		'/common/Game/Generators/Utilities.js',
-		'/common/Game/Tiles/Utilities.js',
-		'/common/Game/Generators/Words.js',
-		],
-		exports :'MapEditor'
-	    },
-	    pageContents : '',
-	    options : {}
-	};
-
-	var constraints = this.buildTileConstraints(['./common','Game','Tiles']);
-	var str = '/*This File is Generated in /server/Game/MapEditor.njs*/if (!RPG) var RPG = {};RPG.Tiles=';
-	str += JSON.encode(constraints);
-	str += ';if (typeof exports != "undefined") {module.exports = RPG;}';
-	require('fs').writeFileSync('./common/Game/Tiles/Tiles.js',str,'utf8');
-	Object.merge(RPG,{
-	    Tiles : constraints
-	});
-
-	//only after we have created RPG.Tiles can we merge in the Utilities which requires RPG.Tiles
-	Object.merge(RPG,require('../../common/Game/Tiles/Utilities.js'));
-	constraints = null;
-    },
-
-    /**
-     * buildTileConstraints Here we recursivly traverse the /common/Game/Tiles  directory and build up the RPG.Tiles object
-     * Each folder can have an options.js file which will be imported and merged into the tile to give the tile it's unique abilities.
-     * option.js files will reference TileTypes.js for the different types available
-     *
-     */
-    buildTileConstraints : function(dir,constraints) {
-	if (!constraints) constraints = {};
-
-	var folders = require('fs').readdirSync(dir.join('/'));
-
-	if (require('path').existsSync(dir.join('/')+'/options.js')) {
-	    constraints.options = require('../.'+dir.join('/')+'/options.js').options;
-	}
-	folders.each(function(name){
-	    if (name == 'options.js') return;
-	    var stat = require('fs').statSync(dir.join('/')+'/'+name);
-	    if (stat.isFile() && /bmp|gif|png|jpg$/i.test(name)) {
-		if (!constraints.options) constraints.options = {};
-		if (!constraints.options.property) constraints.options.property = {};
-		if (!constraints.options.property.image) constraints.options.property.image = {};
-		if (!constraints.options.property.image.name) constraints.options.property.image.name = [];
-		constraints.options.property.image.name.push(name);
-
-	    } else if (stat.isDirectory()) {
-		constraints[name] = {};
-		dir.push(name);
-		this.buildTileConstraints(dir,constraints[name]);
-		dir.pop();
-	    }
-
-	}.bind(this));
-	return constraints;
-    },
 
     onRequest : function(request,response) {
 
@@ -99,7 +22,6 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 
 	/**
 	 * Determine what is being asked for and route accordingly
-	 * by default the MapEditor 'page' is give to the user which begins the MapEditing
 	 */
 	switch (request.url.query.m) {
 
@@ -171,12 +93,6 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 		    }
 		});
 		break;
-
-
-	    //by default send the user the #MapEditor 'page'
-	    default :
-		response.onRequestComplete(response,this._onRequest(request,this.page));
-		break;
 	}
     },
 
@@ -234,6 +150,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	var options = JSON.decode(request.data,true);
 	RPG.Universe.load({
 	    user : request.user,
+	    universe : 'none',
 	    universeID : options.universeID,
 	    tilePoints : RPG.getRectangleArea(options.start,options.end).area
 	},function(universe){
@@ -243,7 +160,7 @@ RPG.MapEditor =  new (RPG.MapEditorClass = new Class({
 	    }
 	    RPG.Map.listMaps({
 		user : request.user,
-		universeID : options.universeID
+		universe : universe
 	    },function(maplist) {
 		if (maplist.error) {
 		    response.onRequestComplete(response,maplist);

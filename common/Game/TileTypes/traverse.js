@@ -7,7 +7,6 @@ if (!RPG) var RPG = {};
 if (!RPG.TileTypes) RPG.TileTypes = {};
 if (!RPG.TileTypes.Traverse) RPG.TileTypes.traverse = {};
 if (typeof exports != 'undefined') {
-    Object.merge(RPG,require('../../../server/Game/MapEditor.njs'));
     Object.merge(RPG,require('../../../server/Character/Character.njs'));
     module.exports = RPG;
 }
