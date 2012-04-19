@@ -2,6 +2,7 @@ var RPG = module.exports = {};
 
 Object.merge(RPG,require('../common/pages.js'));
 Object.merge(RPG,require('./User/Users.njs'));
+Object.merge(RPG,require('./Game/Play.njs'));
 
 var logger = RPG.Log.getLogger('RPG.App');
 var fs = require('fs');
@@ -217,6 +218,12 @@ RPG.App = new (RPG.AppClass = new Class({
 	    case RPG.Users.routeAccepts.contains(url.query.a) :
 		request.user.logger.trace('Routing to: Users');
 		RPG.Users.onRequest(request,response);
+		handled = true;
+		break;
+
+	    case url.query.a == 'Play' && RPG.Play.routeAccepts.contains(url.query.m) :
+		request.user.logger.trace('Routing to: Play');
+		RPG.Play.onRequest(request,response);
 		handled = true;
 		break;
 

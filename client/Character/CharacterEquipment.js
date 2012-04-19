@@ -72,7 +72,7 @@ of items
 	    return this.equipInv.toElement()
 	},
 	refresh : function(game) {
-
+	    if (!game) return;
 	    var rows = new Array();
 	    for(var r=0;r<=19;r++) {
 		rows.push(new Array());
@@ -205,23 +205,23 @@ of items
 
 	    var bgUrls = '';
 	    if (game.character.RightGrowthLeg) {
-		bgUrls+='url(/common/Character/m_bg_character_rlg.png),';
+		bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character_rlg.png),';
 	    }
 	    if (game.character.LeftGrowthLeg) {
-		bgUrls+='url(/common/Character/m_bg_character_llg.png),';
+		bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character_llg.png),';
 	    }
 	    if (game.character.GrowthHead) {
-		bgUrls+='url(/common/Character/m_bg_character_hg.png),';
+		bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character_hg.png),';
 	    } else {
-		bgUrls+='url(/common/Character/m_bg_character_h.png),';
+		bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character_h.png),';
 	    }
 	    if (game.character.LeftGrowthArm) {
-		bgUrls+='url(/common/Character/m_bg_character_lag.png),';
+		bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character_lag.png),';
 	    }
 	    if (game.character.RightGrowthArm) {
-		bgUrls+='url(/common/Character/m_bg_character_rag.png),';
+		bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character_rag.png),';
 	    }
-	    bgUrls+='url(/common/Character/m_bg_character.png)'
+	    bgUrls+='url(/common/Character/portrait/'+game.character.Gender+'/bg_character.png)'
 	    this.characterEquipmentTable.toElement().setStyle('background-image',bgUrls);
 
 	    this.refreshInfo(game);
@@ -244,9 +244,11 @@ of items
 		}
 	    });
 
+	    var charStats = RPG.calculateSlotBonuses(game);
+
 	    var rows = [];
 	    ['hp','mana','lives'].each(function(stat){
-		var width = game.character[stat].max == null?100:Math.round((((Number.from(game.character[stat].cur)) /  Number.from(game.character[stat].max)) * 100));
+		var width = charStats[stat].max == null?100:Math.round((((Number.from(game.character[stat].cur)) /  Number.from(charStats[stat].max)) * 100));
 		rows.push([
 		{
 		    properties : {
@@ -267,7 +269,7 @@ of items
 			    'background-color' : width==0?'none':stat=='mana'?'blue':stat=='hp'?'red':'purple'
 			},
 			'class' : 'textLarge NoWrap',
-			html :  game.character[stat].max == null?'Infinite':game.character[stat].cur + " / " + game.character[stat].max + ' ' + width.formatPercentage(0)
+			html :  charStats[stat].max == null?'Infinite':game.character[stat].cur + " / " + charStats[stat].max + ' ' + width.formatPercentage(0)
 		    })
 
 		}
@@ -293,9 +295,8 @@ of items
 		    html :  (Number.from(game.character.xp) || 0).format({
 			group : ',',
 			decimals : 0
-		    })
+		    }) + (charStats.xp ? '(+' + charStats.xp + '%)'  : '')
 		})
-
 	    }
 	    ]);
 
@@ -335,7 +336,7 @@ of items
 			    width : '20px'
 			}
 		    },
-		    content : game.character.Stats[stat].value
+		    content : charStats[stat].value
 		}
 		]);
 	    }.bind(this));

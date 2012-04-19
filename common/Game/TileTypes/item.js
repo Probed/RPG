@@ -469,6 +469,7 @@ RPG.ItemList = new (new Class({
 		}).toElement()
 	    });
 	    this.itemDialog.open();
+	    this.itemDialog.resize();
 	}
     }
 

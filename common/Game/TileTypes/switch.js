@@ -223,6 +223,7 @@ RPG.Switch = new (new Class({
 	});
 
 	this.switchDialog.open();
+	this.switchDialog.resize();
 
 	if (!Object.getFromPath(RPG,['Puzzles','switch',options.contents.type])) {
 	    this.switchDialog.setBusy(true);

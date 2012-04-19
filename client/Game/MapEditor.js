@@ -93,6 +93,7 @@ define([
 			tooltip: 'Listing of current Map Tiles',
 			onClick : function() {
 			    this.refreshMapTree().open();
+			    this.refreshMapTree().resize();
 			}.bind(this)
 		    }),
 		    new Jx.Menu({
@@ -774,7 +775,7 @@ define([
 		    this.newUniDialog.close();
 		    delete this.newUniDialog;
 		}
-		this.newUniDialog = new RPG.Dialog.form({
+		this.newUniDialog = RPG.Dialog.form({
 		    id : 'newUniverseDialog',
 		    label : 'New Universe',
 		    image: '/client/jx/themes/dark/images/plus.png',
@@ -950,7 +951,7 @@ define([
 	    },
 
 	    editUniverseDialog : function() {
-		new RPG.Dialog.form({
+		RPG.Dialog.form({
 		    id : 'editUniDialog',
 		    label : 'Edit Universe Options',
 		    image: '/client/jx/themes/dark/images/maps-stack.png',
@@ -1019,7 +1020,7 @@ define([
 		if (this.newMapDlg && this.newMapDlg.close) {
 		    this.newMapDlg.close();
 		}
-		this.newMapDlg = new RPG.Dialog.form({
+		this.newMapDlg = RPG.Dialog.form({
 		    id : 'newMapdlg',
 		    label : 'New Map',
 		    image: '/client/jx/themes/dark/images/plus.png',
@@ -1113,7 +1114,7 @@ define([
 		    Error.show('No Universe is currently open.');
 		    return;
 		}
-		new RPG.Dialog.form({
+		RPG.Dialog.form({
 		    id : 'editMapDlg',
 		    label : 'Edit Map Options',
 		    image: '/client/jx/themes/dark/images/map.png',
@@ -1184,7 +1185,7 @@ define([
 		    this.generatorDlg.close();
 		    delete this.generatorDlg;
 		}
-		this.generatorDlg = new RPG.Dialog.form({
+		this.generatorDlg = RPG.Dialog.form({
 		    id : 'generateDlg',
 		    label : 'Generate ' + generator[1],
 		    image: '/client/jx/themes/dark/images/map.png',
@@ -1235,7 +1236,7 @@ define([
 		    this.tileDlg.close();
 		    delete this.tileDlg;
 		}
-		this.tileDlg = new RPG.Dialog.form({
+		this.tileDlg = RPG.Dialog.form({
 		    id : 'tileDialog',
 		    label : (options.path.join(' > ')).capitalize(),
 		    image: '/client/jx/themes/dark/images/map.png',
@@ -1872,7 +1873,7 @@ define([
 		if (!this.currentMap.tiles[options.row]) return;
 		if (!this.currentMap.tiles[options.row][options.col]) return;
 		var sortedList = null;
-		this.editTileOrderDialog = new RPG.Dialog.form({
+		this.editTileOrderDialog = RPG.Dialog.form({
 		    id : 'editTileOrderDialog',
 		    label : 'Editing Row: '+(options.row) + ' Column: '+(options.col),
 		    content : this.populateTileOrderDialog(options),

@@ -22,7 +22,7 @@ define([
 	    },
 	    initialize : function(options) {
 		this.setOptions(options);
-		$$('.siteLoad').hide();
+		$$('.siteLoad').destroy();
 		RPG.App = this;
 
 		Jx.Stack.base = 10;
@@ -102,7 +102,7 @@ define([
 					    resize : true,
 					    modal : false,
 					    collapse:false,
-					    height : 250,
+					    height : 400,
 					    width : 500,
 					    content : this.playTabs = new Jx.TabBox({
 						scroll : false,
@@ -200,6 +200,7 @@ define([
 					});
 				    }
 				    RPG.playNowDialog.open();
+				    RPG.playNowDialog.resize();
 				}.bind(this),
 				toggle : false
 			    }),
@@ -215,6 +216,7 @@ define([
 					    image: '/client/jx/themes/dark/images/character.png',
 					    resize : true,
 					    modal : false,
+					    collapse:false,
 					    height : 580,
 					    width : 790,
 					    content : this.charTabs = new Jx.TabBox({
@@ -238,6 +240,7 @@ define([
 				    }
 				    RPG.CharacterEquipment.refresh(RPG.Game.game);
 				    this.charDialog.open();
+				    this.charDialog.resize();
 				}.bind(this),
 				toggle : false
 			    }),
@@ -504,6 +507,8 @@ define([
 		    close : true,
 		    resize : true,
 		    modal : false,
+		    vertical : 'top top',
+		    horizontal : 'center center',
 		    image : '/client/jx/themes/dark/images/cross.png',
 		    content : RPG.Dialog.parseMessage(message),
 		    destroyOnClose : true

@@ -12,6 +12,9 @@ Object.merge(RPG,
 var logger = RPG.Log.getLogger('RPG.Play');
 
 RPG.Play =  new (RPG.PlayClass = new Class({
+
+    routeAccepts : ['CreateCharacter','ListCharacters','DeleteCharacter'].append(RPG.Game.routeAccepts),
+
     initialize : function() {
 	logger.info('Initialize');
     },

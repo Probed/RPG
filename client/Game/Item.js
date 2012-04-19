@@ -57,6 +57,7 @@ RPG.Item = new Class({
 				    }
 				},function(results) {
 				    if (Object.getFromPath(results,'events.inventory')) {
+					RPG.CharacterEquipment.refreshInfo(game);
 					element.setStyles(this.resetStyles);
 					var swap = droppable.getChildren()[0];
 					element.setStyle('height',swap.getStyle('height'));

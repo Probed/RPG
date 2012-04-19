@@ -468,3 +468,42 @@ RPG.calcXP = function(baseXP, options,callback) {
     var modifier = RPG.applyModifiers(options.game.character,1,'Character.xp.modifier');
     callback(Math.floor(baseXP * (modifier || 1)));
 }
+
+
+RPG.calculateSlotBonuses = function(game) {
+
+    //clone the characters base stats for modification
+    var charStats = Object.clone(Object.merge({
+	hp : {
+	    max : game.character.hp.max
+	},
+	mana : {
+	    max : game.character.mana.max
+	},
+	lives : {
+	    max : game.character.lives.max
+	},
+	xp : 0,
+	ac : game.character.ac
+    },game.character.Stats));
+
+
+    RPG.EachTile(game.inventory.equipment.tiles,null,function(details){
+	var tile = Object.getFromPath(game.inventory.equipment.cache,details.tilePaths[0]);
+	if (!Object.getFromPath(tile,'options.item.Stats')) return;
+	Object.each(Object.getFromPath(tile,'options.item.Stats'),function(stat,name){
+	    switch (true) {
+		case !!RPG.Stats[name] :
+		    charStats[name].value = Number.from(charStats[name].value) + Number.from(stat);
+		    break;
+		case name == 'hp' || name == 'mana' :
+		    charStats[name].max = Number.from(charStats[name].max) + Number.from(stat);
+		    break;
+		case name == 'xp' || name == 'ac' :
+		    charStats[name] += Number.from(charStats[name]) + Number.from(stat);
+		    break;
+	    }
+	});
+    });
+    return charStats;
+}

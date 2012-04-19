@@ -36,24 +36,71 @@ RPG.TileTypes.teleportTo.activate = RPG.TileTypes.teleportTo.onBeforeEnter = fun
 
     if (options.contents.warn && typeof exports == 'undefined') {
 	//client side
-	new Jx.Dialog.Confirm({
-	    label : 'Teleport to <b>' + (options.contents.mapName || options.merged.property.tileName)+'</b>',
-	    question : new Element('div',{
-		html : 'Would you like to teleport to <b>'+(options.contents.mapName || options.merged.property.tileName)+'</b>?'
+	var t = RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'teleportTo',options.tiles);
+	var dlg = new Jx.Dialog({
+	    label : 'Teleport to <b>' + (options.contents.mapName || t.path[t.path.length-1])+'</b>',
+	    content : new Jx.Panel({
+		content : new Element('div',{
+		    'class' : 'textCenter'
+		}).adopt(
+		    new Element('div',{
+			html : 'Would you like to teleport to:'
+		    }),
+		    new Element('div',{
+			styles : {
+			    'background-position' : 'top left',
+			    'background-image' : 'url('+RPG.getMapTileImage(t.path,t.tile)+')',
+			    'background-size' : '32px 32px',
+			    'background-repeat' : 'no-repeat',
+			    height : '32px',
+			    display : 'inline-block',
+			    'line-height' : '32px',
+			    'padding-left' : '36px'
+			},
+			html : '<b>' + (options.contents.mapName || options.merged.property.tileName)+'</b>'
+		    })),
+		image : RPG.getMapTileImage(t.path,t.tile),
+		collapse : false,
+		hideTitle : true,
+		toolbars : [
+		new Jx.Toolbar({
+		    position : 'bottom',
+		    scroll : false,
+		    align : 'right',
+		    items : [
+		    new Jx.Button({
+			label : 'No',
+			image : '/client/jx/themes/dark/images/cross.png',
+			onClick : function() {
+			    callback();
+			    dlg.close();
+			}
+		    }),
+		    new Jx.Toolbar.Separator(),
+		    new Jx.Button({
+			label : 'Yes',
+			image : '/client/jx/themes/dark/images/tick.png',
+			onClick : function() {
+			    callback({
+				teleportTo : true
+			    });
+			    dlg.close();
+			}
+		    })
+		    ]
+		})
+		]
 	    }),
 	    height : 160,
 	    width : 300,
+	    close : false,
+	    modal : true,
+	    resize : true,
+	    collapse : false,
 	    destroyOnClose : true,
-	    onClose : function(dialog,value) {
-		if (value) {
-		    callback({
-			teleportTo : true
-		    });
-		} else {
-		    callback();
-		}
-	    }
-	}).open();
+	    useKeyboard : false
+	});
+	dlg.open();
 
     } else if (!options.contents.warn && typeof exports == 'undefined') {
 	callback({

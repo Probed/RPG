@@ -4472,16 +4472,16 @@ select, input, textarea {
 }
 
 .tblCharacterList {
-    width : 80%;
+    width : 95%;
     border-collapse :separate;
 }
 .tblCharacterList td {
     padding : 2px;
     border-width: 6px 6px 6px 6px;
-    -moz-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
-    -webkit-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
-    -o-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
-    border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    -moz-border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
+    -webkit-border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
+    -o-border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
+    border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
 }
 
 .CharacterSelect {
@@ -4634,10 +4634,10 @@ select, input, textarea {
 
 .CharacterInventory {
     border-width: 6px 6px 6px 6px;
-    -moz-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
-    -webkit-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
-    -o-border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
-    border-image: url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch;
+    -moz-border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
+    -webkit-border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
+    -o-border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
+    border-image: url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch;
 }
 
 .EquipAccepts {
@@ -4651,7 +4651,7 @@ select, input, textarea {
     width : 100%;
 }
 .tip-wrap table td {
-    padding : 5px;
+    padding : 2px;
 }
 .tip-wrap {
     z-index: 65535;

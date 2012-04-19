@@ -40,6 +40,9 @@ RPG.Map = new Class({
 		    event.preventDefault();
 		}.bind(this),
 		'mouseup:relay(.M_tileHolder)' : function(event) {
+		    if ($('GameTable') && !this.keyUpEvents.isActive()) {
+			this.keyUpEvents.activate();
+		    }
 		    event.preventDefault();
 		//drag mouse up handled below in document events
 		}.bind(this),
@@ -215,7 +218,7 @@ RPG.Map = new Class({
 		    elm.empty();
 		}
 	    }.bind(this));
-	    $('GameTable').setPosition({
+	    this.mapTable.toElement().setPosition({
 		x : -this.mapZoom,
 		y : -this.mapZoom
 	    });
@@ -718,10 +721,10 @@ RPG.Map = new Class({
 			    'class' : 'vTop',
 			    styles : {
 				'border-width': '6px 6px 6px 6px',
-				'-moz-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
-				'-webkit-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
-				' -o-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
-				' border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch'
+				'-moz-border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch',
+				'-webkit-border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch',
+				' -o-border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch',
+				' border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch'
 			    }
 			},
 			content : new Element('div',{
@@ -735,10 +738,10 @@ RPG.Map = new Class({
 			properties :{
 			    styles : {
 				'border-width': '6px 6px 6px 6px',
-				'-moz-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
-				'-webkit-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
-				' -o-border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch',
-				' border-image': 'url(/client/mochaui/themes/charcoal/images/Border-Item.png) 10 10 10 10 stretch'
+				'-moz-border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch',
+				'-webkit-border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch',
+				' -o-border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch',
+				' border-image': 'url(/client/jx/themes/dark/images/border1.png) 10 10 10 10 stretch'
 			    }
 			},
 			content : RPG.Constraints.getDisplayTable(Object.getFromPath(this.game.universe.maps[this.game.character.location.mapName].cache,tilePath).options)

@@ -204,7 +204,7 @@ RPG.Disarm = new (new Class({
      *
      */
     show : function(options,callbacks) {
-	this.trapkDialog = new Jx.Dialog.Confirm({
+	this.trapDialog = new Jx.Dialog.Confirm({
 	    id : 'trapkDialog',
 	    label : 'It\'s a trap...',
 	    question : this.contentDiv = new Element('div'),
@@ -230,12 +230,13 @@ RPG.Disarm = new (new Class({
 	    }.bind(this)
 	});
 
-	this.trapkDialog.open();
+	this.trapDialog.open();
+	this.trapDialog.resize();
 
 	if (!Object.getFromPath(RPG,['Puzzles','trap',options.contents.type])) {
-	    this.trapkDialog.setBusy(true);
+	    this.trapDialog.setBusy(true);
 	    require(['/client/Game/Puzzles/trap/'+options.contents.type+'.js'],function(){
-		this.trapkDialog.setBusy(false);
+		this.trapDialog.setBusy(false);
 		this.puzzle = new RPG.Puzzles.trap[options.contents.type](options,callbacks);
 		this.contentDiv.adopt(this.puzzle.toElement());
 	    }.bind(this));

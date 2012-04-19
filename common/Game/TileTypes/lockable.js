@@ -185,6 +185,7 @@ RPG.Unlock = new (new Class({
 	});
 
 	this.unlockDialog.open();
+	this.unlockDialog.resize();
 
 	if (!Object.getFromPath(RPG,['Puzzles','lockable',options.contents.type])) {
 	    this.unlockDialog.setBusy(true);
