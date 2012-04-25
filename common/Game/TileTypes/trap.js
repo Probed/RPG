@@ -51,11 +51,12 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 	    //server
 	    if (RPG.Disarm.checkSolution(options)) {
 
-		var updateUni = RPG.updateTile({
+		var updateUni = RPG.getUpdateUniverse({
 		    universe : options.game.universe,
 		    mapName : options.game.character.location.mapName,
-		    tilePath : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path,
-		    options : {
+		    tilePaths : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path,
+		    point : options.game.character.location.point,
+		    tileOptions : {
 			trap : {
 			    armed : false
 			}
@@ -76,36 +77,37 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 		    var baseXP = RPG.Disarm.calcXP(options);
 
 		    //apply XP modifiers
-		    RPG.calcXP(baseXP,options,function(xp){
-			options.game.character.xp += xp;
+		    var xp = RPG.calcXP(baseXP,options);
+		    options.game.character.xp += xp;
 
-			//save the characters xp
-			RPG.Character.store({
-			    user : options.game.user,
-			    character : options.game.character
-			}, function(character){
-			    if (character.error) {
-				options.game.character.xp = oldXp;
-				callback(character);
-				return;
-			    }
+		    //save the characters xp
+		    RPG.Character.store({
+			user : options.game.user,
+			character : options.game.character
+		    }, function(character){
+			if (character.error) {
+			    options.game.character.xp = oldXp;
+			    callback(character);
+			    return;
+			}
 
-			    Object.merge(options.game.character,character);
-
-			    //finally callback
-			    callback({
-				trap : ['Successful Disarmed',xp],
-				game : {
-				    universe : updateUni,
-				    character : {
-					xp : options.game.character.xp
-				    }
+			Object.merge(options.game.character,character);
+			updateUni.options = {};//no universe options changed. remove it
+			Object.each(updateUni.maps,function(map){
+			    map.options = {};//no map options changed. remove it
+			});
+			//finally callback
+			callback({
+			    trap : ['Successful Disarmed',xp],
+			    game : {
+				universe : updateUni,
+				character : {
+				    xp : options.game.character.xp
 				}
+			    }
+			});
 
-			    });
-
-			});//end store character
-		    });//end calcXP
+		    });//end store character
 		});//end store universe
 	    } else {
 		//increment the attempt counter
@@ -123,8 +125,9 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 		updateUni = RPG.updateTile({
 		    universe : options.game.universe,
 		    mapName : options.game.character.location.mapName,
-		    tilePath : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path,
-		    options : {
+		    tilePaths : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'trap',options.tiles).path,
+		    point : options.game.character.location.point,
+		    tileOptions : {
 			trap : newOpts
 		    }
 		});
@@ -145,14 +148,15 @@ RPG.TileTypes.trap.onBeforeEnter = function(options,callback) {
 			return;
 		    }
 		    if (newOpts.armed) {
-			var out = Object.clone(universe);
-			Object.erase(out,'options');//unchanged.. no need to send to client
-			Object.erase(out.maps[options.game.character.location.mapName],'options');//unchanged.. no need to send to client
+			updateUni.options = {};//no universe options changed. remove it
+			Object.each(updateUni.maps,function(map){
+			    map.options = {};//no map options changed. remove it
+			});
 			callback({
 			    traverse : false,
 			    error : 'Disarm Failed. Attempts Left: ' + (options.contents.attempts - newOpts.attempt),
 			    game : {
-				universe : out //send the updated tile info back to the client
+				universe : updateUni //send the updated tile info back to the client
 			    }
 			});
 		    } else {
@@ -271,7 +275,7 @@ RPG.Disarm = new (new Class({
     calcXP : function(options) {
 	switch (options.contents.type) {
 	    case  'posion' :
-		return 100 * options.contents.level * (RPG.difficultyVal(options.contents.Difficulty,'Puzzle.trap.posion') || 1);
+		return Math.floor(RPG.levelXP(options.contents.Difficulty, options.contents.level) / 50); //would take 50 disarms to gain a level
 		break;
 	}
 	return 0;

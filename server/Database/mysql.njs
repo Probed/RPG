@@ -2,7 +2,7 @@ var RPG = module.exports = {};
 
 RPG.MySQLPool = new require("node-mysql-pool").MySQLPool({
     mysql : 'node-mysql',
-    poolSize: 100,
+    poolSize: 1,
     host: 'localhost',
     user: 'rpg_player',
     password: 'psychometallica',
@@ -12,7 +12,11 @@ RPG.MySQLPool = new require("node-mysql-pool").MySQLPool({
 RPG.Mysql = new (new Class({
 
     query : function(sql,values,callback) {
-	RPG.MySQLPool.query(sql,values,callback);
+	var idx = require('../Log/Log.njs').Timing.start('DB Query: ' + sql);
+	RPG.MySQLPool.query(sql,values,function(err,results,fields,input){
+	    require('../Log/Log.njs').Timing.stop(idx);
+	    callback(err,results,fields,input);
+	});
     },
 
     createQueue : function() {
@@ -61,8 +65,10 @@ RPG.Queue = new Class({
     queue : function(sql,values,callback) {
 	this.queued.push(function(fn){
 	    //require('util').log('[Queued] Querying...'+String.fromCharCode(13));
+	    var idx = require('../Log/Log.njs').Timing.start('DB Query: ' + sql);
 	    RPG.MySQLPool.query(sql,values,function(err,info,fields){
 		//require('util').log('[Queued] Querying Complete.'+String.fromCharCode(13));
+		require('../Log/Log.njs').Timing.stop(idx);
 		callback && callback(err,info,fields,{
 		    sql : sql,
 		    values : values

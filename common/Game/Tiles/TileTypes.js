@@ -49,7 +49,7 @@ RPG.TileType.Property = function(options) {
 	    tileName : ["/^[a-zA-Z0-9'.`_ ]+$/",1,50],
 	    folderName : ["/^[a-zA-Z0-9]+$/",1,50],
 	    image : {
-		name : [],
+		name : [], //this is populated when the tiles.js file is created.
 		size : [-200,200,100],
 		top : [-200,200,0],
 		left : [-200,200,0],
@@ -272,11 +272,6 @@ RPG.TileType.Equip = function(options) {
 	Race : ['All'].append(Object.keys(RPG.Race)),
 	Gender : ['All'].append(Object.keys(RPG.Gender)),
 	Class : ['All'].append(Object.keys(RPG.Class)),
-
-	//	equip : 'All.'.repeat(3).split('.').slice(0,-1).append(['Light','Medium','Heavy']).shuffleS(rand),
-	//	Race : 'All.'.repeat(Object.keys(RPG.Race).length).split('.').slice(0,-1).append(Object.keys(RPG.Race)).shuffleS(rand),
-	//	Gender : 'All.'.repeat(Object.keys(RPG.Gender).length).split('.').slice(0,-1).append(Object.keys(RPG.Gender)).shuffleS(rand),
-	//	Class : 'All.'.repeat(Object.keys(RPG.Class).length).split('.').slice(0,-1).append(Object.keys(RPG.Class)).shuffleS(rand),
 
 	//Stat Modifiers
 	Stats : (function(){

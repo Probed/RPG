@@ -1,4 +1,5 @@
 define([
+    '../mootools/mcl-min',//canvas
     '../Character/Character',
     '../../common/Character/Portraits',
     '../../common/Character/Character',
@@ -22,6 +23,7 @@ define([
 
     '../Character/CharacterEquipment.js',
     '../../common/Game/Tiles/Utilities.js',
+    '../../common/Game/inventory.js',
     '../../common/Random.js'
 
     ],function(){

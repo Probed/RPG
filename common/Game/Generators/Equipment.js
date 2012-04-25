@@ -156,7 +156,7 @@ RPG.Generator.Equipment = new (RPG.Generator.EquipmentClass = new Class({
 	    });
 	    tile.options.item.cost = Math.floor(rand.random(1,5)); //make unidentified items cheap
 	    tile.options.item.weight = Math.floor(rand.random(1,5));
-	    console.log(JSON.encode(equipmentObj.cache));
+	    //console.log(JSON.encode(equipmentObj.cache));
 	}
 
 	//finally callback with the equipmentObj

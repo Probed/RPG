@@ -18,8 +18,9 @@ RPG.User = new Class({
     },
     initialize : function(options) {
 	this.setOptions(options);
-	this.logger = RPG.Log.getLogger('userID:'+ (this.options.userID || (this.options.id)));
-	this.logger.trace('Initialized.');
+	this.logger = RPG.Log.getLogger('User '+ (this.options.userID || (this.options.id)));
 	this.logger.setLevel('ALL');
+	this.logger.trace('Initialized.');
+
     }
 });

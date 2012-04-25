@@ -1877,7 +1877,7 @@ define([
 		    id : 'editTileOrderDialog',
 		    label : 'Editing Row: '+(options.row) + ' Column: '+(options.col),
 		    content : this.populateTileOrderDialog(options),
-		    width : 385,
+		    width : 425,
 		    height : 300,
 		    onClose : function(dialog,value) {
 			if (value) {
@@ -1927,8 +1927,8 @@ define([
 		    selectable : false,
 		    useKeyboard : false,
 		    properties : {
-			align : 'center',
-			cellpadding : 2
+			'class' : 'tileOderTable',
+			align : 'center'
 		    }
 		});
 

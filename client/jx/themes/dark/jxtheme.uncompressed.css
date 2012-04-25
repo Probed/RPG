@@ -4817,3 +4817,11 @@ select, input, textarea {
     background: -webkit-gradient(linear, left top, left bottom, from(#1e1e1e), to(#4f4f4f));
     background: -moz-linear-gradient(top,  #1e1e1e,  #4f4f4f);
 }
+
+.tileOderTable {
+    width : 100%;
+    border-collapse : seperate;
+}
+.tileOderTable td {
+    padding : 2px;
+}

@@ -649,7 +649,7 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 		    var cache = RPG.expandResultsCache(iResults,'inventoryCacheID');
 
 
-			options.user.logger.trace('Inventory Tiles Loaded: '+iResults.length+' from  '+options.name);
+		    options.user.logger.trace('Inventory Tiles Loaded: '+iResults.length+' from  '+options.name);
 
 		    callback(cache);
 		} else {
@@ -748,9 +748,9 @@ RPG.Inventory = new (RPG.InventoryClass = new Class({
 			'SET folderName = ?,' +
 			'path = ?,' +
 			'tileName = ?,' +
-			'options = ? ' +
-			'WHERE inventoryID = ? ' +
-			'AND inventoryCacheID = ? ',
+			'options = ?, ' +
+			'inventoryID = ? ' +
+			'WHERE inventoryCacheID = ? ',
 			[
 			tileOpts.property.folderName,
 			path,

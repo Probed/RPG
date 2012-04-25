@@ -53,11 +53,12 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 
 	    //server
 	    if (RPG.Unlock.checkSolution(options)) {
-		var updateUni = RPG.updateTile({
+		var updateUni = RPG.getUpdateUniverse({
 		    universe : options.game.universe,
 		    mapName : options.game.character.location.mapName,
-		    tilePath : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path,
-		    options : {
+		    tilePaths : RPG.getLastByTileType(options.game.universe.maps[options.game.character.location.mapName],'lockable',options.tiles).path,
+		    point : options.game.character.location.point,
+		    tileOptions : {
 			lockable : {
 			    locked : false
 			}
@@ -85,35 +86,37 @@ RPG.TileTypes.lockable.activate = RPG.TileTypes.lockable.onBeforeEnter = functio
 		    var baseXP = RPG.Unlock.calcXP(options);
 
 		    //apply XP modifiers
-		    RPG.calcXP(baseXP,options,function(xp){
-			options.game.character.xp += xp;
+		    var xp = RPG.calcXP(baseXP,options);
+		    options.game.character.xp += xp;
 
-			//save the characters xp
-			RPG.Character.store({
-			    user : options.game.user,
-			    character : options.game.character
-			}, function(character){
-			    if (character.error) {
-				options.game.character.xp = oldXp;
-				callback(character);
-				return;
-			    }
+		    //save the characters xp
+		    RPG.Character.store({
+			user : options.game.user,
+			character : options.game.character
+		    }, function(character){
+			if (character.error) {
+			    options.game.character.xp = oldXp;
+			    callback(character);
+			    return;
+			}
 
-			    Object.merge(options.game.character,character);
-
-			    //finally callback
-			    callback({
-				lockable : ['Unlock attempt Successful.',xp],
-				game : {
-				    universe : updateUni,
-				    character : {
-					xp : options.game.character.xp
-				    }
+			Object.merge(options.game.character,character);
+			updateUni.options = {};//no universe options changed. remove it
+			Object.each(updateUni.maps,function(map){
+			    map.options = {};//no map options changed. remove it
+			});
+			//finally callback
+			callback({
+			    lockable : ['Unlock attempt Successful.',xp],
+			    game : {
+				universe : updateUni,
+				character : {
+				    xp : options.game.character.xp
 				}
-			    });
+			    }
+			});
 
-			});//end store character
-		    });//end calcXP
+		    });//end store character
 		});//end store universe
 	    } else {
 
@@ -226,7 +229,7 @@ RPG.Unlock = new (new Class({
     calcXP : function(options) {
 	switch (options.contents.type) {
 	    case  'tumbler' :
-		return 100 * options.contents.level * (RPG.difficultyVal(options.contents.Difficulty,'Puzzle.lockable.tumbler') || 1);
+		return Math.floor(RPG.levelXP(options.contents.Difficulty, options.contents.level) / 50); //would take 50 unlock to gain a level
 		break;
 	}
 	return 0;

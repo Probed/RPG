@@ -832,9 +832,9 @@ RPG.Map = new (RPG.MapClass = new Class({
 			'SET folderName = ?,' +
 			'path = ?,' +
 			'tileName = ?,' +
-			'options = ? ' +
-			'WHERE mapID = ? ' +
-			'AND mapCacheID = ? ',
+			'options = ?, ' +
+			'mapID = ? ' +
+			'WHERE mapCacheID = ? ',
 			[
 			tileOpts.property.folderName,
 			path,

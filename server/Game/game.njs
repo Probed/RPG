@@ -27,10 +27,12 @@ RPG.Game = new (RPG.GameClass = new Class({
 	var game = RPG.Cache.retrieve(request.user.options.userID,'game'+request.url.query.characterID);
 	if (!game) {
 	    //no game found. initialize the game and store it in the cache
+	    var idx = RPG.Timing.start('Game: Starting Game');
 	    RPG.InitGame.startGame({
 		user : request.user,
 		characterID : request.url.query.characterID
 	    },function(loadedGame) {
+		RPG.Timing.stop(idx);
 		if (loadedGame && loadedGame.error) {
 		    response.onRequestComplete(response,{
 			error : loadedGame.error
@@ -48,7 +50,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	//At this point the cache has been populated and we can process the incoming request.
 
-
+	request.user.gameActionIdx = RPG.Timing.start('Game Play: characterID: '+request.url.query.characterID + ' Action: ' + request.url.query.m);
 	switch (true) {
 	    //process game commands:
 
@@ -102,7 +104,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 			return;
 		    }
 		    Object.merge(game.universe,universe);//update game cache with viewable tiles
-
+		    RPG.Timing.stop(response.user.gameActionIdx);
 		    //send out the loaded game
 		    response.onRequestComplete(response,RPG.Game.removeSecrets(game));
 		});
@@ -160,7 +162,7 @@ RPG.Game = new (RPG.GameClass = new Class({
 
 	RPG.Game.getViewableTiles(game, function(universeChanges) {
 
-	    //create an object that will get sent back to the cliend
+	    //create an object that will get sent back to the client
 	    var toClient = {};
 	    if (events) {
 		//merge any events[event].game objects into the client response
@@ -193,11 +195,35 @@ RPG.Game = new (RPG.GameClass = new Class({
 		});
 	    }
 	    Object.merge(game,toClient);//updates cached object. beware
-
 	    toClient.events = events;
 
-	    //and send the cleaned up resonse back to the client
-	    response.onRequestComplete(response,RPG.Game.removeSecrets(toClient));
+	    var levelUp = RPG.checkLevelUp(game.character);
+	    if (levelUp) {
+		var updateChar = Object.clone(game.character);
+		Object.merge(updateChar,levelUp);
+		RPG.Character.store({
+		    user : game.user,
+		    character : updateChar
+		},function(character){
+		    if (character.error) {
+			if (!toClient.events) toClient.events = {};
+			toClient.events.levelUpCheckError = character.error;
+		    } else {
+			Object.merge(game.character,character);
+			if (!toClient.character) toClient.character = {};
+			Object.merge(toClient.character,levelUp);
+		    }
+		    toClient = RPG.Game.removeSecrets(toClient);
+		    RPG.Timing.stop(response.user.gameActionIdx);
+		    //and send the cleaned up resonse back to the client
+		    response.onRequestComplete(response,toClient);
+		});
+	    } else {
+		toClient = RPG.Game.removeSecrets(toClient);
+		RPG.Timing.stop(response.user.gameActionIdx);
+		//and send the cleaned up resonse back to the client
+		response.onRequestComplete(response,toClient);
+	    }
 	});
 
     },
@@ -227,7 +253,9 @@ RPG.Game = new (RPG.GameClass = new Class({
 	});
 
 	if (newlyVisible && newlyVisible.length > 0) {
+	    var idx = RPG.Timing.start('Game Play: Load viewable tiles: ' + newlyVisible);
 	    RPG.Map.loadMap(game,function(universe){
+		RPG.Timing.stop(idx);
 		callback(universe,circle,newlyVisible);
 	    });
 	} else {
@@ -258,13 +286,16 @@ RPG.Game = new (RPG.GameClass = new Class({
 	}
 
 	game.moveTo = RPG[game.dir](game.character.location.point,1);
-
+	var idx = RPG.Timing.start('Game Play: Moving Character To: ' + game.moveTo);
 	RPG.moveCharacterToTile(game,function(moveEvents) {
+	    RPG.Timing.stop(idx);
 	    if (moveEvents.error) {
 		callback(moveEvents);
 		return;
 	    }
+	    idx = RPG.Timing.start('Game Play: Tick');
 	    RPG.Game.tick(game, function(tickEvents){
+		RPG.Timing.stop(idx);
 		callback(Object.merge(moveEvents,tickEvents));
 	    });
 	});

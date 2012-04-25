@@ -6,7 +6,7 @@ var RPG = module.exports = {};
 
 Object.merge(RPG,require("../Log/Log.njs"));
 
-var logger = RPG.Log.getLogger('PageBase');
+var logger = RPG.Log.getLogger('RPG.PageBase');
 
 RPG.PageBaseClass =  new Class({
     Implements : [Events,Options],

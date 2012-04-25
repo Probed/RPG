@@ -44,7 +44,8 @@ RPG.Difficulty = {
 		max : 0.5//+50% HP
 	    },
 	    xp : {
-		modifier : 0.5//+50% extra xp
+		modifier : 0.15, //+15% extra xp
+		leveling : [100000,-7,-0.045]
 	    },
 	    Stats : {
 		distribute : 5//start with 5 distributable stats
@@ -86,7 +87,8 @@ RPG.Difficulty = {
 		max : 0//no change, default 100%
 	    },
 	    xp : {
-		modifier : 0//no change, default 100%
+		modifier : 0,//no change, default 100%
+		leveling : [100000,-5.5,-0.06]
 	    },
 	    Stats : {
 		distribute : 4//start with 4 distributable stats
@@ -128,7 +130,8 @@ RPG.Difficulty = {
 		max : -0.25//-25% mana
 	    },
 	    xp : {
-		modifier : -0.25//-25% xp
+		modifier : -0.25,//-10% xp
+		leveling : [100000,-5.9,-0.068]
 	    },
 	    Stats : {
 		distribute : 2//start with 2 distributable stats
@@ -170,7 +173,8 @@ RPG.Difficulty = {
 		max : -0.50//-50% mana
 	    },
 	    xp : {
-		modifier : -0.5//-50% xp
+		modifier : -0.5,//-50% xp
+		leveling : [100000,-6,-0.08]
 	    },
 	    Stats : {
 		distribute : 0//start with 0 distributable stats
@@ -464,11 +468,25 @@ RPG.calcSightRadius = function(character) {
  *
  * callback(xp || 0)
  */
-RPG.calcXP = function(baseXP, options,callback) {
+RPG.calcXP = function(baseXP, options) {
     var modifier = RPG.applyModifiers(options.game.character,1,'Character.xp.modifier');
-    callback(Math.floor(baseXP * (modifier || 1)));
+    return Math.floor(baseXP * (modifier || 1));
 }
 
+RPG.levelXP = function(difficulty,level) {
+    var abc = RPG.difficultyVal(difficulty,'Character.xp.leveling');
+    return Number.round(abc[0] * Math.exp(abc[1] * Math.exp(abc[2] * level)),-2);
+}
+
+RPG.checkLevelUp = function(character) {
+    if (character.xp > RPG.levelXP(character.Difficulty,character.level+1)) {
+	return {
+	    level : character.level+1
+	};
+    } else {
+	return null;
+    }
+}
 
 RPG.calculateSlotBonuses = function(game) {
 

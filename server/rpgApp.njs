@@ -29,7 +29,17 @@ RPG.App = new (RPG.AppClass = new Class({
 	var portraits = require('fs').readdirSync('./common/Character/portrait');
 	RPG.Portraits = {};
 	portraits.each(function(gender){
-	    RPG.Portraits[gender] = require('fs').readdirSync('./common/Character/portrait/'+gender);
+	    var stat = require('fs').statSync('./common/Character/portrait/'+gender);
+	    if (stat.isDirectory()) {
+		var portraitFolders = require('fs').readdirSync('./common/Character/portrait/'+gender);
+		RPG.Portraits[gender] = [];
+		portraitFolders.each(function(folder){
+		    stat = require('fs').statSync('./common/Character/portrait/'+gender+'/'+folder);
+		    if (stat.isDirectory()) {
+			RPG.Portraits[gender].push(folder);
+		    }
+		});
+	    }
 	}.bind(this));
 	var str = '/*This File is Generated in /server/rpgApp.njs*/if (!RPG) var RPG = {};RPG.Portraits=';
 	str += JSON.encode(RPG.Portraits);
@@ -98,9 +108,9 @@ RPG.App = new (RPG.AppClass = new Class({
 	 * (create/update user requests are handled at this time also)
 	 * we attach the user to the request so the user can follow the request wherever it goes
 	 */
-
+	response.appTimeIdx = RPG.Timing.start('RPG.App Request: ' + JSON.encode(url));
 	RPG.Users.determineUser(request,response, function(user) {
-	    request.user = user;
+	    request.user = response.user = user;
 	    request.user.logger.trace('Request: %s',request.url);
 
 	    if (url && (url.query && !url.query.xhr) || (!url.query)) {
@@ -283,6 +293,7 @@ RPG.App = new (RPG.AppClass = new Class({
 	response.writeHead(statusCode,headers);
 	response.write(output);
 	response.end();
+	RPG.Timing.stop(response.appTimeIdx);
 	logger.trace('Response Sent: %s',JSON.stringify(headers));
 	/**
 	 * Throw error to cause node to restart

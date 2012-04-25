@@ -1,5 +1,6 @@
 if (!RPG) var RPG = {};
 if (typeof exports != 'undefined') {
+    Object.merge(RPG,require('../Game/Generators/Utilities.js'));
     module.exports = RPG;
 }
 
@@ -994,3 +995,26 @@ RPG.CharacterSlots = {
 	col : 10
     }
 };
+
+/**
+ *
+ * Return null if you can equip, or an error message if you can't
+ */
+RPG.canEquip = function(map, tile, point) {
+    var cant = 'The item <b>' +Object.getFromPath(tile,'options.property.tileName')+ '</b> does not fit there.';
+
+    if (!Object.getFromPath(tile,'options.item.type')) {
+	return 'Item is not equipable: <b>' + tile.options.property.tileName + '</b>';
+    }
+    if (!Object.getFromPath(tile,'options.item.identified')) {
+	return 'Unidentified item is not equipable: <b>' + tile.options.property.tileName + '</b>';
+    }
+    Object.each(RPG.CharacterSlots,function(slot,name){
+	if (slot.row == point[0] && slot.col == point[1] && slot.itemTypes.contains(tile.options.item.type) && RPG.areaContainsPoint(map.options.property.slots,point)) {
+	    cant = null;
+	} else if (slot.row == point[0] && slot.col == point[1]) {
+	    cant = 'Invalid item type <b>'+tile.options.item.type.capitalize()+'</b>.<br>Slot only accepts: <b>' + slot.itemTypes.join(',').capitalize() + '</b>';
+	}
+    });
+    return cant;
+}

@@ -83,28 +83,15 @@ RPG.Map = new Class({
 	    }.bind(this)
 	});
 
-	this.mapCanvas = new Element('canvas',{
-	    styles : {
-		position : 'absolute'
-	    },
-	    events : {
-		click : function(event) {
-		    if (event && event.event.layerX > 0 && event.event.layerY && !this.miniMapDragging) {
-			this.rowOffset = Math.floor((event.event.layerX / this.mapZoom)  - (this.rows/2));
-			this.colOffset = Math.floor((event.event.layerY / this.mapZoom) - (this.cols/2));
-			this.refreshMap();
-		    }
-		}.bind(this),
-		mousewheel : function(event) {
-		    if (event.wheel > 0) {
-			this.mapZoom += 1;
-		    } else {
-			this.mapZoom -= 1;
-		    }
-		    this.refreshMap();
-		}.bind(this)
-	    }
-	});
+//	CANVAS.init({
+//	    canvasElement : this.mapCanvas = new Element('canvas',{
+//		id : 'GameCanvas',
+//
+//		styles : {
+//		    border : '1px solid white'
+//		}
+//	    }).inject(this.mapDiv)
+//	});
 
 	window.addEvents({
 	    'resize' : function(){
@@ -161,7 +148,65 @@ RPG.Map = new Class({
 	return Math.floor(($('pnlMainContent').getParent().getSize().y+ (this.mapZoom*2)) / this.mapZoom);
     },
 
+    refreshCanvas : function() {
+	if (this.refreshingMap) return;
+	this.refreshingMap = true;
+
+	var r = 0;
+	var c = 0;
+
+	this.cols = this.calcCols();
+	this.rows = this.calcRows();
+
+	this.rowOffset = this.game.character.location.point[0] - Math.floor(this.rows/2);
+	this.colOffset = this.game.character.location.point[1] - Math.floor(this.cols/2);
+
+	this.mapCanvas.set('width',$('pnlMainContent').getParent().getSize().x - 5);
+	this.mapCanvas.set('height',$('pnlMainContent').getParent().getSize().y - 5);
+
+	var map = this.game.universe.maps[this.game.character.location.mapName];
+	for (r = 0; r<this.rows; r++) {
+	    for (c = 0; c<this.cols; c++) {
+		var tilePaths = RPG.getTiles(map.tiles,[r+this.rowOffset,c+this.colOffset]);
+		if (!tilePaths || (tilePaths && tilePaths.length == 0)) continue;
+		var layer = 0;
+		tilePaths.each(function(tilePath){
+		    var tile = Object.getFromPath(map.cache,tilePath);
+		    if (!tile) return;
+		    if (!this.canvasLayers) this.canvasLayers = [];
+		    if (!this.canvasLayers[layer]){
+			this.canvasLayers[layer] = CANVAS.layers.add(new Layer({
+			    id : 'layer_'+layer
+			}));
+		    }
+		    this.canvasLayers[layer].add(new CanvasItem({
+			id : r+''+c,
+			x : c * this.mapZoom,
+			y : r * this.mapZoom,
+			w : this.mapZoom,
+			h : this.mapZoom,
+			scale : 1,
+			events : {
+			    onDraw : function(ctx){
+				var img = new Image();
+				img.onload = function(){
+				    ctx.drawImage(img,this.x,this.y,this.w,this.h);
+				}.bind(this);
+				img.src = RPG.getMapTileImage(tilePath, tile);
+			    }
+			}
+		    }));
+		    layer++;
+		}.bind(this));
+	    }
+	}
+	CANVAS.clear().draw();
+	this.refreshingMap = false;
+    },
+
     refreshMap : function() {
+//	this.refreshCanvas();
+//	return;
 
 	if (this.refreshingMap) return;
 	this.refreshingMap = true;
@@ -453,14 +498,16 @@ RPG.Map = new Class({
     },
 
     animateEvents : function (results,callback) {
+//	callback();
+//	return;
 
 	var charPoint = this.game.character.location.point;
 	var moveTo = this.game.moveTo;
 	var zoom = this.mapZoom;
 	var dir = this.game.dir;
 	var transition = Fx.Transitions.linear;
-	var duration = 50;
-	var fps = 30;
+	var duration = 100;
+	var fps = 60;
 
 
 	var animations = [];

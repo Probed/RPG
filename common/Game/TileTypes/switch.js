@@ -105,11 +105,12 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 		var tile = Object.getFromPath(cache,change.path);
 		if (!tile) return;
 
-		var uni = RPG.updateTile({
+		var uni = RPG.getUpdateUniverse({
 		    universe : options.game.universe,
 		    mapName : options.game.character.location.mapName,
-		    tilePath : change.path,
-		    options : JSON.decode(change.options,true),
+		    tilePaths : change.path,
+		    point : options.game.character.location.point,
+		    tileOptions : JSON.decode(change.options,true),
 		    updateUniverse : updateUni
 		});
 
@@ -123,7 +124,6 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 		});
 		return;
 	    }
-
 	    //now store updated tiles
 	    RPG.Universe.store({
 		user : options.game.user,
@@ -136,6 +136,10 @@ RPG.TileTypes['switch'].activate = function(options,callback) {
 		    return;
 		}
 		//finally callback with the paths so that 'activateComplete' can use the list to remove tiles from the cache
+		updateUni.options = {};//no universe options changed. remove it
+		Object.each(updateUni.maps,function(map){
+		    map.options = {};//no map options changed. remove it
+		});
 		callback({
 		    //switchPaths : paths,
 		    game : {

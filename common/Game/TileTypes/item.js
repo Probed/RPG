@@ -35,6 +35,10 @@ if (typeof exports != 'undefined') {
 //    callback();
 //}
 
+
+/**
+ * Activating an item on the map will place that item into the characters inventory
+ */
 RPG.TileTypes.item.activate = function(options,callback) {
     if (typeof exports == 'undefined') {
 	//client-side
@@ -53,106 +57,74 @@ RPG.TileTypes.item.activate = function(options,callback) {
 
 	if (item) {
 	    var cachedMap = options.game.universe.maps[options.game.character.location.mapName];
-	    var updateMap = null;
-
-	    var updateUniverse = {
-		options : options.game.universe.options,
-		maps : {}
-	    };
-	    updateUniverse.maps[options.game.character.location.mapName] = updateMap = {
-		options : cachedMap.options,
-		tiles : {},
-		cache : {}
-	    }
-
 	    var cachedInv = options.game.inventory.character;
-	    var inv = null;
-	    var storeoptions = {
-		user : options.game.user,
-		character : options.game.character,
-		universe : updateUniverse,
-		inventory : {
-		    character : inv = {
-			options : cachedInv.options,
-			tiles : {},
-			cache : {}
-		    }
-		}
-	    };
-
 	    var items = 0;
 	    var errors = [];
-
 	    var point = options.game.character.location.point;
 
-	    //when removing a tile we need to put the unchanged ones in the update map since it is all or nothing update with tiles
-	    RPG.setTiles(updateMap.tiles,point,RPG.getTiles(cachedMap.tiles,point));
-
-	    //go through each of the tiles at the charcters current location
-	    options.tiles.each(function(tilePath){
-		var tile = Object.getFromPath(cachedMap.cache,tilePath);
-
-		//check to see if the tile is an item
-		if (tile && tile.options && tile.options.item) {
-
-		    //put a copy of this tile in our temporary universe - this will be marked for deletion
-		    RPG.cloneTile(cachedMap.cache,tilePath,updateMap.cache,{
-			database : {
-			    deleted : true//mark for deletion
-			}
-		    });
-
-		    //make a copy of the tilecache and put it in thier inventory
-		    RPG.cloneTile(cachedMap.cache,tilePath,inv.cache,{
-			database : {
-			    id : 0 //mark for insert
-			}
-		    });
-
-		    //remove the item from the temp map
-		    RPG.removeTile(updateMap.tiles,tilePath,point);
-
-		    //Push the item tile into the inventory map
-		    //@todo determine where
-		    var x = 0;
-		    var y = 0;
-		    var placed = false;
-		    var firstAvail = null;
-		    var used = 0;
-		    var cachedTiles = null;
-		    var invTile = null;
-		    for (x = 0; x<inv.options.property.maxRows; x++) {
-			for (y = 0; y<inv.options.property.maxCols; y++) {
-			    cachedTiles = cachedInv.tiles && cachedInv.tiles[x] && cachedInv.tiles[x][y];
-			    if (cachedTiles && cachedTiles.length > 0) {
-				used++;
-			    } else if (!firstAvail) {
-				firstAvail = [x,y];
-			    }
-			    //check to see if a tile of the type is already in the inventory
-			    if (RPG.tilesContainsPartialPath(cachedInv.tiles,RPG.trimPathOfNameAndFolder(tilePath),[x,y])) {
-				//lookup exact type based on image name:
-				invTile = Object.getFromPath(cachedInv.cache,cachedTiles[0]);
-				if (invTile) {
-				    var cacheImgName = Object.getFromPath(invTile,'options.property.image.name');
-				    var itemImgName = Object.getFromPath(tile.options,'property.image.name');
-				    if (cacheImgName === itemImgName) {
-					RPG.pushTiles(storeoptions.inventory.character.tiles,[x,y],Array.clone(cachedTiles).append([tilePath]));
-					items++;
-					placed = true;
-				    }
-				}
-			    }
-			}
-		    }
-		    if (!placed && firstAvail) {
-			RPG.pushTile(storeoptions.inventory.character.tiles,firstAvail,tilePath);
-			items++;
-		    } else if (!placed && !firstAvail) {
-			errors.push('Could not take item '+tile.options.property.tileName+'. Inventory Full.');
+	    //clone the top most item at the characters current location and set it to be deleted from the map
+	    var tile = RPG.getLastByTileType(cachedMap, 'item', options.tiles);
+	    var updateUniverse = RPG.getUpdateUniverse({
+		universe : options.game.universe,
+		mapName : options.game.character.location.mapName,
+		tilePaths : tile.path,
+		point : options.game.character.location.point,
+		tileOptions : {
+		    database : {
+			deleted : true
 		    }
 		}
 	    });
+	    if (updateUniverse.error) {
+		errors.push(updateUniverse.error)
+	    }
+
+	    //get our inventory update object
+	    var updateInventory = RPG.getUpdateMap({
+		maps : options.game.inventory,
+		mapName : 'character'
+	    });
+
+	    if (updateInventory.error) {
+		errors.push(updateInventory.error)
+	    }
+
+	    //loop through the characters inventory slots to find the first available slot
+	    var x = 0;
+	    var y = 0;
+	    var placed = false;
+	    var firstAvail = null;
+	    var used = 0;
+	    for (x = 0; x<updateInventory.character.options.property.maxRows; x++) {
+		for (y = 0; y<updateInventory.character.options.property.maxCols; y++) {
+		    //check to see if the slot contains an item already
+		    if ((Object.getFromPath(cachedInv,['tiles',x,y]) || []).length > 0) {
+			used++;
+		    } else if (!firstAvail) {
+			firstAvail = [x,y];
+		    }
+		}
+	    }
+	    if (!placed && firstAvail) {
+		//remove the item from the update universe map
+		if (!RPG.removeTile(updateUniverse.maps[options.game.character.location.mapName].tiles, tile.path, point)) {
+		    errors.push('Failed to remove the tile: ' + tile.path + ' from ' + options.game.character.location.mapName);
+		}
+
+		//clone and push the tile to thier inventory
+		if (!RPG.pushTile(updateInventory.character.tiles,firstAvail,
+		    RPG.cloneTile(cachedMap.cache,tile.path,updateInventory.character.cache,{
+			database : {
+			    id : 0 //mark for insert
+			}
+		    }))) {
+		    errors.push('Failed to move the tile: ' + tile.path + ' to character inventory');
+		}
+		items++;
+	    } else if (!placed && !firstAvail) {
+		errors.push('Could not take item '+updateUniverse.tileName+'. Inventory Full.');
+	    }
+
 	    if (items == 0) {
 		if (errors.length > 0) {
 		    callback({
@@ -164,19 +136,26 @@ RPG.TileTypes.item.activate = function(options,callback) {
 
 	    } else {
 
-		RPG.Universe.store(storeoptions,function(universe){
+		RPG.Universe.store({
+		    user : options.game.user,
+		    universe : updateUniverse
+		},function(universe){
 		    if (universe.error) {
 			callback(universe);
 			return;
 		    }
-		    RPG.Inventory.storeInventory(storeoptions,function(inventory){
+		    RPG.Inventory.storeInventory({
+			user : options.game.user,
+			character : options.game.character,
+			inventory : updateInventory
+		    },function(inventory){
 			if (inventory && inventory.error) {
 			    callback(inventory);
 			    return;
 			}
 
-			universe.options = {};//no universe options changed
-			Object.each(universe.maps,function(map){
+			updateUniverse.options = {};//no universe options changed
+			Object.each(updateUniverse.maps,function(map){
 			    map.options = {};//no map options changed
 			});
 			inventory.options = {}; //no options changed;
@@ -207,106 +186,38 @@ RPG.TileTypes.item.activate = function(options,callback) {
 
 RPG.TileTypes.item.inventorySwap = function(options,callback) {
 
-    var updateUni = null;
-    var invChanges = {};
-    var tmpUni = null;
-    if (options.swap.fromMap == null) {
-	//from map is null. use the characters current loction:
-	options.swap.fromMap = options.game.character.location.mapName;
-	options.swap.fromPoint = options.game.character.location.point;
+    var updates = null;
 
-	//create a temp universe with both the characters map and the invenory map. this will be used as the 'source' universe
-	tmpUni = RPG.getUpdateUniverse({
-	    universe : options.game.universe,
-	    mapName : options.swap.fromMap
-	});
-	tmpUni.maps[options.swap.fromMap] = options.game.universe.maps[options.swap.fromMap];
-	tmpUni.maps[options.swap.toMap] = options.game.inventory[options.swap.toMap];
+    updates = RPG.swapTiles({
+	fromMaps : options.game.inventory,
+	toMaps : options.game.inventory,
+	swap : options.swap
+    });
 
-	//make the swap and record the changes in updateUni
-	updateUni = RPG.swapTiles({
-	    universe : tmpUni,
-	    swap : options.swap
-	});
-
-	//remove the 'inventory' map from our actual universe. the inventory is saved seperatly
-	invChanges[options.swap.toMap] = Object.erase(updateUni.maps,options.swap.toMap);
-	//remove the point so it gets sent to the server without these points
-	options.swap.fromMap = null;
-	options.swap.fromPoint = null;
-
-    } else if (options.swap.toMap == null) {
-	//from map is null. use the characters current loction:
-	options.swap.toMap = options.game.character.location.mapName;
-	options.swap.toPoint = options.game.character.location.point;
-
-	//create a temp universe with both the characters map and the invenory map. this will be used as the 'source' universe
-	tmpUni = RPG.getUpdateUniverse({
-	    universe : options.game.universe,
-	    mapName : options.swap.toMap
-	});
-	tmpUni.maps[options.swap.toMap] = options.game.universe.maps[options.swap.toMap];
-	tmpUni.maps[options.swap.fromMap] = options.game.inventory[options.swap.fromMap];
-
-	//make the swap and record the changes in updateUni
-	updateUni = RPG.swapTiles({
-	    universe : tmpUni,
-	    swap : options.swap
-	});
-
-	//remove the 'inventory' map from our actual universe. the inventory is saved seperatly
-	invChanges[options.swap.fromMap] = Object.erase(updateUni.maps,options.swap.fromMap);
-
-	//remove the point so it gets sent to the server without these points
-	options.swap.toMap = null;
-	options.swap.toPoint = null;
-
-    } else {
-	//when both maps are named we are dealing with 'inventory' maps
-	updateUni = RPG.swapTiles({
-	    universe : {
-		maps : options.game.inventory
-	    },
-	    swap : options.swap
-	});
-
-	invChanges = updateUni.maps;
-    }
-
-    if (!updateUni || updateUni.error) {
+    if (!updates || updates.error) {
 	callback({
-	    error : (updateUni && updateUni.error) || 'Item Swap Failed. Nothing Moved.'
+	    error : (updates && updates.error) || 'Item Swap Failed. Nothing Moved.'
 	});
 	return;
     }
 
-
     if (typeof exports != 'undefined') {
 	//server
-	RPG.Universe.store({
+	RPG.Inventory.storeInventory({
 	    user : options.game.user,
-	    universe : (tmpUni && updateUni) || null
-	}, function(universe){
-	    if (tmpUni && universe && universe.error) {
-		callback(universe);
+	    character : options.game.character,
+	    inventory : Object.merge(updates[0],updates[1])
+	}, function(inventory) {
+	    if (inventory && inventory.error) {
+		callback(inventory);
 		return;
 	    }
-	    RPG.Inventory.storeInventory({
-		user : options.game.user,
-		character : options.game.character,
-		inventory : invChanges
-	    }, function(inventory) {
-		if (inventory && inventory.error) {
-		    callback(inventory);
-		    return;
-		}
-		//update the game cache
-		Object.merge(options.game.inventory,inventory);
-		callback({
-		    inventory : true //don't need to return anything except success because the client will have generated exaclty the same results (hopefully)'
-		});
+	    //update the game cache
+	    Object.merge(options.game.inventory,inventory);
+	    callback({
+		inventory : true //don't need to return anything except success because the client will have generated exaclty the same results (hopefully)'
 	    });
-	})
+	});
 
     } else {
 	//client
@@ -330,8 +241,7 @@ RPG.TileTypes.item.inventorySwap = function(options,callback) {
 		    RPG.Dialog.error(results.events.error);
 		}
 		if (Object.getFromPath(results,'events.inventory')) {
-		    tmpUni && Object.merge(options.game.universe,tmpUni);
-		    Object.merge(options.game.inventory,invChanges);
+		    Object.merge(options.game.inventory,updates[0],updates[1]);
 		}
 		options.game.events = results && results.events;
 		Object.merge(options.game,results);
