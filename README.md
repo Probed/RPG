@@ -48,7 +48,7 @@ Current development is being done using [Netbeans](http://www.netbeans.org/)
 * [traverse](http://github.com/substack/js-traverse) -- [Server](https://github.com/Probed/RPG/tree/master/node_modules) (for node-mysql)
 * [log4js](https://github.com/nomiddlename/log4js-node)
 
-### Dontations
+### Donations
 --------------
 
 Bitcoin: 1MV5U1LcEMVoUgB75P1K3sELtcAp1MXu56
