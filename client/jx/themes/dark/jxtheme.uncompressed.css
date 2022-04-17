@@ -4585,7 +4585,7 @@ select, input, textarea {
 }
 
 .table-tr-odd {
-    background-color : #3e3e3e;
+    /*background-color : #3e3e3e;*/
 }
 
 .table-tr-hovered {
@@ -4824,4 +4824,36 @@ select, input, textarea {
 }
 .tileOderTable td {
     padding : 2px;
+}
+
+#p1 {
+    text-align : center;
+}
+
+#p2 {
+    text-align : left;
+    width : 500px;
+    display : inline-block;
+}
+
+#p2 ul {
+    list-style: circle;
+    padding-left: 0px;
+}
+
+#p2 ul ul {
+    list-style: square;
+    padding-left: 30px;
+}
+
+#p2 #newCharacter, #p2 #inventory, #p2 #loadMaps {
+    color : lightblue;
+    cursor : pointer;
+}
+
+.tabContent td {
+    /*padding-right:10px;*/
+}
+.tabContent > table {
+    margin:20px;
 }

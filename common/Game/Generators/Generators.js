@@ -10,7 +10,7 @@ if (typeof exports != 'undefined') {
 
 /**
  * The MapGeneratorBaseClass defines the the minimum requirements for a MapGenerator
- * this Class is extened by all map generators
+ * this Class is extended by all map generators
  */
 RPG.MapGeneratorBaseClass = new Class({
 

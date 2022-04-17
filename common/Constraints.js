@@ -422,6 +422,7 @@ RPG.Constraints.getDisplayTable = function(options,optionName,optionsPath) {
 	useKeyboard : false,
 	properties : {
 	    cellpadding : 2,
+	    'class' : 'constraint-table',
 	    styles : {
 		'background-color' : 'rgb('+ ((optionsPath.length+1)*25)+','+ ((optionsPath.length+1)*25)+','+ ((optionsPath.length+1)*25)+')'
 	    }

@@ -98,7 +98,7 @@ RPG.Difficulty = {
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 64//must be power of 2
+		    size : 32//must be power of 2
 		}
 	    }
 	},
@@ -141,7 +141,7 @@ RPG.Difficulty = {
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 128//must be power of 2
+		    size : 32//must be power of 2
 		}
 	    }
 	},
@@ -184,7 +184,7 @@ RPG.Difficulty = {
 	Generator : {
 	    Terrain : {
 		terrain : {
-		    size : 256//must be power of 2
+		    size : 32//must be power of 2
 		}
 	    }
 	},

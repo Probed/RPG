@@ -66,13 +66,17 @@ define([
 						    label : item.label,
 						    image : item.image,
 						    onClick : function(){
-							document.location.href = item.hashTag;
+							if (document.location.hash != item.hashTag) {
+							    document.location.href = item.hashTag;
+							} else {
+							    RPG.App.browseTo(window.location.hash);
+							}
 						    }
 						}));
 					    }
 					});
 				    });
-				    mnus.push(new Jx.Menu.Item({
+				    mnus.push(this.mapEditorMenuItem = new Jx.Menu.Item({
 					label: 'Map Editor',
 					image: '/client/jx/themes/dark/images/maps-stack.png',
 					onClick : function() {
@@ -228,7 +232,7 @@ define([
 						    image: '/client/jx/themes/dark/images/character.png',
 						    content : this.charEquipDiv = new Element('div'),
 						    onDown : function() {
-							if (this.charEquipDiv) {
+							if (this.charEquipDiv && RPG.CharacterEquipment) {
 							    this.charEquipTab.setBusy(false);
 							    this.charEquipDiv.getParent().adopt(RPG.CharacterEquipment.toElement());
 							    this.charEquipDiv.destroy();
@@ -238,9 +242,11 @@ define([
 						)
 					});
 				    }
-				    RPG.CharacterEquipment.refresh(RPG.Game.game);
-				    this.charDialog.open();
-				    this.charDialog.resize();
+				    if (RPG.CharacterEquipment) {
+					RPG.Game && RPG.CharacterEquipment.refresh(RPG.Game.game);
+					this.charDialog.open();
+					this.charDialog.resize();
+				    }
 				}.bind(this),
 				toggle : false
 			    }),

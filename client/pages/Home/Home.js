@@ -11,7 +11,18 @@ RPG.pageHome = new Class({
     initialize : function(options) {
 	this.setOptions(options);
 	this.element = new Element('div',{
-	    id : 'pageHome'
+	    id : 'pageHome',
+	    events : {
+		'click:relay(#newCharacter)' : function(event){
+		    RPG.App.playNowBtn.clicked(event);
+		},
+		'click:relay(#inventory)' : function(event){
+		    RPG.App.charBtn.clicked(event);
+		},
+		'click:relay(#loadMaps)' : function(event){
+		    RPG.App.mapEditorMenuItem.clicked(event);
+		}
+	    }
 	});
 	this.element.store('instance',this);
     },

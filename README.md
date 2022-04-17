@@ -3,7 +3,7 @@ Javascript Tile Based RPG
 
 The goal of this project is to create an Infinite Randomish Universe within which the player explores, quests, fights, loots, equips, levels and more.
 
-Demo Available at: [wastedpaper.sytes.net](http://wastedpaper.sytes.net:50014/)
+Demo Available at: [68.145.36.61](http://68.145.36.61:50014/)
 YouTube video #1: [March 2nd 2012](http://www.youtube.com/watch?v=D1-w8bU1E4Y)
 YouTube video #2: [April 11th 2012](http://youtu.be/0fUgivYQruU)
 
